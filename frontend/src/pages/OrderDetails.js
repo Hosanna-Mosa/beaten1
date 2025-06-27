@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -18,54 +18,54 @@ import {
   Alert,
   Card,
   CardContent,
-  CardMedia
-} from '@mui/material';
+  CardMedia,
+} from "@mui/material";
 import {
   LocalShipping as ShippingIcon,
   CheckCircle as DeliveredIcon,
   Cancel as CancelledIcon,
-  ArrowBack as BackIcon
-} from '@mui/icons-material';
-import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
+  ArrowBack as BackIcon,
+} from "@mui/icons-material";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'pending':
-      return 'warning';
-    case 'processing':
-      return 'info';
-    case 'shipped':
-      return 'primary';
-    case 'delivered':
-      return 'success';
-    case 'cancelled':
-      return 'error';
+    case "pending":
+      return "warning";
+    case "processing":
+      return "info";
+    case "shipped":
+      return "primary";
+    case "delivered":
+      return "success";
+    case "cancelled":
+      return "error";
     default:
-      return 'default';
+      return "default";
   }
 };
 
 const getStatusIcon = (status) => {
   switch (status) {
-    case 'shipped':
+    case "shipped":
       return <ShippingIcon />;
-    case 'delivered':
+    case "delivered":
       return <DeliveredIcon />;
-    case 'cancelled':
+    case "cancelled":
       return <CancelledIcon />;
     default:
       return null;
   }
 };
 
-const OrderDetails = () => {
+const OrderDetails = ({ mode }) => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -73,7 +73,9 @@ const OrderDetails = () => {
         const response = await axios.get(`/api/orders/${orderId}`);
         setOrder(response.data);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to fetch order details');
+        setError(
+          err.response?.data?.message || "Failed to fetch order details"
+        );
       } finally {
         setLoading(false);
       }
@@ -83,14 +85,23 @@ const OrderDetails = () => {
   }, [orderId]);
 
   if (!user) {
-    navigate('/login');
+    navigate("/login");
     return null;
   }
 
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: { xs: 4, md: 8 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          color: mode === "dark" ? "#fff" : "#181818",
+          minHeight: "100vh",
+          transition: "background 0.3s, color 0.3s",
+        }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>
       </Container>
@@ -99,7 +110,16 @@ const OrderDetails = () => {
 
   if (error) {
     return (
-      <Container maxWidth="lg">
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: { xs: 4, md: 8 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          color: mode === "dark" ? "#fff" : "#181818",
+          minHeight: "100vh",
+          transition: "background 0.3s, color 0.3s",
+        }}
+      >
         <Alert severity="error" sx={{ mt: 4 }}>
           {error}
         </Alert>
@@ -109,15 +129,28 @@ const OrderDetails = () => {
 
   if (!order) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h5" gutterBottom>
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: { xs: 4, md: 8 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          color: mode === "dark" ? "#fff" : "#181818",
+          minHeight: "100vh",
+          transition: "background 0.3s, color 0.3s",
+        }}
+      >
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <Typography variant="h5" sx={{ color: mode === "dark" ? "#fff" : "#181818",}} gutterBottom>
             Order not found
           </Typography>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate('/orders')}
+            onClick={() => navigate("/orders")}
+            sx={{
+              bgcolor: mode === "dark" ? "#181818" : "#fff",
+              color: mode === "dark" ? "#fff" : "#181818",
+            }}
           >
             Back to Orders
           </Button>
@@ -127,11 +160,20 @@ const OrderDetails = () => {
   }
 
   return (
-    <Container maxWidth="lg">
+    <Container
+      maxWidth="lg"
+      sx={{
+        py: { xs: 4, md: 8 },
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Box sx={{ mb: 4 }}>
         <Button
           startIcon={<BackIcon />}
-          onClick={() => navigate('/orders')}
+          onClick={() => navigate("/orders")}
           sx={{ mb: 2 }}
         >
           Back to Orders
@@ -156,7 +198,9 @@ const OrderDetails = () => {
             </Typography>
             <List>
               {order.items.map((item) => (
-                <React.Fragment key={`${item.product._id}-${item.size}-${item.color}`}>
+                <React.Fragment
+                  key={`${item.product._id}-${item.size}-${item.color}`}
+                >
                   <ListItem alignItems="flex-start">
                     <ListItemAvatar>
                       <Avatar
@@ -170,11 +214,19 @@ const OrderDetails = () => {
                       primary={item.product.name}
                       secondary={
                         <>
-                          <Typography component="span" variant="body2" color="text.primary">
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            color="text.primary"
+                          >
                             Size: {item.size} | Color: {item.color}
                           </Typography>
                           <br />
-                          <Typography component="span" variant="body2" color="text.secondary">
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            color="text.secondary"
+                          >
                             Quantity: {item.quantity} × ₹{item.price}
                           </Typography>
                         </>
@@ -197,24 +249,34 @@ const OrderDetails = () => {
             <Typography variant="h6" gutterBottom>
               Order Summary
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Subtotal</Typography>
               <Typography>₹{order.totalAmount}</Typography>
             </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Shipping</Typography>
               <Typography>Free</Typography>
             </Box>
             {order.discount > 0 && (
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
                 <Typography>Discount</Typography>
                 <Typography color="error">-₹{order.discount}</Typography>
               </Box>
             )}
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+            >
               <Typography variant="h6">Total</Typography>
-              <Typography variant="h6">₹{order.totalAmount - order.discount}</Typography>
+              <Typography variant="h6">
+                ₹{order.totalAmount - order.discount}
+              </Typography>
             </Box>
           </Paper>
 
@@ -230,7 +292,7 @@ const OrderDetails = () => {
               {order.shippingAddress.address}
             </Typography>
             <Typography variant="body2" paragraph>
-              {order.shippingAddress.city}, {order.shippingAddress.state} -{' '}
+              {order.shippingAddress.city}, {order.shippingAddress.state} -{" "}
               {order.shippingAddress.pincode}
             </Typography>
             <Typography variant="body2" paragraph>
@@ -243,4 +305,4 @@ const OrderDetails = () => {
   );
 };
 
-export default OrderDetails; 
+export default OrderDetails;

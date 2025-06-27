@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -25,6 +25,7 @@ import {
   KeyboardArrowLeft as ArrowLeftIcon,
   KeyboardArrowRight as ArrowRightIcon,
 } from "@mui/icons-material";
+import HeroSearchBar from "../components/common/HeroSearchBar";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -34,7 +35,7 @@ const matteColors = {
   100: "#f5f5f5", // Off-white
 };
 
-const Home = () => {
+const Home = ({ mode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -42,6 +43,18 @@ const Home = () => {
   const [currentCollection, setCurrentCollection] = useState(0);
   const collectionsRef = React.useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Refs for each section
+  const sectionRefs = {
+    "t-shirts": useRef(null),
+    shirts: useRef(null),
+    "oversized-t-shirts": useRef(null),
+    "bottom-wear": useRef(null),
+    "cargo-pants": useRef(null),
+    jackets: useRef(null),
+    hoodies: useRef(null),
+    "co-ord-sets": useRef(null),
+  };
 
   const heroSlides = [
     {
@@ -213,8 +226,10 @@ const Home = () => {
   };
 
   const handleCategoryClick = (category) => {
-    navigate(`/products?category=${encodeURIComponent(category)}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const ref = sectionRefs[category];
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   const handleCollectionClick = (collection) => {
@@ -228,7 +243,15 @@ const Home = () => {
   };
 
   return (
-    <Box sx={{ overflowX: "hidden", width: "100%" }}>
+    <Box
+      sx={{
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "inherit",
+        minHeight: "100vh",
+        width: "100%",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       {/* Hero Section */}
       <Box
         sx={{
@@ -239,57 +262,6 @@ const Home = () => {
           bgcolor: "black",
         }}
       >
-        {/* Transparent Search Bar */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: { xs: 32, md: 48 },
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: { xs: "90%", sm: "70%", md: 400 },
-            zIndex: 4,
-            display: "flex",
-            alignItems: "center",
-            bgcolor: "transparent",
-            border: "1.5px solid #fff",
-            borderRadius: 2.5,
-            px: 2,
-            py: 1,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
-          }}
-        >
-          <svg
-            width="24"
-            height="24"
-            fill="none"
-            stroke="#fff"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ marginRight: 8, opacity: 0.85 }}
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder='Search "shirts"'
-            style={{
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              color: "#fff",
-              fontSize: "1.08rem",
-              width: "100%",
-              fontWeight: 400,
-              letterSpacing: "0.01em",
-              "::placeholder": { color: "#fff", opacity: 0.85 },
-            }}
-            onFocus={() => navigate("/products")}
-            onClick={() => navigate("/products")}
-            readOnly
-          />
-        </Box>
         {slides.map((slide, index) => (
           <Box
             key={index}
@@ -312,6 +284,21 @@ const Home = () => {
             {/* Overlay for readability removed */}
           </Box>
         ))}
+        {/* Mobile Search Bar on Hero Section */}
+        <Box
+          sx={{
+            display: { xs: "flex", md: "none" },
+            position: "absolute",
+            top: 24,
+            left: 0,
+            right: 0,
+            px: 2,
+            zIndex: 10,
+            justifyContent: "center",
+          }}
+        >
+          <HeroSearchBar colorMode="dark" />
+        </Box>
 
         {/* Slide Indicators */}
         <Box
@@ -371,27 +358,16 @@ const Home = () => {
             },
             zIndex: 3,
           }}
-        >
-          <Typography
-            variant="body2"
-            sx={{
-              color: "white",
-              opacity: 0.8,
-              mb: 1,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              fontSize: "0.8rem",
-            }}
-          >
-            Scroll to explore
-          </Typography>
-          <ScrollIcon sx={{ color: "white", opacity: 0.8, fontSize: 40 }} />
-        </Box>
+        ></Box>
       </Box>
 
       {/* Shop By Category */}
       <Box
-        sx={{ py: { xs: 4, md: 8 }, bgcolor: "white", position: "relative" }}
+        sx={{
+          py: { xs: 4, md: 8 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          position: "relative",
+        }}
       >
         <Container maxWidth="xl">
           {/* <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, letterSpacing: '-0.02em', color: 'text.primary', textAlign: 'center', fontSize: { xs: '1.15rem', sm: '1.4rem', md: '2rem' } }}>
@@ -421,7 +397,7 @@ const Home = () => {
                 transform: "translateX(-50%)",
                 width: "60px",
                 height: "3px",
-                background: "#000000",
+                background: mode === "dark" ? "#fff" : "#000000",
                 borderRadius: "2px",
               },
             }}
@@ -437,207 +413,118 @@ const Home = () => {
           </Box> */}
           <Grid
             container
-            spacing={0}
+            spacing={{ xs: 2, md: 3 }}
             sx={{
               mt: 1.5,
               flexWrap: { xs: "wrap", md: "nowrap" },
               overflowX: "hidden",
               py: { xs: 0, md: 2 },
-              justifyContent: { xs: "flex-start", md: "center" },
+              justifyContent: "center",
             }}
           >
-            {(() => {
-              const cats = [
-                {
-                  label: "T-Shirts",
-                  image:
-                    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80",
-                  category: "t-shirts",
-                },
-                {
-                  label: "Shirts",
-                  image:
-                    "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80",
-                  category: "shirts",
-                },
-                {
-                  label: "Cargo Pants",
-                  image:
-                    "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80",
-                  category: "cargo-pants",
-                },
-                {
-                  label: "Jackets",
-                  image:
-                    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
-                  category: "jackets",
-                },
-                {
-                  label: "Co-Ord Sets",
-                  image:
-                    "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80",
-                  category: "co-ord-sets",
-                },
-              ];
-              const items = cats.map((cat, index, arr) => {
-                // If last item and odd count, center on xs/sm
-                const isLast = index === arr.length - 1;
-                const isOdd = arr.length % 2 === 1;
-                if (isLast && isOdd) {
-                  return (
-                    <Grid
-                      item
-                      xs={6}
-                      sm={6}
-                      md={2.4}
-                      key={cat.label}
-                      sx={{
-                        display: "flex",
-                        justifyContent: {
-                          xs: "center",
-                          sm: "center",
-                          md: "flex-start",
-                        },
-                        p: 0,
-                        mx: { xs: "auto", sm: "auto", md: 0 },
-                      }}
-                    >
-                      <Card
-                        elevation={0}
-                        sx={{
-                          borderRadius: 0,
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          minHeight: { xs: 220, md: 280 },
-                          width: "100%",
-                          "&:hover": {
-                            boxShadow: 4,
-                            transform: "translateY(-8px) scale(1.04)",
-                          },
-                        }}
-                        onClick={() => handleCategoryClick(cat.category)}
-                      >
-                        <Box
-                          sx={{
-                            position: "relative",
-                            width: "100%",
-                            pt: "140%",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <CardMedia
-                            component="img"
-                            image={cat.image}
-                            alt={cat.label}
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        </Box>
-                        <CardContent sx={{ textAlign: "center", p: 1.5 }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{
-                              fontWeight: 700,
-                              fontSize: { xs: "1.05rem", md: "1.18rem" },
-                            }}
-                          >
-                            {cat.label}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  );
-                }
-                return (
-                  <Grid
-                    item
-                    xs={6}
-                    sm={6}
-                    md={2.4}
-                    key={cat.label}
-                    sx={{ display: "flex", justifyContent: "flex-start", p: 0 }}
+            {[
+              {
+                label: "T-Shirts",
+                image:
+                  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80",
+                category: "t-shirts",
+              },
+              {
+                label: "Shirts",
+                image:
+                  "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=600&q=80",
+                category: "shirts",
+              },
+              {
+                label: "Cargo Pants",
+                image:
+                  "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=600&q=80",
+                category: "cargo-pants",
+              },
+              {
+                label: "Jackets",
+                image:
+                  "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
+                category: "jackets",
+              },
+              {
+                label: "Co-Ord Sets",
+                image:
+                  "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=600&q=80",
+                category: "co-ord-sets",
+              },
+            ].map((cat) => (
+              <Grid
+                item
+                xs={6}
+                sm={6}
+                md={2.4}
+                key={cat.label}
+                sx={{ display: "flex", justifyContent: "center", p: 0 }}
+              >
+                <Card
+                  elevation={0}
+                  sx={{
+                    borderRadius: 0,
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    minHeight: { xs: 220, md: 280 },
+                    width: "100%",
+                    "&:hover": {
+                      boxShadow: 4,
+                      transform: "translateY(-8px) scale(1.04)",
+                    },
+                  }}
+                  onClick={() => handleCategoryClick(cat.category)}
+                >
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: "100%",
+                      pt: "140%",
+                      overflow: "hidden",
+                    }}
                   >
-                    <Card
-                      elevation={0}
+                    <CardMedia
+                      component="img"
+                      image={cat.image}
+                      alt={cat.label}
                       sx={{
-                        borderRadius: 0,
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "all 0.3s ease",
-                        minHeight: { xs: 220, md: 280 },
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
                         width: "100%",
-                        "&:hover": {
-                          boxShadow: 4,
-                          transform: "translateY(-8px) scale(1.04)",
-                        },
+                        height: "100%",
+                        objectFit: "cover",
                       }}
-                      onClick={() => handleCategoryClick(cat.category)}
+                    />
+                  </Box>
+                  <CardContent sx={{ textAlign: "center", p: 1.5 }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: { xs: "1.05rem", md: "1.18rem" },
+                      }}
                     >
-                      <Box
-                        sx={{
-                          position: "relative",
-                          width: "100%",
-                          pt: "140%",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <CardMedia
-                          component="img"
-                          image={cat.image}
-                          alt={cat.label}
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </Box>
-                      <CardContent sx={{ textAlign: "center", p: 1.5 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{
-                            fontWeight: 700,
-                            fontSize: { xs: "1.05rem", md: "1.18rem" },
-                          }}
-                        >
-                          {cat.label}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                );
-              });
-              // If odd, add an empty Grid item to center the last item on desktop
-              if (cats.length % 2 === 1) {
-                items.push(
-                  <Grid
-                    item
-                    xs={6}
-                    sm={6}
-                    md={2.4}
-                    key="empty-category"
-                    sx={{ display: { xs: "none", md: "flex" } }}
-                  />
-                );
-              }
-              return items;
-            })()}
+                      {cat.label}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           </Grid>
         </Container>
       </Box>
 
       {/* Best Sellers */}
-      <Box sx={{ py: { xs: 4, md: 6 } }}>
+      <Box
+        sx={{
+          py: { xs: 4, md: 6 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+        }}
+      >
         <Container maxWidth="xl">
           <Typography
             variant="h2"
@@ -655,7 +542,7 @@ const Home = () => {
                 transform: "translateX(-50%)",
                 width: "60px",
                 height: "3px",
-                background: "#000000",
+                background: mode === "dark" ? "#fff" : "#000000",
                 borderRadius: "2px",
               },
             }}
@@ -666,7 +553,7 @@ const Home = () => {
             sx={{
               display: { xs: "flex", md: "grid" },
               gridTemplateColumns: { md: "repeat(5, 1fr)" },
-              gap: 0,
+              gap: { xs: 2, md: 3 },
               overflowX: { xs: "auto", md: "visible" },
               py: { xs: 0, md: 2 },
               "&::-webkit-scrollbar": { display: "none" },
@@ -791,8 +678,8 @@ const Home = () => {
               variant="contained"
               size={isMobile ? "large" : "medium"}
               sx={{
-                backgroundColor: matteColors[900],
-                color: "white",
+                backgroundColor: mode == "dark" ? "fff" : "181818",
+                color: mode == "dark" ? "fff" : "181818",
                 py: isMobile ? 1 : 1,
                 px: isMobile ? 2 : 4,
                 fontSize: { xs: "0.8rem", md: "0.9rem" },
@@ -807,6 +694,8 @@ const Home = () => {
                 transition: "all 0.3s ease",
                 alignSelf: "center",
                 whiteSpace: "nowrap",
+                backgroundColor: mode == "dark" ? "181818" : "fff",
+                color: mode == "dark" ? "181818" : "fff",
               }}
               onClick={() => navigate("/products?sort=best-sellers")}
             >
@@ -849,9 +738,10 @@ const Home = () => {
       ].map((section, idx) => (
         <Box
           key={section.key}
+          ref={sectionRefs[section.key]}
           sx={{
             py: { xs: 4, md: 6 },
-            bgcolor: idx % 2 === 0 ? "white" : "grey.50",
+            bgcolor: mode === "dark" ? "#181818" : "#fff",
           }}
         >
           <Container maxWidth="xl">
@@ -864,7 +754,7 @@ const Home = () => {
                 mb: { xs: 2, md: 3 },
                 position: "relative",
                 letterSpacing: "-0.02em",
-                color: matteColors[900],
+                color: mode === "dark" ? "#fff" : "#181818",
                 "&::after": {
                   content: '""',
                   position: "absolute",
@@ -873,7 +763,7 @@ const Home = () => {
                   transform: "translateX(-50%)",
                   width: "60px",
                   height: "3px",
-                  background: "#000000",
+                  background: mode === "dark" ? "#fff" : "#000000",
                   borderRadius: "2px",
                 },
               }}
@@ -896,8 +786,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -909,8 +799,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -922,8 +812,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -935,8 +825,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -948,8 +838,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -961,8 +851,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -974,8 +864,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -987,8 +877,8 @@ const Home = () => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "320px",
-                      objectFit: "cover",
+                      height: isMobile ? "130px" : "320px",
+                      objectFit: "inherit",
                       display: "block",
                     }}
                   />
@@ -999,8 +889,8 @@ const Home = () => {
                   alt={section.name}
                   style={{
                     width: "100%",
-                    height: isMobile ? "180px" : "320px",
-                    objectFit: "cover",
+                    height: isMobile ? "130px" : "320px",
+                    objectFit: "inherit",
                     display: "block",
                   }}
                 />
@@ -1010,7 +900,7 @@ const Home = () => {
                 sx={{
                   position: "absolute",
                   left: "50%",
-                  top: "50%",
+                  top: "87%",
                   transform: "translate(-50%, -50%)",
                   backgroundColor: matteColors[900],
                   color: "white",
@@ -1044,7 +934,7 @@ const Home = () => {
                 mt: 1.5,
                 display: { xs: "flex", md: "grid" },
                 gridTemplateColumns: { md: "repeat(5, 1fr)" },
-                gap: 0,
+                gap: { xs: 2, md: 3 },
                 overflowX: { xs: "auto", md: "visible" },
                 py: { xs: 0, md: 2 },
                 "&::-webkit-scrollbar": { display: "none" },
@@ -1173,8 +1063,8 @@ const Home = () => {
               <Button
                 size={isMobile ? "medium" : "large"}
                 sx={{
-                  backgroundColor: matteColors[900],
-                  color: "white",
+                  backgroundColor: mode === "dark" ? "#fff" : "#181818",
+                  color: mode === "dark" ? "#181818" : "#fff",
                   fontSize: { xs: "0.92rem", md: "1.15rem" },
                   py: { xs: 0.7, md: 1.5 },
                   px: { xs: 2, md: 5 },
@@ -1205,7 +1095,11 @@ const Home = () => {
 
       {/* Features Section */}
       <Box
-        sx={{ py: { xs: 3, md: 2 }, mt: { xs: 3, md: 2 }, bgcolor: "white" }}
+        sx={{
+          py: { xs: 3, md: 2 },
+          mt: { xs: 3, md: 2 },
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+        }}
       >
         <Container maxWidth="xl">
           <Grid container spacing={2}>
@@ -1222,7 +1116,9 @@ const Home = () => {
                     gap: 1,
                   }}
                 >
-                  <Box sx={{ color: "black" }}>{feature.icon}</Box>
+                  <Box sx={{ color: mode === "dark" ? "#fff" : "black" }}>
+                    {feature.icon}
+                  </Box>
                   <Typography
                     variant="h6"
                     sx={{
@@ -1236,7 +1132,7 @@ const Home = () => {
                   <Typography
                     variant="body1"
                     sx={{
-                      color: "text.secondary",
+                      color: mode === "dark" ? "#fff" : "black",
                       maxWidth: "250px",
                       fontSize: { xs: "0.8rem", md: "1rem" },
                     }}
@@ -1256,14 +1152,17 @@ const Home = () => {
           py: { xs: 2, md: 3 },
           pb: { xs: 2, md: 2 },
           mb: 0,
-          bgcolor: "grey.50",
+          bgcolor: mode === "dark" ? "#181818" : "#f7f7f7",
         }}
       >
         <Container maxWidth="xl">
           <Paper
             sx={{
               p: { xs: 2, md: 6 },
-              background: "linear-gradient(45deg, #000000 30%, #1a1a1a 90%)",
+              background:
+                mode === "dark"
+                  ? "linear-gradient(45deg, #181818 30%, #232323 90%)"
+                  : "linear-gradient(45deg, #000000 30%, #1a1a1a 90%)",
               color: "white",
               mb: { xs: 0, md: 6 },
               borderRadius: 2,
@@ -1412,6 +1311,8 @@ const Home = () => {
                             display: "flex",
                             alignItems: "center",
                             mb: 1.5,
+                            color: mode === "dark" ? "fff" : "181818",
+                            bgcolor: mode === "dark" ? "fff" : "181818",
                           }}
                         >
                           <svg

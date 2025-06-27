@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Grid,
@@ -29,21 +29,23 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Checkbox
-} from '@mui/material';
+  Checkbox,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon
-} from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
-import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/format';
-import axios from 'axios';
+  Edit as EditIcon,
+} from "@mui/icons-material";
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
+import { formatPrice } from "../utils/format";
+import axios from "axios";
 
-const steps = ['Shipping', 'Payment', 'Review'];
+const steps = ["Shipping", "Payment", "Review"];
 
-const Checkout = () => {
+const Checkout = ({ mode = "dark" }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { cart, clearCart } = useCart();
@@ -53,17 +55,19 @@ const Checkout = () => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [newAddress, setNewAddress] = useState({
-    name: '',
-    phone: '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
-    isDefault: false
+    name: "",
+    phone: "",
+    street: "",
+    city: "",
+    state: "",
+    pincode: "",
+    isDefault: false,
   });
   const [addressDialog, setAddressDialog] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   // Calculate totals
   const subtotal = cart.reduce(
@@ -80,39 +84,39 @@ const Checkout = () => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await axios.get('/api/user/addresses');
+      const response = await axios.get("/api/user/addresses");
       setAddresses(response.data);
-      const defaultAddress = response.data.find(addr => addr.isDefault);
+      const defaultAddress = response.data.find((addr) => addr.isDefault);
       if (defaultAddress) {
         setSelectedAddress(defaultAddress._id);
       }
     } catch (err) {
-      setError('Failed to load addresses');
+      setError("Failed to load addresses");
     }
   };
 
   const handleAddressSubmit = async () => {
     try {
-      await axios.post('/api/user/addresses', newAddress);
+      await axios.post("/api/user/addresses", newAddress);
       setAddressDialog(false);
       fetchAddresses();
       setNewAddress({
-        name: '',
-        phone: '',
-        street: '',
-        city: '',
-        state: '',
-        pincode: '',
-        isDefault: false
+        name: "",
+        phone: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        isDefault: false,
       });
     } catch (err) {
-      setError('Failed to add address');
+      setError("Failed to add address");
     }
   };
 
   const handleNext = () => {
     if (activeStep === 0 && !selectedAddress) {
-      setError('Please select a shipping address');
+      setError("Please select a shipping address");
       return;
     }
     setActiveStep((prevStep) => prevStep + 1);
@@ -126,56 +130,56 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     if (!selectedAddress) {
-      setError('Please select a shipping address');
+      setError("Please select a shipping address");
       return;
     }
 
     setLoading(true);
     try {
       // Create order
-      const orderResponse = await axios.post('/api/orders', {
-        items: cart.map(item => ({
+      const orderResponse = await axios.post("/api/orders", {
+        items: cart.map((item) => ({
           product: item._id,
           quantity: item.quantity,
           size: item.size,
-          price: item.price
+          price: item.price,
         })),
         shippingAddress: selectedAddress,
         paymentMethod,
-        total
+        total,
       });
 
-      if (paymentMethod === 'razorpay') {
+      if (paymentMethod === "razorpay") {
         // Initialize Razorpay payment
         const options = {
           key: process.env.REACT_APP_RAZORPAY_KEY,
           amount: total * 100, // Razorpay expects amount in paise
-          currency: 'INR',
-          name: 'BEATEN',
-          description: 'Premium Clothing',
+          currency: "INR",
+          name: "BEATEN",
+          description: "Premium Clothing",
           order_id: orderResponse.data.razorpayOrderId,
           handler: async (response) => {
             try {
               // Verify payment
-              await axios.post('/api/orders/verify-payment', {
+              await axios.post("/api/orders/verify-payment", {
                 orderId: orderResponse.data._id,
                 paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature
+                signature: response.razorpay_signature,
               });
               setOrderPlaced(true);
               clearCart();
             } catch (err) {
-              setError('Payment verification failed');
+              setError("Payment verification failed");
             }
           },
           prefill: {
             name: user.name,
             email: user.email,
-            contact: user.phone
+            contact: user.phone,
           },
           theme: {
-            color: '#1976d2'
-          }
+            color: "#1976d2",
+          },
         };
 
         const razorpay = new window.Razorpay(options);
@@ -186,7 +190,7 @@ const Checkout = () => {
         clearCart();
       }
     } catch (err) {
-      setError('Failed to place order');
+      setError("Failed to place order");
     } finally {
       setLoading(false);
     }
@@ -194,8 +198,17 @@ const Checkout = () => {
 
   if (orderPlaced) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+      <Container
+        maxWidth="md"
+        sx={{
+          py: 4,
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          color: mode === "dark" ? "#fff" : "#181818",
+          minHeight: "100vh",
+          transition: "background 0.3s, color 0.3s",
+        }}
+      >
+        <Paper sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h4" gutterBottom>
             Order Placed Successfully!
           </Typography>
@@ -206,7 +219,7 @@ const Checkout = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate('/account/orders')}
+            onClick={() => navigate("/account/orders")}
           >
             View Orders
           </Button>
@@ -216,11 +229,22 @@ const Checkout = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container
+      maxWidth="lg"
+      sx={{
+        py: 4,
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
         {steps.map((label) => (
           <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+            <StepLabel sx={{
+              color: mode === "dark" ? "#fff" : "#181818",
+            }} >{label}</StepLabel>
           </Step>
         ))}
       </Stepper>
@@ -236,7 +260,9 @@ const Checkout = () => {
         <Grid item xs={12} md={8}>
           {activeStep === 0 && (
             <Paper sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
                 <Typography variant="h6">Shipping Address</Typography>
                 <Button
                   startIcon={<AddIcon />}
@@ -256,8 +282,11 @@ const Checkout = () => {
                     sx={{
                       p: 2,
                       mb: 2,
-                      border: '1px solid',
-                      borderColor: selectedAddress === address._id ? 'primary.main' : 'divider'
+                      border: "1px solid",
+                      borderColor:
+                        selectedAddress === address._id
+                          ? "primary.main"
+                          : "divider",
                     }}
                   >
                     <FormControlLabel
@@ -317,12 +346,12 @@ const Checkout = () => {
                 Order Summary
               </Typography>
               {cart.map((item) => (
-                <Box key={item._id} sx={{ display: 'flex', mb: 2 }}>
+                <Box key={item._id} sx={{ display: "flex", mb: 2 }}>
                   <CardMedia
                     component="img"
                     image={item.images[0]}
                     alt={item.name}
-                    sx={{ width: 80, height: 80, objectFit: 'cover' }}
+                    sx={{ width: 80, height: 80, objectFit: "cover" }}
                   />
                   <Box sx={{ ml: 2, flex: 1 }}>
                     <Typography variant="subtitle1">{item.name}</Typography>
@@ -351,9 +380,9 @@ const Checkout = () => {
             <Box sx={{ my: 2 }}>
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  mb: 1
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
                 }}
               >
                 <Typography>Subtotal</Typography>
@@ -362,9 +391,9 @@ const Checkout = () => {
               {user?.isPremium && (
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
                   }}
                 >
                   <Typography>Premium Discount</Typography>
@@ -375,9 +404,9 @@ const Checkout = () => {
               )}
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  mb: 1
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
                 }}
               >
                 <Typography>Shipping</Typography>
@@ -386,9 +415,9 @@ const Checkout = () => {
               <Divider sx={{ my: 2 }} />
               <Box
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  mb: 2
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 2,
                 }}
               >
                 <Typography variant="h6">Total</Typography>
@@ -396,11 +425,8 @@ const Checkout = () => {
                   {formatPrice(total)}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Button
-                  disabled={activeStep === 0}
-                  onClick={handleBack}
-                >
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Button disabled={activeStep === 0} onClick={handleBack}>
                   Back
                 </Button>
                 {activeStep === steps.length - 1 ? (
@@ -410,7 +436,7 @@ const Checkout = () => {
                     onClick={handlePlaceOrder}
                     disabled={loading}
                   >
-                    {loading ? 'Processing...' : 'Place Order'}
+                    {loading ? "Processing..." : "Place Order"}
                   </Button>
                 ) : (
                   <Button
@@ -500,7 +526,10 @@ const Checkout = () => {
                 <Checkbox
                   checked={newAddress.isDefault}
                   onChange={(e) =>
-                    setNewAddress({ ...newAddress, isDefault: e.target.checked })
+                    setNewAddress({
+                      ...newAddress,
+                      isDefault: e.target.checked,
+                    })
                   }
                 />
               }
@@ -519,4 +548,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout; 
+export default Checkout;

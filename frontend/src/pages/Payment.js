@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Container,
   Grid,
@@ -8,23 +8,23 @@ import {
   Button,
   Box,
   Divider,
-  CircularProgress
-} from '@mui/material';
+  CircularProgress,
+} from "@mui/material";
 
-const Payment = () => {
+const Payment = ({ mode }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    name: '',
-    cardNumber: '',
-    expiry: '',
-    cvc: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: ''
+    name: "",
+    cardNumber: "",
+    expiry: "",
+    cvc: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
   });
 
   const handleChange = (e) => {
@@ -34,7 +34,7 @@ const Payment = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
@@ -42,7 +42,16 @@ const Payment = () => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 3, md: 6 } }}>
+    <Container
+      maxWidth="sm"
+      sx={{
+        py: { xs: 4, md: 8 },
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Paper sx={{ p: { xs: 2, md: 4 }, borderRadius: 3, boxShadow: 2 }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
           Payment Details
@@ -143,7 +152,9 @@ const Payment = () => {
               </Grid>
             </Grid>
             {error && (
-              <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>
+              <Typography color="error" sx={{ mt: 2 }}>
+                {error}
+              </Typography>
             )}
             <Button
               type="submit"
@@ -151,10 +162,16 @@ const Payment = () => {
               color="primary"
               fullWidth
               size="large"
-              sx={{ mt: 3, py: 1.5, fontWeight: 600, fontSize: '1.1rem', borderRadius: 2 }}
+              sx={{
+                mt: 3,
+                py: 1.5,
+                fontWeight: 600,
+                fontSize: "1.1rem",
+                borderRadius: 2,
+              }}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} /> : 'Pay Now'}
+              {loading ? <CircularProgress size={24} /> : "Pay Now"}
             </Button>
           </form>
         )}
@@ -163,4 +180,4 @@ const Payment = () => {
   );
 };
 
-export default Payment; 
+export default Payment;

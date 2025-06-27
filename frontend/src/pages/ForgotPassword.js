@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Container,
   Box,
@@ -9,59 +9,74 @@ import {
   Link,
   Paper,
   Alert,
-  CircularProgress
-} from '@mui/material';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import axios from 'axios';
+  CircularProgress,
+} from "@mui/material";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import axios from "axios";
 
 const validationSchema = Yup.object({
   email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required')
+    .email("Invalid email address")
+    .required("Email is required"),
 });
 
-const ForgotPassword = () => {
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+const ForgotPassword = ({ mode }) => {
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
-      email: ''
+      email: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
-        setError('');
-        setSuccess('');
-        await axios.post('/api/auth/forgot-password', values);
-        setSuccess('Password reset link has been sent to your email');
+        setError("");
+        setSuccess("");
+        await axios.post("/api/auth/forgot-password", values);
+        setSuccess("Password reset link has been sent to your email");
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to send reset link');
+        setError(err.response?.data?.message || "Failed to send reset link");
       } finally {
         setLoading(false);
       }
-    }
+    },
   });
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      maxWidth="sm"
+      sx={{
+        py: { xs: 4, md: 8 },
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Box
         sx={{
-          minHeight: '80vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          minHeight: "80vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <Paper sx={{ p: 4, width: '100%' }}>
+        <Paper sx={{ p: 4, width: "100%" }}>
           <Typography variant="h4" component="h1" align="center" gutterBottom>
             Forgot Password
           </Typography>
-          <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-            Enter your email address and we'll send you a link to reset your password
+          <Typography
+            variant="body1"
+            align="center"
+            color="text.secondary"
+            sx={{ mb: 4 }}
+          >
+            Enter your email address and we'll send you a link to reset your
+            password
           </Typography>
 
           {error && (
@@ -96,13 +111,13 @@ const ForgotPassword = () => {
               disabled={loading}
               sx={{ mt: 3, mb: 2 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Send Reset Link'}
+              {loading ? <CircularProgress size={24} /> : "Send Reset Link"}
             </Button>
           </form>
 
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Remember your password?{' '}
+              Remember your password?{" "}
               <Link component={RouterLink} to="/login">
                 Login here
               </Link>
@@ -114,4 +129,4 @@ const ForgotPassword = () => {
   );
 };
 
-export default ForgotPassword; 
+export default ForgotPassword;

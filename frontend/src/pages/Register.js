@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
   Container,
   Box,
@@ -9,104 +9,114 @@ import {
   Link,
   Paper,
   Alert,
-  CircularProgress
-} from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import LockIcon from '@mui/icons-material/Lock';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useAuth } from '../context/AuthContext';
+  CircularProgress,
+} from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import EmailIcon from "@mui/icons-material/Email";
+import LockIcon from "@mui/icons-material/Lock";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useAuth } from "../context/AuthContext";
 
 const validationSchema = Yup.object({
   name: Yup.string()
-    .min(2, 'Name must be at least 2 characters')
-    .required('Name is required'),
+    .min(2, "Name must be at least 2 characters")
+    .required("Name is required"),
   email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
+    .email("Invalid email address")
+    .required("Email is required"),
   password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref('password'), null], 'Passwords must match')
-    .required('Confirm password is required')
+    .oneOf([Yup.ref("password"), null], "Passwords must match")
+    .required("Confirm password is required"),
 });
 
-const Register = () => {
+const Register = ({ mode }) => {
   const navigate = useNavigate();
   const { register } = useAuth();
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: ''
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
         setLoading(true);
-        setError('');
+        setError("");
         await register(values.name, values.email, values.password);
-        navigate('/');
+        navigate("/");
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to register');
+        setError(err.response?.data?.message || "Failed to register");
       } finally {
         setLoading(false);
       }
-    }
+    },
   });
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      maxWidth="sm"
+      sx={{
+        py: { xs: 4, md: 8 },
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <Box
         sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundImage: 'linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(/Beaten/Artboard 3.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          py: 8
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundImage:
+            "linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(/Beaten/Artboard 3.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          py: 8,
         }}
       >
-        <Paper 
-          sx={{ 
-            p: 4, 
-            width: '100%',
+        <Paper
+          sx={{
+            p: 4,
+            width: "100%",
             maxWidth: 450,
             borderRadius: 4,
             boxShadow: 24,
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)'
+            backgroundColor: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
           }}
         >
-          <Typography 
-            variant="h3" 
-            component="h1" 
-            align="center" 
+          <Typography
+            variant="h3"
+            component="h1"
+            align="center"
             gutterBottom
-            sx={{ 
+            sx={{
               fontWeight: 700,
-              color: 'primary.main',
+              color: "primary.main",
               mb: 2,
-              letterSpacing: 2
+              letterSpacing: 2,
             }}
           >
             JOIN BEATEN
           </Typography>
-          <Typography 
-            variant="body1" 
-            align="center" 
-            color="text.secondary" 
-            sx={{ 
+          <Typography
+            variant="body1"
+            align="center"
+            color="text.secondary"
+            sx={{
               mb: 4,
-              fontSize: '1.1rem'
+              fontSize: "1.1rem",
             }}
           >
             Create your exclusive fashion account
@@ -131,13 +141,13 @@ const Register = () => {
               margin="normal"
               InputProps={{
                 startAdornment: (
-                  <PersonIcon sx={{ color: 'action.active', mr: 1 }} />
+                  <PersonIcon sx={{ color: "action.active", mr: 1 }} />
                 ),
               }}
               sx={{
-                '& .MuiOutlinedInput-root': {
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                }
+                },
               }}
             />
             <TextField
@@ -152,13 +162,13 @@ const Register = () => {
               margin="normal"
               InputProps={{
                 startAdornment: (
-                  <EmailIcon sx={{ color: 'action.active', mr: 1 }} />
+                  <EmailIcon sx={{ color: "action.active", mr: 1 }} />
                 ),
               }}
               sx={{
-                '& .MuiOutlinedInput-root': {
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                }
+                },
               }}
             />
             <TextField
@@ -174,13 +184,13 @@ const Register = () => {
               margin="normal"
               InputProps={{
                 startAdornment: (
-                  <LockIcon sx={{ color: 'action.active', mr: 1 }} />
+                  <LockIcon sx={{ color: "action.active", mr: 1 }} />
                 ),
               }}
               sx={{
-                '& .MuiOutlinedInput-root': {
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                }
+                },
               }}
             />
             <TextField
@@ -191,18 +201,23 @@ const Register = () => {
               type="password"
               value={formik.values.confirmPassword}
               onChange={formik.handleChange}
-              error={formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)}
-              helperText={formik.touched.confirmPassword && formik.errors.confirmPassword}
+              error={
+                formik.touched.confirmPassword &&
+                Boolean(formik.errors.confirmPassword)
+              }
+              helperText={
+                formik.touched.confirmPassword && formik.errors.confirmPassword
+              }
               margin="normal"
               InputProps={{
                 startAdornment: (
-                  <LockIcon sx={{ color: 'action.active', mr: 1 }} />
+                  <LockIcon sx={{ color: "action.active", mr: 1 }} />
                 ),
               }}
               sx={{
-                '& .MuiOutlinedInput-root': {
+                "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
-                }
+                },
               }}
             />
             <Button
@@ -214,32 +229,32 @@ const Register = () => {
               sx={{
                 mt: 3,
                 mb: 2,
-                backgroundColor: '#1a1a1a',
-                color: 'white',
+                backgroundColor: "#1a1a1a",
+                color: "white",
                 py: { xs: 0.7, md: 1 },
                 px: { xs: 2, md: 3 },
-                fontSize: { xs: '0.98rem', md: '1.05rem' },
+                fontSize: { xs: "0.98rem", md: "1.05rem" },
                 borderRadius: 10,
                 minHeight: { xs: 40, md: 48 },
                 fontWeight: 700,
-                textTransform: 'none',
+                textTransform: "none",
                 letterSpacing: 1.2,
-                transition: 'all 0.3s ease',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                '&:hover': {
-                  backgroundColor: '#2d2d2d',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }
+                transition: "all 0.3s ease",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                "&:hover": {
+                  backgroundColor: "#2d2d2d",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                },
               }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Create Account'}
+              {loading ? <CircularProgress size={24} /> : "Create Account"}
             </Button>
           </form>
 
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Box sx={{ textAlign: "center", mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link component={RouterLink} to="/login">
                 Login here
               </Link>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Container,
   Grid,
@@ -14,38 +14,38 @@ import {
   Tooltip,
   Badge,
   useTheme,
-  useMediaQuery
-} from '@mui/material';
+  useMediaQuery,
+} from "@mui/material";
 import {
   Favorite as FavoriteIcon,
   ShoppingCart as ShoppingCartIcon,
   FavoriteBorder as FavoriteBorderIcon,
-  ArrowForward as ArrowForwardIcon
-} from '@mui/icons-material';
-import { useWishlist } from '../context/WishlistContext';
-import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/format';
-import { useNavigate } from 'react-router-dom';
+  ArrowForward as ArrowForwardIcon,
+} from "@mui/icons-material";
+import { useWishlist } from "../context/WishlistContext";
+import { useCart } from "../context/CartContext";
+import { formatPrice } from "../utils/format";
+import { useNavigate } from "react-router-dom";
 
-const Wishlist = () => {
+const Wishlist = ({ mode }) => {
   const { wishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const matteColors = {
-    900: '#1a1a1a',
-    800: '#2d2d2d',
-    700: '#404040',
-    600: '#525252',
-    100: '#f5f5f5'
+    900: "#1a1a1a",
+    800: "#2d2d2d",
+    700: "#404040",
+    600: "#525252",
+    100: "#f5f5f5",
   };
 
   const handleAddToCart = async (product) => {
     try {
       await addToCart(product._id, 1);
     } catch (err) {
-      console.error('Error adding to cart:', err);
+      console.error("Error adding to cart:", err);
     }
   };
 
@@ -54,37 +54,57 @@ const Wishlist = () => {
   };
 
   return (
-    <Container maxWidth="xl" disableGutters sx={{ py: { xs: 0, md: 0 }, px: 0 }}>
+    <Container
+      maxWidth="xl"
+      disableGutters
+      sx={{
+        py: { xs: 0, md: 0 },
+        px: 0,
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+        minHeight: "100vh",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       {/* Header Section */}
-      <Box sx={{ mb: 0, px: { xs: 2, md: 0 }, pt: { xs: 3, md: 6 }, pb: 2, textAlign: 'center' }}>
-        <Typography 
-          variant="h3" 
-          gutterBottom 
-          sx={{ 
+      <Box
+        sx={{
+          mb: 0,
+          px: { xs: 2, md: 0 },
+          pt: { xs: 3, md: 6 },
+          pb: 2,
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h3"
+          gutterBottom
+          sx={{
             fontWeight: 800,
-            fontSize: { xs: '2.1rem', md: '2.8rem' },
-            letterSpacing: '-0.03em',
+            fontSize: { xs: "2.1rem", md: "2.8rem" },
+            letterSpacing: "-0.03em",
             mb: 0.5,
-            color: 'primary.main',
-            textShadow: '0 2px 8px rgba(0,0,0,0.04)'
+            color: mode === "dark" ? "#fff" : "#181818",
+            textShadow: "0 2px 8px rgba(0,0,0,0.04)",
           }}
         >
           My Wishlist
         </Typography>
-        <Typography 
-          variant="subtitle1" 
-          color="text.secondary"
-          sx={{ 
-            fontSize: { xs: '1rem', md: '1.15rem' },
-            maxWidth: '600px',
-            mx: 'auto',
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontSize: { xs: "1rem", md: "1.15rem" },
+            maxWidth: "600px",
+            mx: "auto",
             mb: 1.5,
             fontWeight: 400,
             letterSpacing: 0.1,
-            lineHeight: 1.6
+            lineHeight: 1.6,
+            color: mode === "dark" ? "#fff" : "#181818",
           }}
         >
-          Save your favorite items and keep track of what you love. Add items to your cart when you're ready to purchase.
+          Save your favorite items and keep track of what you love. Add items to
+          your cart when you're ready to purchase.
         </Typography>
       </Box>
 
@@ -92,66 +112,67 @@ const Wishlist = () => {
 
       {wishlist.length === 0 ? (
         <Fade in={true}>
-          <Box 
-            sx={{ 
-              textAlign: 'center', 
+          <Box
+            sx={{
+              textAlign: "center",
               py: { xs: 6, md: 12 },
               px: 2,
-              backgroundColor: 'background.paper',
+              backgroundColor: "background.paper",
               borderRadius: 2,
-              boxShadow: '0 2px 12px rgba(0,0,0,0.04)'
+              boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
             }}
           >
-            <FavoriteBorderIcon 
-              sx={{ 
-                fontSize: '4rem', 
-                color: 'text.secondary',
+            <FavoriteBorderIcon
+              sx={{
+                fontSize: "4rem",
+                color: "text.secondary",
                 opacity: 0.5,
-                mb: 2
-              }} 
+                mb: 2,
+              }}
             />
-            <Typography 
-              variant="h6" 
-              color="text.secondary" 
+            <Typography
+              variant="h6"
+              color="text.secondary"
               gutterBottom
-              sx={{ 
-                fontSize: { xs: '1.1rem', md: '1.25rem' },
-                mb: 2
+              sx={{
+                fontSize: { xs: "1.1rem", md: "1.25rem" },
+                mb: 2,
               }}
             >
               Your wishlist is empty
             </Typography>
-            <Typography 
-              variant="body2" 
+            <Typography
+              variant="body2"
               color="text.secondary"
-              sx={{ mb: 3, maxWidth: '400px', mx: 'auto' }}
+              sx={{ mb: 3, maxWidth: "400px", mx: "auto" }}
             >
-              Start adding items to your wishlist by clicking the heart icon on any product you like.
+              Start adding items to your wishlist by clicking the heart icon on
+              any product you like.
             </Typography>
             <Button
               variant="contained"
-              size={isMobile ? 'large' : 'medium'}
-              onClick={() => navigate('/products')}
+              size={isMobile ? "large" : "medium"}
+              onClick={() => navigate("/products")}
               endIcon={<ArrowForwardIcon />}
               sx={{
                 backgroundColor: matteColors[900],
-                color: 'white',
+                color: "white",
                 py: { xs: 0.7, md: 1 },
                 px: { xs: 2, md: 3 },
-                fontSize: { xs: '0.92rem', md: '0.98rem' },
+                fontSize: { xs: "0.92rem", md: "0.98rem" },
                 borderRadius: 10,
-                width: 'auto',
+                width: "auto",
                 minWidth: 0,
                 minHeight: { xs: 36, md: 42 },
-                '&:hover': {
+                "&:hover": {
                   backgroundColor: matteColors[800],
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 },
-                transition: 'all 0.3s ease',
-                alignSelf: 'center',
-                whiteSpace: 'nowrap',
-                textTransform: 'none'
+                transition: "all 0.3s ease",
+                alignSelf: "center",
+                whiteSpace: "nowrap",
+                textTransform: "none",
               }}
             >
               Browse Products
@@ -159,45 +180,64 @@ const Wishlist = () => {
           </Box>
         </Fade>
       ) : (
-        <Grid container spacing={0} sx={{ margin: 0, width: '100%', padding: 0 }}>
+        <Grid
+          container
+          spacing={0}
+          sx={{ margin: 0, width: "100%", padding: 0 }}
+        >
           {wishlist.map((product, index) => (
-            <Grid item key={product._id} xs={6} md={2.4} sx={{ padding: 0, margin: 0 }}>
-              <Fade in={true} timeout={500} style={{ transitionDelay: `${index * 100}ms` }}>
+            <Grid
+              item
+              key={product._id}
+              xs={6}
+              md={2.4}
+              sx={{ padding: 0, margin: 0 }}
+            >
+              <Fade
+                in={true}
+                timeout={500}
+                style={{ transitionDelay: `${index * 100}ms` }}
+              >
                 <Card
                   sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    position: 'relative',
-                    transition: 'all 0.3s ease',
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    position: "relative",
+                    transition: "all 0.3s ease",
                     borderRadius: 0,
-                    overflow: 'hidden',
-                    boxShadow: 'none',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
-                      '& .MuiCardMedia-root': {
-                        transform: 'scale(1.05)'
-                      }
-                    }
+                    overflow: "hidden",
+                    boxShadow: "none",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 12px 24px rgba(0,0,0,0.1)",
+                      "& .MuiCardMedia-root": {
+                        transform: "scale(1.05)",
+                      },
+                    },
+                    backgroundColor: mode === "dark" ? "#232323" : "#fff",
+                    color: mode === "dark" ? "#fff" : "#181818",
                   }}
                 >
-                  <Box sx={{ 
-                    position: 'relative', 
-                    overflow: 'hidden',
-                    width: '100%',
-                    minHeight: { xs: 280, md: 320 },
-                    borderRadius: 0
-                  }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      overflow: "hidden",
+                      width: "100%",
+                      minHeight: { xs: 280, md: 320 },
+                      borderRadius: 0,
+                      borderColor: mode === "dark" ? "#fff" : "#181818",
+                    }}
+                  >
                     <CardMedia
                       component="img"
                       sx={{
                         height: { xs: 280, md: 320 },
-                        width: '100%',
-                        cursor: 'pointer',
-                        transition: 'transform 0.5s ease',
-                        objectFit: 'cover',
-                        borderRadius: 0
+                        width: "100%",
+                        cursor: "pointer",
+                        transition: "transform 0.5s ease",
+                        objectFit: "cover",
+                        borderRadius: 0,
                       }}
                       image={product.image}
                       alt={product.name}
@@ -206,77 +246,88 @@ const Wishlist = () => {
                     <Tooltip title="Remove from wishlist">
                       <IconButton
                         sx={{
-                          position: 'absolute',
+                          position: "absolute",
                           top: 8,
                           right: 8,
-                          '&:hover': {
-                            transform: 'scale(1.1)',
+                          "&:hover": {
+                            transform: "scale(1.1)",
                           },
-                          transition: 'all 0.2s ease-in-out',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          transition: "all 0.2s ease-in-out",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                          color: mode === "dark" ? "#fff" : "#181818",
                         }}
                         onClick={() => removeFromWishlist(product._id)}
                       >
-                        <FavoriteIcon sx={{ color: '#ff1744' }} />
+                        <FavoriteIcon sx={{ color: "#ff1744" }} />
                       </IconButton>
                     </Tooltip>
                   </Box>
-                  <CardContent sx={{ 
-                    flexGrow: 1, 
-                    p: 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1,
-                    borderRadius: 0
-                  }}>
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
+                      p: 2,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1,
+                      borderRadius: 0,
+                      color: "#fff",
+                      backgroundColor : "#fff"
+                    }}
+                  >
                     <Typography
                       gutterBottom
                       variant="subtitle1"
                       component="div"
                       sx={{
                         fontWeight: 600,
-                        cursor: 'pointer',
-                        fontSize: { xs: '0.875rem', md: '1rem' },
-                        '&:hover': { color: 'primary.main' },
+                        cursor: "pointer",
+                        fontSize: { xs: "0.875rem", md: "1rem" },
+                        "&:hover": { color: "primary.main" },
                         lineHeight: 1.4,
                         mb: 1,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
                         WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
+                        WebkitBoxOrient: "vertical",
+                        color: mode === "dark" ? "#181818" : "#fff",
                       }}
                       onClick={() => handleProductClick(product._id)}
                     >
                       {product.name}
                     </Typography>
-                    <Typography 
-                      variant="h6" 
+                    <Typography
+                      variant="h6"
                       color="primary"
-                      sx={{ 
+                      sx={{
                         fontWeight: 700,
-                        fontSize: { xs: '1rem', md: '1.1rem' },
-                        mb: 1
+                        fontSize: {
+                          xs: "1rem",
+                          md: "1.1rem",
+                          color: mode === "dark" ? "#181818" : "#fff",
+                        },
+                        mb: 1,
                       }}
                     >
                       {formatPrice(product.price)}
                     </Typography>
                     {product.colors && product.colors.length > 0 && (
-                      <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
-                        {product.colors.map(color => (
+                      <Box sx={{ display: "flex", gap: 0.5, mb: 1 }}>
+                        {product.colors.map((color) => (
                           <Box
                             key={color}
                             sx={{
                               width: 16,
                               height: 16,
-                              borderRadius: '50%',
-                              bgcolor: color.toLowerCase().replace(' ', ''),
-                              border: '1px solid #ccc',
-                              cursor: 'pointer',
-                              transition: 'transform 0.2s ease',
-                              '&:hover': {
-                                transform: 'scale(1.2)'
-                              }
+                              borderRadius: "50%",
+                              bgcolor: color.toLowerCase().replace(" ", ""),
+                              border: "1px solid #ccc",
+                              cursor: "pointer",
+                              transition: "transform 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.2)",
+                              },
+                              color: mode === "dark" ? "#fff" : "#181818",
                             }}
                             title={color}
                           />
@@ -285,37 +336,41 @@ const Wishlist = () => {
                     )}
                     <Button
                       variant="contained"
-                      size={isMobile ? 'large' : 'medium'}
+                      size={isMobile ? "large" : "medium"}
                       startIcon={<ShoppingCartIcon />}
                       fullWidth
                       onClick={() => handleAddToCart(product)}
                       sx={{
-                        mt: 'auto',
-                        backgroundColor: matteColors[900],
-                        color: 'white',
+                        mt: "auto",
+                        backgroundColor:
+                          mode === "dark" ? "#181818" : "#fff",
+                        color: mode === "dark" ? "#fff" : "#181818",
                         py: { xs: 0.7, md: 1 },
                         px: { xs: 2, md: 3 },
-                        fontSize: { xs: '0.92rem', md: '0.98rem' },
+                        fontSize: { xs: "0.92rem", md: "0.98rem" },
                         borderRadius: 10,
-                        width: 'auto',
+                        width: "auto",
                         minWidth: 0,
                         minHeight: { xs: 36, md: 42 },
-                        '&:hover': {
-                          backgroundColor: matteColors[800],
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                        "&:hover": {
+                          backgroundColor:
+                            mode === "dark"
+                              ? matteColors[800]
+                              : matteColors[800],
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         },
-                        transition: 'all 0.3s ease',
-                        alignSelf: 'center',
-                        whiteSpace: 'nowrap',
-                        textTransform: 'none',
+                        transition: "all 0.3s ease",
+                        alignSelf: "center",
+                        whiteSpace: "nowrap",
+                        textTransform: "none",
                         fontWeight: 600,
-                        '& .MuiButton-startIcon': {
+                        "& .MuiButton-startIcon": {
                           marginRight: 0.5,
-                          '& svg': {
-                            fontSize: '1.1rem'
-                          }
-                        }
+                          "& svg": {
+                            fontSize: "1.1rem",
+                          },
+                        },
                       }}
                     >
                       Add to Cart

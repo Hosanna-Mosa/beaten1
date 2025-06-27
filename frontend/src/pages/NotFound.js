@@ -1,13 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Paper
-} from '@mui/material';
-import { Home as HomeIcon } from '@mui/icons-material';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Container, Box, Typography, Button, Paper } from "@mui/material";
+import { Home as HomeIcon } from "@mui/icons-material";
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -16,13 +10,13 @@ const NotFound = () => {
     <Container maxWidth="sm">
       <Box
         sx={{
-          minHeight: '80vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
+          minHeight: "80vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h1" component="h1" gutterBottom>
             404
           </Typography>
@@ -37,7 +31,7 @@ const NotFound = () => {
             color="primary"
             size="large"
             startIcon={<HomeIcon />}
-            onClick={() => navigate('/')}
+            onClick={() => navigate("/")}
           >
             Back to Home
           </Button>
@@ -47,4 +41,4 @@ const NotFound = () => {
   );
 };
 
-export default NotFound; 
+export default NotFound;
