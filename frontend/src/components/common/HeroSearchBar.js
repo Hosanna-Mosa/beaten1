@@ -11,7 +11,7 @@ const HeroSearchBar = ({ colorMode = "light" }) => {
         display: "flex",
         alignItems: "center",
         bgcolor: "transparent",
-        border: isLight ? "1.5px solid #fff" : "1.5px solid #181818",
+        border: isLight ? "1.5px solid #000" : "1.5px solid #fff",
         borderRadius: 2.5,
         px: 2,
         py: 1,
@@ -26,7 +26,7 @@ const HeroSearchBar = ({ colorMode = "light" }) => {
         width="24"
         height="24"
         fill="none"
-        stroke={isLight ? "#fff" : "#181818"}
+        stroke={isLight ? "#000" : "#fff"}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -42,7 +42,7 @@ const HeroSearchBar = ({ colorMode = "light" }) => {
           background: "transparent",
           border: "none",
           outline: "none",
-          color: isLight ? "#fff" : "#181818",
+          color: isLight ? "#000" : "#fff",
           fontSize: "1.08rem",
           width: "100%",
           fontWeight: 400,

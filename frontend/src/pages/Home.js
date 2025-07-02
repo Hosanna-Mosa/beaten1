@@ -43,6 +43,15 @@ const Home = ({ mode }) => {
   const [currentCollection, setCurrentCollection] = useState(0);
   const collectionsRef = React.useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+  const scrollableHeroRef = useRef(null);
+  const slideRef = useRef(null);
+  const [mobileCurrentSlide, setMobileCurrentSlide] = useState(0);
+  const [slideWidth, setSlideWidth] = useState(0);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const autoScrollTimeout = useRef(null);
+  const scrollDebounce = useRef(null);
 
   // Refs for each section
   const sectionRefs = {
@@ -115,15 +124,15 @@ const Home = ({ mode }) => {
 
   // For heroSlides, add a .jpg image only for mobile
   const mobileHeroSlides = [
-    { image: "/mobile-version-images/1.jpg" },
-    { image: "/mobile-version-images/2.jpg" },
-    { image: "/mobile-version-images/3.jpg" },
-    { image: "/mobile-version-images/4.jpg" },
-    { image: "/mobile-version-images/5.jpg" },
-    { image: "/mobile-version-images/6.jpg" },
-    { image: "/mobile-version-images/7.jpg" },
-    { image: "/mobile-version-images/8.jpg" },
-    { image: "/mobile-version-images/9.jpg" },
+    { image: "/mobile-version-images/1.png" },
+    { image: "/mobile-version-images/2.png" },
+    { image: "/mobile-version-images/3.png" },
+    { image: "/mobile-version-images/4.png" },
+    { image: "/mobile-version-images/5.png" },
+    { image: "/mobile-version-images/6.png" },
+    { image: "/mobile-version-images/7.png" },
+    { image: "/mobile-version-images/8.png" },
+    { image: "/mobile-version-images/9.png" },
   ];
 
   // Fix: use correct slides array for currentSlide and auto-advance
@@ -205,6 +214,74 @@ const Home = ({ mode }) => {
     return () => clearInterval(timer);
   }, [isHovered]);
 
+  // Measure slide width on mount and resize
+  useEffect(() => {
+    function updateSlideWidth() {
+      if (slideRef.current) {
+        setSlideWidth(slideRef.current.offsetWidth);
+      }
+    }
+    updateSlideWidth();
+    window.addEventListener("resize", updateSlideWidth);
+    return () => window.removeEventListener("resize", updateSlideWidth);
+  }, []);
+
+  // Auto-scroll for mobile hero section
+  useEffect(() => {
+    if (!isMobile || isUserScrolling || !slideWidth) return;
+    const interval = setInterval(() => {
+      setMobileCurrentSlide((prev) => {
+        const next = (prev + 1) % slides.length;
+        if (scrollableHeroRef.current) {
+          scrollableHeroRef.current.scrollTo({
+            left: next * slideWidth,
+            behavior: "smooth",
+          });
+        }
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [isMobile, slides.length, slideWidth, isUserScrolling]);
+
+  // Snap to nearest slide after manual scroll
+  const snapToNearestSlide = () => {
+    if (!scrollableHeroRef.current || !slideWidth) return;
+    const scrollLeft = scrollableHeroRef.current.scrollLeft;
+    const slide = Math.round(scrollLeft / slideWidth);
+    scrollableHeroRef.current.scrollTo({
+      left: slide * slideWidth,
+      behavior: "smooth",
+    });
+    setMobileCurrentSlide(slide);
+  };
+
+  // Handle manual scroll
+  const handleMobileHeroScroll = (e) => {
+    if (!slideWidth) return;
+    setIsUserScrolling(true);
+    if (scrollDebounce.current) clearTimeout(scrollDebounce.current);
+    const scrollLeft = e.target.scrollLeft;
+    const slide = Math.round(scrollLeft / slideWidth);
+    setMobileCurrentSlide(slide);
+    scrollDebounce.current = setTimeout(() => {
+      snapToNearestSlide();
+      setIsUserScrolling(false);
+    }, 150);
+  };
+
+  // Pause auto-scroll on touch start, resume after delay on touch end
+  const handleMobileHeroTouchStart = () => {
+    setIsUserScrolling(true);
+    if (autoScrollTimeout.current) clearTimeout(autoScrollTimeout.current);
+  };
+  const handleMobileHeroTouchEnd = () => {
+    autoScrollTimeout.current = setTimeout(() => {
+      setIsUserScrolling(false);
+    }, 1000);
+    snapToNearestSlide();
+  };
+
   const scrollToContent = () => {
     window.scrollTo({
       top: window.innerHeight,
@@ -226,20 +303,88 @@ const Home = ({ mode }) => {
   };
 
   const handleCategoryClick = (category) => {
-    const ref = sectionRefs[category];
-    if (ref && ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    navigate(`/products?category=${encodeURIComponent(category)}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCollectionClick = (collection) => {
-    navigate(`/products?collection=${encodeURIComponent(collection)}`);
+    navigate(`/products`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleProductClick = (productId) => {
-    navigate(`/products/${productId}`);
+    navigate(`/products`);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Function to get button position based on section and screen size
+  const getButtonPosition = (sectionKey, isMobile) => {
+    const positions = {
+      "t-shirts": {
+        mobile: { left: "20%", top: "85%" },
+        desktop: { left: "59%", top: "85%" },
+      },
+      shirts: {
+        mobile: { left: "60%", top: "75%" },
+        desktop: { left: "52%", top: "80%" },
+      },
+      "oversized-t-shirts": {
+        mobile: { left: "63%", top: "74%" },
+        desktop: { left: "55%", top: "85%" },
+      },
+      "bottom-wear": {
+        mobile: { left: "65%", top: "70%" },
+        desktop: { left: "56%", top: "78%" },
+      },
+      "cargo-pants": {
+        mobile: { left: "60%", top: "75%" },
+        desktop: { left: "44%", top: "79%" },
+      },
+      jackets: {
+        mobile: { left: "75%", top: "75%" },
+        desktop: { left: "47%", top: "80%" },
+      },
+      hoodies: {
+        mobile: { left: "50%", top: "73%" },
+        desktop: { left: "50%", top: "80%" },
+      },
+      "co-ord-sets": {
+        mobile: { left: "63%", top: "75%" },
+        desktop: { left: "53%", top: "80%" },
+      },
+    };
+
+    return (
+      positions[sectionKey]?.[isMobile ? "mobile" : "desktop"] || {
+        left: "50%",
+        top: "87%",
+      }
+    );
+  };
+
+  // Touch event handlers for hero section
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchEndX(null);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEndX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX !== null && touchEndX !== null) {
+      const distance = touchStartX - touchEndX;
+      if (distance > 50) {
+        // Swiped left
+        setCurrentSlide((prev) => (prev + 1) % slides.length);
+      } else if (distance < -50) {
+        // Swiped right
+        setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+      }
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
   };
 
   return (
@@ -261,29 +406,70 @@ const Home = ({ mode }) => {
           overflow: "hidden",
           bgcolor: "black",
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        {slides.map((slide, index) => (
+        {isMobile ? (
           <Box
-            key={index}
+            ref={scrollableHeroRef}
             sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              opacity: currentSlide === index ? 1 : 0,
-              transition: "opacity 0.5s ease-in-out",
-              backgroundImage: `url(${slide.image})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              width: "100%",
+              display: "flex",
+              flexDirection: "row",
+              overflowX: "auto",
+              scrollSnapType: "x mandatory",
+              width: "100vw",
               height: "100%",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              "&::-webkit-scrollbar": { display: "none" },
             }}
+            onScroll={handleMobileHeroScroll}
+            onTouchStart={handleMobileHeroTouchStart}
+            onTouchEnd={handleMobileHeroTouchEnd}
           >
-            {/* Overlay for readability removed */}
+            {slides.map((slide, index) => (
+              <Box
+                key={index}
+                ref={index === 0 ? slideRef : null}
+                sx={{
+                  flex: "0 0 100vw",
+                  minWidth: "100vw",
+                  height: "100%",
+                  scrollSnapAlign: "start",
+                  backgroundImage: `url(${slide.image})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }}
+              />
+            ))}
           </Box>
-        ))}
+        ) : (
+          slides.map((slide, index) => (
+            <Box
+              key={index}
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                opacity: currentSlide === index ? 1 : 0,
+                transition: "opacity 0.5s ease-in-out",
+                backgroundImage: `url(${slide.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                width: "100%",
+                height: "100%",
+              }}
+            >
+              {/* Overlay for readability removed */}
+            </Box>
+          ))
+        )}
         {/* Mobile Search Bar on Hero Section */}
         <Box
           sx={{
@@ -297,7 +483,7 @@ const Home = ({ mode }) => {
             justifyContent: "center",
           }}
         >
-          <HeroSearchBar colorMode="dark" />
+          <HeroSearchBar colorMode={mode} />
         </Box>
 
         {/* Slide Indicators */}
@@ -315,13 +501,27 @@ const Home = ({ mode }) => {
           {slides.map((_, index) => (
             <Box
               key={index}
-              onClick={() => setCurrentSlide(index)}
+              onClick={() => {
+                if (isMobile) {
+                  if (scrollableHeroRef.current && slideWidth) {
+                    scrollableHeroRef.current.scrollTo({
+                      left: index * slideWidth,
+                      behavior: "smooth",
+                    });
+                    setMobileCurrentSlide(index);
+                  }
+                } else {
+                  setCurrentSlide(index);
+                }
+              }}
               sx={{
                 width: 12,
                 height: 12,
                 borderRadius: "50%",
                 backgroundColor:
-                  currentSlide === index ? "white" : "rgba(255,255,255,0.5)",
+                  (isMobile ? mobileCurrentSlide : currentSlide) === index
+                    ? "white"
+                    : "rgba(255,255,255,0.5)",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
                 "&:hover": {
@@ -521,7 +721,8 @@ const Home = ({ mode }) => {
       {/* Best Sellers */}
       <Box
         sx={{
-          py: { xs: 4, md: 6 },
+          pt: { xs: 4, md: 0 },
+          pb: { xs: 0, md: 0 },
           bgcolor: mode === "dark" ? "#181818" : "#fff",
         }}
       >
@@ -553,7 +754,7 @@ const Home = ({ mode }) => {
             sx={{
               display: { xs: "flex", md: "grid" },
               gridTemplateColumns: { md: "repeat(5, 1fr)" },
-              gap: { xs: 2, md: 3 },
+              gap: { xs: 0.5, md: 3 },
               overflowX: { xs: "auto", md: "visible" },
               py: { xs: 0, md: 2 },
               "&::-webkit-scrollbar": { display: "none" },
@@ -673,13 +874,20 @@ const Home = ({ mode }) => {
               );
             })}
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: { xs: 2, md: 2 },
+              mb: { xs: 4, md: 4 },
+            }}
+          >
             <Button
               variant="contained"
               size={isMobile ? "large" : "medium"}
               sx={{
-                backgroundColor: mode == "dark" ? "fff" : "181818",
-                color: mode == "dark" ? "fff" : "181818",
+                backgroundColor: mode == "dark" ? "181818" : "fff",
+                color: mode == "dark" ? "181818" : "fff",
                 py: isMobile ? 1 : 1,
                 px: isMobile ? 2 : 4,
                 fontSize: { xs: "0.8rem", md: "0.9rem" },
@@ -740,7 +948,7 @@ const Home = ({ mode }) => {
           key={section.key}
           ref={sectionRefs[section.key]}
           sx={{
-            py: { xs: 4, md: 6 },
+            py: 0,
             bgcolor: mode === "dark" ? "#181818" : "#fff",
           }}
         >
@@ -791,6 +999,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "small" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "shirts" ? (
                 <>
@@ -804,6 +1045,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "oversized-t-shirts" ? (
                 <>
@@ -817,6 +1091,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "bottom-wear" ? (
                 <>
@@ -830,6 +1137,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "cargo-pants" ? (
                 <>
@@ -843,6 +1183,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "jackets" ? (
                 <>
@@ -856,6 +1229,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "hoodies" ? (
                 <>
@@ -869,6 +1275,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "co-ord-sets" ? (
                 <>
@@ -882,6 +1321,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : (
                 <img
@@ -895,7 +1367,7 @@ const Home = ({ mode }) => {
                   }}
                 />
               )}
-              <Button
+              {/* <Button
                 size={isMobile ? "medium" : "large"}
                 sx={{
                   position: "absolute",
@@ -927,14 +1399,14 @@ const Home = ({ mode }) => {
                 }
               >
                 SHOP ALL
-              </Button>
+              </Button> */}
             </Box>
             <Box
               sx={{
                 mt: 1.5,
                 display: { xs: "flex", md: "grid" },
                 gridTemplateColumns: { md: "repeat(5, 1fr)" },
-                gap: { xs: 2, md: 3 },
+                gap: { xs: 0.5, md: 3 },
                 overflowX: { xs: "auto", md: "visible" },
                 py: { xs: 0, md: 2 },
                 "&::-webkit-scrollbar": { display: "none" },
@@ -1108,7 +1580,7 @@ const Home = ({ mode }) => {
                 <Box
                   sx={{
                     textAlign: "center",
-                    p: { xs: 1.5, md: 2 },
+                    p: { xs: 1.5 },
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",

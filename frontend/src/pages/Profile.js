@@ -117,21 +117,6 @@ const Profile = ({ mode }) => {
   const membership = user?.membership || demoUser.membership;
   const savedCards = user?.savedCards || demoUser.savedCards;
 
-  // Format date of birth for display
-  const formatDateOfBirth = (dob) => {
-    if (!dob) return "N/A";
-    try {
-      const date = new Date(dob);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (error) {
-      return "Invalid Date";
-    }
-  };
-
   const formik = useFormik({
     initialValues: {
       name: user?.name || "",
@@ -319,7 +304,7 @@ const Profile = ({ mode }) => {
                       <TextField
                         fullWidth
                         label="Date of Birth"
-                        value={formatDateOfBirth(profileUser.dob)}
+                        value={profileUser.dob}
                         disabled
                       />
                     </Grid>
@@ -389,7 +374,7 @@ const Profile = ({ mode }) => {
                       <Typography
                         sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
                       >
-                        {formatDateOfBirth(profileUser.dob)}
+                        {profileUser.dob}
                       </Typography>
                     </Box>
                   </Grid>
@@ -546,7 +531,7 @@ const Profile = ({ mode }) => {
             </Paper>
 
             {/* Saved Cards (Payment Methods) */}
-            <Paper
+            {/* <Papers
               elevation={2}
               sx={{
                 p: { xs: 3, md: 4 },
@@ -633,7 +618,7 @@ const Profile = ({ mode }) => {
                   ))}
                 </List>
               )}
-            </Paper>
+            </Papers> */}
           </Grid>
 
           {/* Account Actions & Membership */}

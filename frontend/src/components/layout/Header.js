@@ -50,11 +50,11 @@ const mobilePages = {
   main: [
     { name: "HOME", path: "/" },
     {
-      name: "BEATEN EXCLUSIVE COLLECTION",
+      name: "BEATEN EXCLUSIVE",
       path: "/products?collection=Beaten%20Exclusive%20Collection",
     },
     {
-      name: "BEATEN SINGNATURE COLLECTION",
+      name: "BEATEN SINGNATURE",
       path: "/products?collection=Beaten%20Signature%20Collection",
     },
     { name: "PREMIUM", path: "/premium" },
@@ -95,7 +95,7 @@ const Header = ({ mode, toggleColorMode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { user, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
@@ -184,7 +184,7 @@ const Header = ({ mode, toggleColorMode }) => {
       >
         <CloseIcon sx={{ fontSize: 32 }} />
       </IconButton>
-      <List sx={{ pt: 2 }}>
+      <List sx={{ pt: 2, px: 2, textAlign: "left" }}>
         {/* Main Navigation */}
         {mobilePages.main.map((page) => (
           <ListItem
@@ -194,6 +194,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: "white",
+              pl: 1.5,
+              py: 1.2,
+              borderRadius: 1,
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -203,7 +206,7 @@ const Header = ({ mode, toggleColorMode }) => {
               primary={page.name}
               sx={{
                 textAlign: "left",
-                pl: 1,
+                pl: 0.5,
                 "& .MuiListItemText-primary": {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
@@ -240,6 +243,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: "white",
+              pl: 1.5,
+              py: 1.2,
+              borderRadius: 1,
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -249,7 +255,7 @@ const Header = ({ mode, toggleColorMode }) => {
               primary={page.name}
               sx={{
                 textAlign: "left",
-                pl: 1,
+                pl: 0.5,
                 "& .MuiListItemText-primary": {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
@@ -286,6 +292,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: "white",
+              pl: 1.5,
+              py: 1.2,
+              borderRadius: 1,
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -295,7 +304,7 @@ const Header = ({ mode, toggleColorMode }) => {
               primary={page.name}
               sx={{
                 textAlign: "left",
-                pl: 1,
+                pl: 0.5,
                 "& .MuiListItemText-primary": {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
@@ -315,6 +324,9 @@ const Header = ({ mode, toggleColorMode }) => {
           onClick={handleDrawerClose}
           sx={{
             color: "white",
+            pl: 1.5,
+            py: 1.2,
+            borderRadius: 1,
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
@@ -324,7 +336,7 @@ const Header = ({ mode, toggleColorMode }) => {
             primary="CART"
             sx={{
               textAlign: "left",
-              pl: 1,
+              pl: 0.5,
               "& .MuiListItemText-primary": {
                 fontWeight: location.pathname === "/cart" ? 600 : 400,
                 letterSpacing: "0.1em",
@@ -342,7 +354,7 @@ const Header = ({ mode, toggleColorMode }) => {
           display: "flex",
           alignItems: "center",
           ml: 2,
-          bgcolor: "transparent",
+          bgcolor: "white",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -357,6 +369,22 @@ const Header = ({ mode, toggleColorMode }) => {
         <Brightness4Icon
           sx={{ color: mode === "dark" ? "#ffd600" : "#888", ml: 1 }}
         />
+        <Button
+          variant="outlined"
+          size="small"
+          sx={{
+            ml: 2,
+            color: "black",
+            borderColor: "#888",
+            position: "absolute",
+            left: "70%",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
+          Logout
+        </Button>
       </Box>
     </Box>
   );
@@ -652,7 +680,7 @@ const Header = ({ mode, toggleColorMode }) => {
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
-                {user ? (
+                {isAuthenticated ? (
                   <>
                     <MenuItem
                       onClick={() => {
@@ -670,6 +698,16 @@ const Header = ({ mode, toggleColorMode }) => {
                     >
                       Orders
                     </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        handleProfileMenuClose();
+                        navigate("/wishlist");
+                      }}
+                    >
+                      Wishlist
+                    </MenuItem>
+                    <Divider />
+                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
                   </>
                 ) : (
                   <>
@@ -711,20 +749,28 @@ const Header = ({ mode, toggleColorMode }) => {
             zIndex: 9999,
           },
           "& .MuiDrawer-paper": {
-            width: "100vw",
-            maxWidth: "100vw",
-          },
-        }}
-        PaperProps={{
-          sx: {
-            width: "100vw",
-            maxWidth: "100vw",
+            width: { xs: "80vw", md: 400 },
+            maxWidth: { xs: "80vw", md: 400 },
+            height: "100%",
             zIndex: 10000,
             position: "fixed",
             top: 0,
             left: 0,
-            height: "100%",
             boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
+            bgcolor: "black",
+          },
+        }}
+        PaperProps={{
+          sx: {
+            width: { xs: "80vw", md: 400 },
+            maxWidth: { xs: "80vw", md: 400 },
+            height: "100%",
+            zIndex: 10000,
+            position: "fixed",
+            top: 0,
+            left: 0,
+            boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
+            bgcolor: "black",
           },
         }}
         ModalProps={{
