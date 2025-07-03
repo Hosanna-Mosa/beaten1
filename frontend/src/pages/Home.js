@@ -321,7 +321,7 @@ const Home = ({ mode }) => {
   const getButtonPosition = (sectionKey, isMobile) => {
     const positions = {
       "t-shirts": {
-        mobile: { left: "20%", top: "85%" },
+        mobile: { left: "20%", top: "76%" },
         desktop: { left: "59%", top: "85%" },
       },
       shirts: {
@@ -918,30 +918,50 @@ const Home = ({ mode }) => {
         {
           name: "T-SHIRTS",
           key: "t-shirts",
-          image: "/images/category1Desktip.png",
+          desktopImage: "/images/category1Desktip.png",
+          mobileImage: "/mobile-section/1.png",
         },
-        { name: "SHIRTS", key: "shirts", image: "/images/shirts.png" },
+        {
+          name: "SHIRTS",
+          key: "shirts",
+          desktopImage: "/images/shirts.png",
+          mobileImage: "/mobile-section/2.png",
+        },
         {
           name: "OVERSIZED T-SHIRTS",
           key: "oversized-t-shirts",
-          image: "/images/oversized-tshirts.png",
+          desktopImage: "/images/oversized-tshirts.png",
+          mobileImage: "/mobile-section/3.png",
         },
         {
           name: "BOTTOM WEAR",
           key: "bottom-wear",
-          image: "/images/bottom wear.png",
+          desktopImage: "/images/bottom wear.png",
+          mobileImage: "/mobile-section/4.png",
         },
         {
           name: "CARGO PANTS",
           key: "cargo-pants",
-          image: "/images/cargo pants.png",
+          desktopImage: "/images/cargo pants.png",
+          mobileImage: "/mobile-section/5.png",
         },
-        { name: "JACKETS", key: "jackets", image: "/images/jackets.png" },
-        { name: "HOODIES", key: "hoodies", image: "/images/hoodies.png" },
+        {
+          name: "JACKETS",
+          key: "jackets",
+          desktopImage: "/images/jackets.png",
+          mobileImage: "/mobile-section/6.png",
+        },
+        {
+          name: "HOODIES",
+          key: "hoodies",
+          desktopImage: "/images/hoodies.png",
+          mobileImage: "/mobile-section/7.png",
+        },
         {
           name: "CO-ORD SETS",
           key: "co-ord-sets",
-          image: "/images/co-ord sets.png",
+          desktopImage: "/images/co-ord sets.png",
+          mobileImage: "/mobile-section/8.png",
         },
       ].map((section, idx) => (
         <Box
@@ -990,7 +1010,7 @@ const Home = ({ mode }) => {
               {section.key === "t-shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/1.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1036,7 +1056,7 @@ const Home = ({ mode }) => {
               ) : section.key === "shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/2.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1082,7 +1102,7 @@ const Home = ({ mode }) => {
               ) : section.key === "oversized-t-shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/3.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1128,7 +1148,7 @@ const Home = ({ mode }) => {
               ) : section.key === "bottom-wear" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/4.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1174,7 +1194,7 @@ const Home = ({ mode }) => {
               ) : section.key === "cargo-pants" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/5.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1220,7 +1240,7 @@ const Home = ({ mode }) => {
               ) : section.key === "jackets" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/6.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1266,7 +1286,7 @@ const Home = ({ mode }) => {
               ) : section.key === "hoodies" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/7.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1312,7 +1332,7 @@ const Home = ({ mode }) => {
               ) : section.key === "co-ord-sets" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/8.png" : section.image}
+                    src={isMobile ? section.mobileImage : section.desktopImage}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1357,7 +1377,7 @@ const Home = ({ mode }) => {
                 </>
               ) : (
                 <img
-                  src={section.image}
+                  src={section.desktopImage}
                   alt={section.name}
                   style={{
                     width: "100%",
