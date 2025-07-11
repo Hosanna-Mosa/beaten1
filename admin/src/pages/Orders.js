@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { dummyDataAPI } from "../api/dummyData";
 import {
   Box,
   Paper,
@@ -75,7 +75,7 @@ import {
   Edit as EditStatusIcon,
   History as ViewHistoryIcon,
 } from "@mui/icons-material";
-import { formatPrice } from '../utils/format';
+import { formatPrice } from "../utils/format";
 
 // Change validation to lowercase
 
@@ -114,16 +114,13 @@ function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const token = localStorage.getItem("admin_token");
-        const res = await axios.get("http://localhost:5000/api/orders/admin", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await dummyDataAPI.orders.getOrders();
 
         console.log("API Response:", res.data); // 👈 ADD THIS
 
-        setOrders(res.data);
-        setFilteredOrders(res.data);
-        console.log(res.data);
+        setOrders(res.data.orders);
+        setFilteredOrders(res.data.orders);
+        console.log(res.data.orders);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
@@ -200,60 +197,51 @@ function Orders() {
     setStatusDialogOpen(true);
   };
 
- const handleStatusUpdateConfirm = async () => {
-  if (!selectedOrder || !newStatus) return;
+  const handleStatusUpdateConfirm = async () => {
+    if (!selectedOrder || !newStatus) return;
 
-  try {
-    // Show loading state
-    
-    
-    // Make API call to update backend
-    const token = localStorage.getItem('admin_token');
-    const response = await axios.put(
-      `http://localhost:5000/api/orders/admin/${selectedOrder._id}`,
-      { status: newStatus },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+    try {
+      // Show loading state
+
+      // Make API call to update backend
+      const response = await dummyDataAPI.orders.updateOrder(
+        selectedOrder._id,
+        { status: newStatus }
+      );
+
+      // Update local state only after successful API response
+      const updatedOrders = orders.map((order) => {
+        if (order._id === selectedOrder._id) {
+          return {
+            ...order,
+            status: newStatus,
+            statusHistory: [
+              ...(order.statusHistory || []),
+              {
+                status: newStatus,
+                timestamp: new Date().toISOString(),
+                updatedBy: "Admin",
+              },
+            ],
+          };
         }
-      }
-    );
+        return order;
+      });
 
-    // Update local state only after successful API response
-    const updatedOrders = orders.map((order) => {
-      if (order._id === selectedOrder._id) {
-        return {
-          ...order,
-          status: newStatus,
-          statusHistory: [
-            ...(order.statusHistory || []),
-            {
-              status: newStatus,
-              timestamp: new Date().toISOString(),
-              updatedBy: "Admin",
-            },
-          ],
-        };
-      }
-      return order;
-    });
+      setOrders(updatedOrders);
+      setFilteredOrders(updatedOrders); // Update filtered orders if needed
+      setStatusDialogOpen(false);
+      setSelectedOrder(null);
+      setNewStatus("");
 
-    setOrders(updatedOrders);
-    setFilteredOrders(updatedOrders); // Update filtered orders if needed
-    setStatusDialogOpen(false);
-    setSelectedOrder(null);
-    setNewStatus("");
-    
-    // Show success notification
-    console.log("Status updated successfully:", response.data);
-  } catch (error) {
-    console.error("Failed to update status:", error);
-    // Show error notification to user
-  } finally {
-    
-  }
-};
+      // Show success notification
+      console.log("Status updated successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+      // Show error notification to user
+    } finally {
+    }
+  };
 
   const handleStatusUpdateCancel = () => {
     setStatusDialogOpen(false);
@@ -313,12 +301,20 @@ function Orders() {
   };
 
   const statusStyles = {
-    pending:   { bg: '#ff9800', color: '#fff', icon: <PendingTimeIcon /> }, // orange
-    confirmed: { bg: '#1976d2', color: '#fff', icon: <ProcessingInventoryIcon /> }, // blue
-    shipped:   { bg: '#181818', color: '#fff', icon: <ShippedIcon /> }, // black
-    delivered: { bg: '#388e3c', color: '#fff', icon: <DeliveredIcon /> }, // green
-    cancelled: { bg: '#d32f2f', color: '#fff', icon: <CancelledIcon /> }, // red
-    processing: { bg: '#757575', color: '#fff', icon: <ProcessingInventoryIcon /> }, // fallback for legacy
+    pending: { bg: "#ff9800", color: "#fff", icon: <PendingTimeIcon /> }, // orange
+    confirmed: {
+      bg: "#1976d2",
+      color: "#fff",
+      icon: <ProcessingInventoryIcon />,
+    }, // blue
+    shipped: { bg: "#181818", color: "#fff", icon: <ShippedIcon /> }, // black
+    delivered: { bg: "#388e3c", color: "#fff", icon: <DeliveredIcon /> }, // green
+    cancelled: { bg: "#d32f2f", color: "#fff", icon: <CancelledIcon /> }, // red
+    processing: {
+      bg: "#757575",
+      color: "#fff",
+      icon: <ProcessingInventoryIcon />,
+    }, // fallback for legacy
   };
 
   const OrderDetails = ({ order }) => (
@@ -659,17 +655,16 @@ function Orders() {
       </Dialog>
     );
   };
-const statuses = [
-  "pending",
-  "confirmed",
-  "shipped",
-  "delivered",
-  "cancelled",
-  "returned"
-];
+  const statuses = [
+    "pending",
+    "confirmed",
+    "shipped",
+    "delivered",
+    "cancelled",
+    "returned",
+  ];
 
   return (
-    
     <Box sx={{ p: 3 }}>
       {/* Header Section */}
       <Box
@@ -959,10 +954,14 @@ const statuses = [
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
                         <CartIcon fontSize="small" color="action" />
-                         <Typography variant="body2">
-      {/* Use the actual items array */}
-      {order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0} items
-    </Typography>
+                        <Typography variant="body2">
+                          {/* Use the actual items array */}
+                          {order.items?.reduce(
+                            (sum, item) => sum + (item.quantity || 0),
+                            0
+                          ) || 0}{" "}
+                          items
+                        </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -978,12 +977,15 @@ const statuses = [
                           backgroundColor: statusStyles[order.status]?.bg,
                           color: statusStyles[order.status]?.color,
                           fontWeight: 600,
-                          fontSize: '0.85rem',
+                          fontSize: "0.85rem",
                           px: 1.2,
                           py: 0.3,
                           height: 28,
                           minHeight: 0,
-                          '& .MuiChip-icon': { color: statusStyles[order.status]?.color, fontSize: '1.1em' },
+                          "& .MuiChip-icon": {
+                            color: statusStyles[order.status]?.color,
+                            fontSize: "1.1em",
+                          },
                         }}
                       />
                     </TableCell>

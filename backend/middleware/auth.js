@@ -36,6 +36,7 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
+      console.error("Auth middleware error:", error);
       return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: MESSAGES.TOKEN_INVALID,

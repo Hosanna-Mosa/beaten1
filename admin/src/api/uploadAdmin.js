@@ -1,16 +1,9 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000/api';
+// Dummy Upload API - Replaces backend calls with dummy data
+import { dummyDataAPI } from "./dummyData";
 
 export const uploadAdminAPI = {
   uploadImage: (file) => {
     console.log("Uploading file:", file);
-    const formData = new FormData();
-    formData.append('image', file);
-    return axios.post(`${API_BASE_URL}/upload/image`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    return dummyDataAPI.upload.uploadImage(file);
   },
-}; 
+};
