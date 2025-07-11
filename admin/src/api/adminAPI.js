@@ -29,8 +29,9 @@ adminAPI.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+    const token = localStorage.getItem("admin_token");
+    if (error.response?.status === 401 && token) {
+      // Token expired or invalid, only redirect if already logged in
       localStorage.removeItem("admin_token");
       window.location.href = "/login";
     }

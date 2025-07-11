@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Typography, Button, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
+const NODE_ENV = process.env.NODE_ENV || "development";
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -51,7 +51,7 @@ const ErrorFallback = ({ error }) => {
           We apologize for the inconvenience. Please try refreshing the page or contact support if
           the problem persists.
         </Typography>
-        {process.env.NODE_ENV === 'development' && (
+        {NODE_ENV === 'development' && (
           <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
             <Typography variant="body2" color="error" sx={{ textAlign: 'left' }}>
               {error?.toString()}

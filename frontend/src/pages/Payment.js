@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
+import { mockCoupons, validateCoupon } from "../data/mockData";
 
 const Payment = ({ mode = "dark" }) => {
   const navigate = useNavigate();
@@ -47,7 +48,9 @@ const Payment = ({ mode = "dark" }) => {
 
   useEffect(() => {
     // Filter only public coupons
-    const publicCoupons = mockCoupons.filter(c => c.category === 'public' || c.isPersonal === false);
+    const publicCoupons = mockCoupons.filter(
+      (c) => c.category === "public" || c.isPersonal === false
+    );
     setAvailableCoupons(publicCoupons);
   }, []);
 
@@ -62,7 +65,7 @@ const Payment = ({ mode = "dark" }) => {
 
   const handleApplyCoupon = async () => {
     if (couponApplied) return;
-    
+
     if (!coupon.trim()) {
       setCouponError("Please enter a coupon code");
       return;
@@ -73,11 +76,14 @@ const Payment = ({ mode = "dark" }) => {
 
     try {
       const response = validateCoupon(coupon.trim(), subtotal);
-      
+
       if (response.valid) {
         setCouponDiscount(response.discountAmount);
         setCouponApplied(true);
-        setAppliedCoupon({ code: coupon.trim(), discountAmount: response.discountAmount });
+        setAppliedCoupon({
+          code: coupon.trim(),
+          discountAmount: response.discountAmount,
+        });
         setCouponError("");
       } else {
         setCouponError(response.message || "Invalid coupon code");
@@ -134,13 +140,13 @@ const Payment = ({ mode = "dark" }) => {
         // For Razorpay payments (mock)
         const mockOrderResponse = {
           data: {
-            razorpayOrderId: 'mock_order_' + Date.now(),
-            amount: finalTotal
-          }
+            razorpayOrderId: "mock_order_" + Date.now(),
+            amount: finalTotal,
+          },
         };
 
         const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY || 'mock_key',
+          key: process.env.REACT_APP_RAZORPAY_KEY || "mock_key",
           amount: mockOrderResponse.data.amount * 100,
           currency: "INR",
           name: "BEATEN",
@@ -149,7 +155,8 @@ const Payment = ({ mode = "dark" }) => {
           handler: async function (response) {
             try {
               // Payment verified, now place order in backend
-              const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+              const apiUrl =
+                process.env.REACT_APP_API_URL || "http://localhost:5000";
               const token = localStorage.getItem("token");
               const orderResponse = await axios.post(
                 `${apiUrl}/api/orders`,
@@ -178,9 +185,9 @@ const Payment = ({ mode = "dark" }) => {
             }
           },
           prefill: {
-            name: user?.name || 'User',
-            email: user?.email || 'user@example.com',
-            contact: user?.phone || '9876543210',
+            name: user?.name || "User",
+            email: user?.email || "user@example.com",
+            contact: user?.phone || "9876543210",
           },
           theme: { color: "#1976d2" },
           modal: {
@@ -197,16 +204,12 @@ const Payment = ({ mode = "dark" }) => {
         // For COD payments, send to backend
         const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
         const token = localStorage.getItem("token");
-        const response = await axios.post(
-          `${apiUrl}/api/orders`,
-          orderData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.post(`${apiUrl}/api/orders`, orderData, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (response.data.success) {
           setOrderPlaced(true);
           clearCart();
@@ -266,7 +269,7 @@ const Payment = ({ mode = "dark" }) => {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Choose your preferred payment method
             </Typography>
-            
+
             {/* Coupon Section */}
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle1" gutterBottom>
@@ -306,42 +309,50 @@ const Payment = ({ mode = "dark" }) => {
                   </Button>
                 )}
               </Box>
-              
+
               {couponError && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   {couponError}
                 </Alert>
               )}
-              
+
               {couponApplied && appliedCoupon && (
                 <Alert severity="success" sx={{ mb: 2 }}>
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       Coupon applied successfully!
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                      <Chip 
-                        label={appliedCoupon.isPersonal ? "Personal" : "Public"} 
-                        color={appliedCoupon.isPersonal ? "primary" : "secondary"}
+                    <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                      <Chip
+                        label={appliedCoupon.isPersonal ? "Personal" : "Public"}
+                        color={
+                          appliedCoupon.isPersonal ? "primary" : "secondary"
+                        }
                         size="small"
                         sx={{ mr: 1 }}
                       />
                       <Typography variant="body2">
-                        {appliedCoupon.discount}% off - ₹{appliedCoupon.discountAmount.toFixed(2)} saved
+                        {appliedCoupon.discount}% off - ₹
+                        {appliedCoupon.discountAmount.toFixed(2)} saved
                       </Typography>
                     </Box>
-                    {appliedCoupon.isPersonal && appliedCoupon.recipientName && (
-                      <Typography variant="caption" color="text.secondary">
-                        For: {appliedCoupon.recipientName}
-                      </Typography>
-                    )}
+                    {appliedCoupon.isPersonal &&
+                      appliedCoupon.recipientName && (
+                        <Typography variant="caption" color="text.secondary">
+                          For: {appliedCoupon.recipientName}
+                        </Typography>
+                      )}
                   </Box>
                 </Alert>
               )}
             </Box>
 
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-              <IconButton color="primary" sx={{ mr: 1 }} onClick={() => setShowOffers((prev) => !prev)}>
+              <IconButton
+                color="primary"
+                sx={{ mr: 1 }}
+                onClick={() => setShowOffers((prev) => !prev)}
+              >
                 <RemoveRedEyeIcon />
               </IconButton>
               <Button
@@ -359,12 +370,17 @@ const Payment = ({ mode = "dark" }) => {
                   Public Coupons
                 </Typography>
                 {availableCoupons.map((coupon) => (
-                  <Paper key={coupon.code} sx={{ p: 2, mb: 1, bgcolor: '#f5f5f5' }}>
+                  <Paper
+                    key={coupon.code}
+                    sx={{ p: 2, mb: 1, bgcolor: "#f5f5f5" }}
+                  >
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
                       {coupon.code} - {coupon.discount}% off
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Min Purchase: ₹{coupon.minPurchase} | Valid: {new Date(coupon.validFrom).toLocaleDateString()} - {new Date(coupon.validUntil).toLocaleDateString()}
+                      Min Purchase: ₹{coupon.minPurchase} | Valid:{" "}
+                      {new Date(coupon.validFrom).toLocaleDateString()} -{" "}
+                      {new Date(coupon.validUntil).toLocaleDateString()}
                     </Typography>
                   </Paper>
                 ))}
