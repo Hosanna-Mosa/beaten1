@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import axios from 'axios';
 
 const CartContext = createContext();
 
@@ -18,15 +17,12 @@ export const CartProvider = ({ children }) => {
       return [];
     }
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
-      fetchSavedCart();
-    } else {
-      setLoading(false);
-    }
+    // No need to fetch from server since we're removing backend connections
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
@@ -36,29 +32,6 @@ export const CartProvider = ({ children }) => {
       console.error('Error saving cart to localStorage:', error);
     }
   }, [cart]);
-
-  const fetchSavedCart = async () => {
-    try {
-      const response = await axios.get('/api/user/me');
-      const serverCart = response.data.savedCart || [];
-      
-      // Merge server cart with local cart, preferring server data
-      const mergedCart = serverCart.map(serverItem => {
-        const localItem = cart.find(item => 
-          item.product._id === serverItem.product._id &&
-          item.size === serverItem.size &&
-          item.color === serverItem.color
-        );
-        return localItem || serverItem;
-      });
-
-      setCart(mergedCart);
-    } catch (error) {
-      console.error('Error fetching saved cart:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const addToCart = async (product, quantity, size, color) => {
     try {
@@ -92,17 +65,11 @@ export const CartProvider = ({ children }) => {
 
       setCart(updatedCart);
 
-      if (user) {
-        await axios.put('/api/user/me', {
-          savedCart: updatedCart
-        });
-      }
-
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to add to cart'
+        message: 'Failed to add to cart'
       };
     }
   };
@@ -119,17 +86,11 @@ export const CartProvider = ({ children }) => {
 
       setCart(updatedCart);
 
-      if (user) {
-        await axios.put('/api/user/me', {
-          savedCart: updatedCart
-        });
-      }
-
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to update quantity'
+        message: 'Failed to update quantity'
       };
     }
   };
@@ -147,17 +108,11 @@ export const CartProvider = ({ children }) => {
 
       setCart(updatedCart);
 
-      if (user) {
-        await axios.put('/api/user/me', {
-          savedCart: updatedCart
-        });
-      }
-
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to remove from cart'
+        message: 'Failed to remove from cart'
       };
     }
   };
@@ -166,17 +121,11 @@ export const CartProvider = ({ children }) => {
     try {
       setCart([]);
 
-      if (user) {
-        await axios.put('/api/user/me', {
-          savedCart: []
-        });
-      }
-
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || 'Failed to clear cart'
+        message: 'Failed to clear cart'
       };
     }
   };
@@ -203,9 +152,5 @@ export const CartProvider = ({ children }) => {
     getCartCount
   };
 
-  return (
-    <CartContext.Provider value={value}>
-      {!loading && children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }; 

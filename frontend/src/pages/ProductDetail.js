@@ -34,7 +34,7 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useWishlist } from "../context/WishlistContext";
-import { productsAPI } from '../api';
+import { getProductById, mockReviews } from '../data/mockData';
 
 const matteColors = {
   900: "#1a1a1a",
@@ -113,42 +113,8 @@ const ProductDetail = ({ mode }) => {
     }
   };
 
-  // Move reviews to state for dynamic updates
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      user: {
-        name: "John Doe",
-        avatar: "https://i.pravatar.cc/150?img=1",
-      },
-      rating: 5,
-      date: "2024-03-15",
-      comment:
-        "Excellent quality and perfect fit. The material is premium and the stitching is impeccable. Highly recommended!",
-    },
-    {
-      id: 2,
-      user: {
-        name: "Jane Smith",
-        avatar: "https://i.pravatar.cc/150?img=2",
-      },
-      rating: 4,
-      date: "2024-03-10",
-      comment:
-        "Great product, very comfortable. The only reason for 4 stars is that the color is slightly different from the picture.",
-    },
-    {
-      id: 3,
-      user: {
-        name: "Mike Johnson",
-        avatar: "https://i.pravatar.cc/150?img=3",
-      },
-      rating: 5,
-      date: "2024-03-05",
-      comment:
-        "Absolutely love this product! The quality is outstanding and it exceeded my expectations.",
-    },
-  ]);
+  // Use mock reviews data
+  const [reviews, setReviews] = useState(mockReviews);
 
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState("");
@@ -183,15 +149,19 @@ const ProductDetail = ({ mode }) => {
 
   useEffect(() => {
     setLoading(true);
-    productsAPI.getProduct(productId)
-      .then(res => {
-        setProduct(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
+    
+    // Get product from mock data
+    const product = getProductById(productId);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      if (product) {
+        setProduct(product);
+      } else {
         setProduct(null);
-        setLoading(false);
-      });
+      }
+      setLoading(false);
+    }, 500);
   }, [productId]);
 
   if (loading) {
