@@ -92,7 +92,7 @@ const Checkout = ({ mode = "dark" }) => {
       });
       const userAddresses = response.data.data || [];
       setAddresses(userAddresses);
-      const defaultAddress = userAddresses.find(addr => addr.isDefault);
+      const defaultAddress = userAddresses.find((addr) => addr.isDefault);
       if (defaultAddress) {
         setSelectedAddress(String(defaultAddress._id));
       } else if (userAddresses.length === 1) {
@@ -107,7 +107,7 @@ const Checkout = ({ mode = "dark" }) => {
   const handleAddressSubmit = async () => {
     try {
       //console.log("camed to ass");
-      
+
       if (!user) {
         setError("Please login to save addresses");
         return;
@@ -144,12 +144,16 @@ const Checkout = ({ mode = "dark" }) => {
         isDefault: newAddress.isDefault,
       };
       console.log("came to address submit");
-      
+
       if (newAddress._id) {
         // Edit address
-        await axios.put(`${BASE_URL}/api/user/addresses/${newAddress._id}`, addressData, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.put(
+          `${BASE_URL}/api/user/addresses/${newAddress._id}`,
+          addressData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       } else {
         // Add new address
         await axios.post(`${BASE_URL}/api/user/addresses`, addressData, {
@@ -188,57 +192,63 @@ const Checkout = ({ mode = "dark" }) => {
     setError(null);
   };
 
-const handlePlaceOrder = async () => {
-  setLoading(true);
-  setError("");
-  try {
-    // Calculate total with COD charge if applicable
-    const finalTotal = paymentMethod === "cod" ? total + 50 : total;
+  const handlePlaceOrder = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      // Calculate total with COD charge if applicable
+      const finalTotal = paymentMethod === "cod" ? total + 50 : total;
 
-    // Find the selected address object
-    const selectedAddressObj = addresses.find(addr => String(addr._id) === String(selectedAddress));
-    if (!selectedAddressObj) {
-      setError("Please select a valid shipping address");
+      // Find the selected address object
+      const selectedAddressObj = addresses.find(
+        (addr) => String(addr._id) === String(selectedAddress)
+      );
+      if (!selectedAddressObj) {
+        setError("Please select a valid shipping address");
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order payload
+      const orderPayload = {
+        orderItems: cart.map((item) => ({
+          product: item.product._id, // Ensure this is a real ObjectId from your DB
+          quantity: item.quantity,
+          size: item.size,
+          color: item.color,
+          price: item.product.price,
+        })),
+        shippingAddress: {
+          address: selectedAddressObj.address,
+          city: selectedAddressObj.city,
+          state: selectedAddressObj.state,
+          country: selectedAddressObj.country,
+          postalCode: selectedAddressObj.postalCode,
+          phone: selectedAddressObj.phone,
+        },
+        paymentMethod,
+        total: finalTotal,
+        codCharge: paymentMethod === "cod" ? 50 : 0,
+      };
+
+      const token = localStorage.getItem("token");
+      // Send order to backend
+      await axios.post(`${BASE_URL}/api/orders`, orderPayload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setOrderPlaced(true);
+      clearCart();
       setLoading(false);
-      return;
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Payment failed. Please try again."
+      );
+      setLoading(false);
     }
-
-    // Prepare order payload
-    const orderPayload = {
-      orderItems: cart.map(item => ({
-        product: item.product._id, // Ensure this is a real ObjectId from your DB
-        quantity: item.quantity,
-        size: item.size,
-        color: item.color,
-        price: item.product.price,
-      })),
-      shippingAddress: {
-        address: selectedAddressObj.address,
-        city: selectedAddressObj.city,
-        state: selectedAddressObj.state,
-        country: selectedAddressObj.country,
-        postalCode: selectedAddressObj.postalCode,
-        phone: selectedAddressObj.phone,
-      },
-      paymentMethod,
-      total: finalTotal,
-      codCharge: paymentMethod === "cod" ? 50 : 0,
-    };
-
-    const token = localStorage.getItem("token");
-    // Send order to backend
-    await axios.post(`${BASE_URL}/api/orders`, orderPayload, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    setOrderPlaced(true);
-    clearCart();
-    setLoading(false);
-  } catch (err) {
-    setError(err?.response?.data?.message || err?.message || "Payment failed. Please try again.");
-    setLoading(false);
-  }
-};
+  };
 
   if (orderPlaced) {
     return (
@@ -435,9 +445,12 @@ const handlePlaceOrder = async () => {
                           ) {
                             try {
                               const token = localStorage.getItem("token");
-                              await axios.delete(`${BASE_URL}/api/user/addresses/${address._id}`, {
-                                headers: { Authorization: `Bearer ${token}` },
-                              });
+                              await axios.delete(
+                                `${BASE_URL}/api/user/addresses/${address._id}`,
+                                {
+                                  headers: { Authorization: `Bearer ${token}` },
+                                }
+                              );
                               fetchAddresses();
                             } catch (err) {
                               setError("Failed to delete address");
@@ -529,9 +542,20 @@ const handlePlaceOrder = async () => {
         onClose={() => setAddressDialog(false)}
         maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            mt: 14, // Increased gap below navbar
+            position: "relative",
+          },
+        }}
       >
         <DialogTitle>Add New Address</DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{
+            maxHeight: "60vh", // Make dialog content scrollable if too tall
+            overflowY: "auto",
+          }}
+        >
           <Box sx={{ pt: 2 }}>
             <TextField
               fullWidth

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { dummyDataAPI } from "../api/dummyData";
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
 import {
   Box,
   Paper,
@@ -76,6 +76,8 @@ import {
   History as ViewHistoryIcon,
 } from "@mui/icons-material";
 import { formatPrice } from "../utils/format";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 // Change validation to lowercase
 
@@ -102,6 +104,13 @@ function Orders() {
   const [newStatus, setNewStatus] = useState("");
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
+  const [userNames, setUserNames] = useState({});
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // Define orderStatuses inside the component to access the imported icons
   const orderStatuses = [
@@ -111,22 +120,56 @@ function Orders() {
     { value: "delivered", color: "success", icon: <DeliveredIcon /> },
     { value: "cancelled", color: "error", icon: <CancelledIcon /> },
   ];
+
+  // Helper to fetch user name by userId
+  const fetchUserName = useCallback(
+    async (userId) => {
+      if (!userId || userNames[userId]) return;
+      setLoadingUsers(true);
+      try {
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${apiUrl}/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserNames((prev) => ({
+          ...prev,
+          [userId]: res.data.data?.name || userId,
+        }));
+      } catch (err) {
+        setUserNames((prev) => ({ ...prev, [userId]: userId }));
+      } finally {
+        setLoadingUsers(false);
+      }
+    },
+    [userNames]
+  );
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await dummyDataAPI.orders.getOrders();
-
-        console.log("API Response:", res.data); // 👈 ADD THIS
-
-        setOrders(res.data.orders);
-        setFilteredOrders(res.data.orders);
-        console.log(res.data.orders);
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${apiUrl}/api/orders`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // Assume res.data.data is the array of orders
+        console.log(res.data.data);
+        // Fetch user names for all orders
+        const userIds = Array.from(
+          new Set(res.data.data.map((order) => order.user).filter(Boolean))
+        );
+        await Promise.all(userIds.map(fetchUserName));
+        setOrders(res.data.data);
+        setFilteredOrders(res.data.data);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
     };
     fetchOrders();
-  }, []);
+  }, [fetchUserName]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -204,8 +247,8 @@ function Orders() {
       // Show loading state
 
       // Make API call to update backend
-      const response = await dummyDataAPI.orders.updateOrder(
-        selectedOrder._id,
+      const updateRes = await axios.put(
+        `${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/orders/${selectedOrder._id}`,
         { status: newStatus }
       );
 
@@ -235,7 +278,7 @@ function Orders() {
       setNewStatus("");
 
       // Show success notification
-      console.log("Status updated successfully:", response.data);
+      console.log("Status updated successfully:", updateRes.data);
     } catch (error) {
       console.error("Failed to update status:", error);
       // Show error notification to user
@@ -251,10 +294,21 @@ function Orders() {
 
   const updateFilteredOrders = orders
     .filter((order) => {
+      const orderNumber = order.orderNumber
+        ? order.orderNumber.toLowerCase()
+        : "";
+      const customerName =
+        order.customer && order.customer.name
+          ? order.customer.name.toLowerCase()
+          : "";
+      const customerEmail =
+        order.customer && order.customer.email
+          ? order.customer.email.toLowerCase()
+          : "";
       const matchesSearch =
-        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+        orderNumber.includes(searchTerm.toLowerCase()) ||
+        customerName.includes(searchTerm.toLowerCase()) ||
+        customerEmail.includes(searchTerm.toLowerCase());
       const matchesStatus =
         selectedStatus === "All" || order.status === selectedStatus;
       const matchesDate =
@@ -334,14 +388,26 @@ function Orders() {
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
-                    primary={order.customer.name}
-                    secondary={order.customer.email}
+                    primary={
+                      order.customer && order.customer.name
+                        ? order.customer.name
+                        : "-"
+                    }
+                    secondary={
+                      order.customer && order.customer.email
+                        ? order.customer.email
+                        : "-"
+                    }
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Phone"
-                    secondary={order.customer.phone}
+                    secondary={
+                      order.customer && order.customer.phone
+                        ? order.customer.phone
+                        : "-"
+                    }
                   />
                 </ListItem>
                 <ListItem>
@@ -917,7 +983,6 @@ function Orders() {
                 <TableCell sx={{ fontWeight: 600 }}>Items</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Total</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -931,94 +996,109 @@ function Orders() {
                   >
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
-                        {order.orderNumber}
+                        {order._id}
                       </Typography>
                     </TableCell>
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight={500}>
-                          {order.customer.name}
+                          {userNames[order.user]
+                            ? typeof userNames[order.user] === "object" &&
+                              userNames[order.user].name
+                              ? userNames[order.user].name
+                              : userNames[order.user]
+                            : order.user || "-"}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {order.customer.email}
+                          {userNames[order.user] &&
+                          typeof userNames[order.user] === "object" &&
+                          userNames[order.user].email
+                            ? userNames[order.user].email
+                            : ""}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2">
-                        {new Date(order.date).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleString("en-IN", {
+                          timeZone: "Asia/Kolkata",
+                        })}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <CartIcon fontSize="small" color="action" />
-                        <Typography variant="body2">
-                          {/* Use the actual items array */}
-                          {order.items?.reduce(
-                            (sum, item) => sum + (item.quantity || 0),
-                            0
-                          ) || 0}{" "}
-                          items
-                        </Typography>
-                      </Box>
+                      <Typography variant="body2" align="center">
+                        {order.orderItems?.reduce(
+                          (sum, item) => sum + (item.quantity || 0),
+                          0
+                        ) || 0}
+                      </Typography>
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
-                        {formatPrice(order.total)}
+                        {formatPrice(
+                          order.orderItems?.reduce(
+                            (sum, item) =>
+                              sum + (item.price || 0) * (item.quantity || 0),
+                            0
+                          )
+                        )}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={order.status}
-                        icon={statusStyles[order.status]?.icon}
-                        sx={{
-                          backgroundColor: statusStyles[order.status]?.bg,
-                          color: statusStyles[order.status]?.color,
-                          fontWeight: 600,
-                          fontSize: "0.85rem",
-                          px: 1.2,
-                          py: 0.3,
-                          height: 28,
-                          minHeight: 0,
-                          "& .MuiChip-icon": {
-                            color: statusStyles[order.status]?.color,
-                            fontSize: "1.1em",
-                          },
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", gap: 1 }}>
-                        <Tooltip title="View Details">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(order)}
-                            sx={{ color: "primary.main" }}
-                          >
-                            <ViewDetailsIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Update Status">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleStatusUpdate(order)}
-                          >
-                            <EditStatusIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="View History">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(order)}
-                            sx={{ color: "info.main" }}
-                          >
-                            <ViewHistoryIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
+                      <FormControl size="small" fullWidth>
+                        <Select
+                          value={order.status ? order.status : "pending"}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              const apiUrl =
+                                process.env.REACT_APP_API_URL ||
+                                "http://localhost:8000";
+                              const token = localStorage.getItem("token");
+                              await axios.put(
+                                `${apiUrl}/api/orders/${order._id}/status`,
+                                { status: newStatus },
+                                {
+                                  headers: { Authorization: `Bearer ${token}` },
+                                }
+                              );
+                              setOrders((prev) =>
+                                prev.map((o) =>
+                                  o._id === order._id
+                                    ? { ...o, status: newStatus }
+                                    : o
+                                )
+                              );
+                              setFilteredOrders((prev) =>
+                                prev.map((o) =>
+                                  o._id === order._id
+                                    ? { ...o, status: newStatus }
+                                    : o
+                                )
+                              );
+                              setToast({
+                                open: true,
+                                message: "Order status updated successfully!",
+                                severity: "success",
+                              });
+                            } catch (err) {
+                              setToast({
+                                open: true,
+                                message: "Failed to update order status",
+                                severity: "error",
+                              });
+                            }
+                          }}
+                        >
+                          <MenuItem value="pending">Pending</MenuItem>
+                          <MenuItem value="processing">Processing</MenuItem>
+                          <MenuItem value="shipped">Shipped</MenuItem>
+                          <MenuItem value="out-for-delivery">
+                            Out for Delivery
+                          </MenuItem>
+                          <MenuItem value="delivered">Delivered</MenuItem>
+                        </Select>
+                      </FormControl>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1056,6 +1136,22 @@ function Orders() {
         onClose={() => setOpenDialog(false)}
         order={selectedOrder}
       />
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={() => setToast({ ...toast, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={() => setToast({ ...toast, open: false })}
+          severity={toast.severity}
+          sx={{ width: "100%" }}
+        >
+          {toast.message}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 }

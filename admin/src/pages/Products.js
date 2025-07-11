@@ -65,21 +65,35 @@ import {
   deleteProduct,
 } from "../api/productsAdmin";
 import { uploadAdminAPI } from "../api/uploadAdmin";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { LoadingButton } from "@mui/lab";
 
 const categories = [
   "T-shirts",
   "Shirts",
   "Bottom Wear",
-  "Sneakers",
-  "Boots",
-  "Sports",
-  "Casual",
-  "Formal",
-  "cargo-pants",
-  "jackets",
-  "co-ord-sets",
+  "Hoodies",
+  "Jackets",
+  "Co-ord Sets",
+  "Dresses",
 ];
-const statuses = ["All", "In Stock", "Low Stock", "Out of Stock"];
+
+const collections = [
+  "Beaten Exclusive Collection",
+  "Beaten Launch Sale Vol 1",
+  "Beaten Signature Collection",
+  "New Arrivals",
+  "Best Sellers",
+  "Summer Collection",
+  "Winter Collection",
+];
+
+const sizes = ["S", "M", "L", "XL", "XXL"];
+const fits = ["Slim", "Oversized", "Regular"];
+const genders = ["MEN", "WOMEN"];
+
+const statuses = ["All", "In Stock", "Out of Stock"];
 const sortOptions = [
   { value: "name_asc", label: "Name (A-Z)" },
   { value: "name_desc", label: "Name (Z-A)" },
@@ -111,14 +125,17 @@ function Products() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [formError, setFormError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const res = await getProducts();
       console.log("API Response:", res);
-      console.log("Products data:", res.data);
 
-      const productsData = res.data.products || res.data;
+      // Handle the backend response structure
+      const productsData = res.data.data || res.data;
       console.log("Final products array:", productsData);
 
       // Check if we have valid products with _id
@@ -132,30 +149,9 @@ function Products() {
       setProducts(productsData);
     } catch (error) {
       console.error("Failed to fetch products:", error);
-
-      // Fallback mock data for testing (remove this in production)
-      console.log("Using fallback mock data for testing");
-      const mockProducts = [
-        {
-          _id: "507f1f77bcf86cd799439011",
-          name: "Test Product 1",
-          sku: "TEST-001",
-          category: "T-shirts",
-          price: 29.99,
-          stock: 100,
-          status: "In Stock",
-        },
-        {
-          _id: "507f1f77bcf86cd799439012",
-          name: "Test Product 2",
-          sku: "TEST-002",
-          category: "Shirts",
-          price: 49.99,
-          stock: 50,
-          status: "In Stock",
-        },
-      ];
-      setProducts(mockProducts);
+      setProducts([]); // Set empty array instead of mock data
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -222,25 +218,14 @@ function Products() {
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
 
-    console.log("Selected products for bulk delete:", selectedProducts);
-    console.log("Selected products type:", typeof selectedProducts);
-    console.log("Selected products length:", selectedProducts.length);
-
-    // Log each selected product ID
-    selectedProducts.forEach((id, index) => {
-      console.log(`Selected product ${index + 1}:`, id, "Type:", typeof id);
-    });
-
     try {
-      console.log("Calling bulkDeleteProducts with IDs:", selectedProducts);
       await bulkDeleteProducts(selectedProducts);
       console.log("Bulk delete successful");
       await fetchProducts(); // Refresh products after bulk delete
       setSelectedProducts([]); // Clear selection
     } catch (error) {
       console.error("Failed to bulk delete products:", error);
-      console.error("Error response:", error.response?.data);
-      // You might want to show an error message to the user here
+      setFormError("Failed to delete selected products. Please try again.");
     }
   };
 
@@ -300,14 +285,19 @@ function Products() {
 
   const handleDeleteConfirm = async () => {
     if (!productToDelete) return;
+    setDeleteLoadingId(productToDelete._id);
     try {
       await deleteProduct(productToDelete._id);
       await fetchProducts();
       setDeleteDialogOpen(false);
       setProductToDelete(null);
+      toast.success("Product deleted successfully!");
     } catch (error) {
       console.error("Failed to delete product:", error);
       setFormError("Failed to delete product.");
+      toast.error("Failed to delete product. Please try again.");
+    } finally {
+      setDeleteLoadingId(null);
     }
   };
 
@@ -322,9 +312,10 @@ function Products() {
       await fetchProducts();
       setEditDialogOpen(false);
       setSelectedProduct(null);
+      setFormError(""); // Clear any previous errors
     } catch (error) {
       console.error("Failed to update product:", error);
-      setFormError("Failed to update product.");
+      setFormError("Failed to update product. Please try again.");
     }
   };
 
@@ -343,7 +334,9 @@ function Products() {
       const matchesCategory =
         selectedCategory === "All" || product.category === selectedCategory;
       const matchesStatus =
-        selectedStatus === "All" || product.status === selectedStatus;
+        selectedStatus === "All" ||
+        (selectedStatus === "In Stock" && product.inStock) ||
+        (selectedStatus === "Out of Stock" && !product.inStock);
       const matchesPrice =
         (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
         (!priceRange.max || product.price <= parseFloat(priceRange.max));
@@ -367,9 +360,9 @@ function Products() {
         case "price_desc":
           return b.price - a.price;
         case "stock_asc":
-          return a.stock - b.stock;
+          return (a.stockQuantity || 0) - (b.stockQuantity || 0);
         case "stock_desc":
-          return b.stock - a.stock;
+          return (b.stockQuantity || 0) - (a.stockQuantity || 0);
         case "rating_desc":
           return b.rating - a.rating;
         case "created_desc":
@@ -379,17 +372,12 @@ function Products() {
       }
     });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "In Stock":
-        return "success";
-      case "Low Stock":
-        return "warning";
-      case "Out of Stock":
-        return "error";
-      default:
-        return "default";
-    }
+  const getStatusColor = (inStock) => {
+    return inStock ? "success" : "error";
+  };
+
+  const getStatusText = (inStock) => {
+    return inStock ? "In Stock" : "Out of Stock";
   };
 
   const ProductCard = ({ product }) => (
@@ -416,14 +404,14 @@ function Products() {
         <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
           <Chip label={product.category} size="small" icon={<CategoryIcon />} />
           <Chip
-            label={product.status}
-            color={getStatusColor(product.status)}
+            label={getStatusText(product.inStock)}
+            color={getStatusColor(product.inStock)}
             size="small"
             icon={<InventoryIcon />}
           />
         </Stack>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          SKU: {product.sku}
+          SKU: {product.sku || "N/A"}
         </Typography>
         <Box
           sx={{
@@ -437,7 +425,7 @@ function Products() {
             ₹{product.price.toFixed(2)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Stock: {product.stock}
+            Stock: {product.stockQuantity || 0}
           </Typography>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
@@ -505,29 +493,36 @@ function Products() {
         </Box>
         {images.length > 0 && (
           <ImageList
-            sx={{ width: "100%", height: 200 }}
-            cols={3}
-            rowHeight={164}
+            sx={{ width: "100%", height: 120 }}
+            cols={5}
+            rowHeight={100}
           >
             {images.map((image, index) => (
-              <ImageListItem key={index}>
+              <ImageListItem key={index} sx={{ position: "relative" }}>
                 <img
                   src={image.url}
                   alt={`Product ${index + 1}`}
                   loading="lazy"
-                  style={{ height: "100%", objectFit: "cover" }}
+                  style={{
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 8,
+                    border: "1px solid #eee",
+                  }}
                 />
-                <ImageListItemBar
-                  position="top"
-                  actionIcon={
-                    <IconButton
-                      sx={{ color: "white" }}
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  }
-                />
+                <IconButton
+                  sx={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    background: "rgba(255,255,255,0.7)",
+                    zIndex: 2,
+                  }}
+                  size="small"
+                  onClick={() => handleRemoveImage(index)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
               </ImageListItem>
             ))}
             <ImageListItem>
@@ -544,7 +539,7 @@ function Products() {
                   }}
                 >
                   <AddPhotoIcon
-                    sx={{ fontSize: 40, color: "text.secondary" }}
+                    sx={{ fontSize: 32, color: "text.secondary" }}
                   />
                 </Box>
               </label>
@@ -614,7 +609,7 @@ function Products() {
                 Stock
               </Typography>
               <Typography variant="body1" gutterBottom>
-                {product.stock} units
+                {product.stockQuantity || 0} units
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -633,8 +628,8 @@ function Products() {
                 Status
               </Typography>
               <Chip
-                label={product.status}
-                color={getStatusColor(product.status)}
+                label={getStatusText(product.inStock)}
+                color={getStatusColor(product.inStock)}
                 size="small"
                 icon={<InventoryIcon />}
                 sx={{ mt: 1 }}
@@ -685,23 +680,36 @@ function Products() {
       name: product?.name || "",
       sku: product?.sku || "",
       price: product?.price || "",
-      stock: product?.stock || "",
+      originalPrice: product?.originalPrice || "",
+      stockQuantity: product?.stockQuantity || 0,
       category: product?.category || "",
-      status: product?.status || "Active",
-      description: product?.description || "",
-      images: product?.images || [],
-      isBestSeller: product?.isBestSeller || false,
-      isTShirts: product?.isTShirts || false,
-      isShirts: product?.isShirts || false,
-      isOversizedTShirts: product?.isOversizedTShirts || false,
-      isBottomWear: product?.isBottomWear || false,
-      isCargoPants: product?.isCargoPants || false,
-      isJackets: product?.isJackets || false,
-      isHoodies: product?.isHoodies || false,
-      isCoOrdSets: product?.isCoOrdSets || false,
-      isShopByCategory: product?.isShopByCategory || false,
+      subCategory: product?.subCategory || "",
+      collectionName: product?.collectionName || "",
       gender: product?.gender || "",
+      sizes: product?.sizes || [],
+      colors: product?.colors || [],
+      fit: product?.fit || "",
+      description: product?.description || "",
+      features: product?.features || [],
+      specifications: {
+        Material: product?.specifications?.Material || "",
+        Fit: product?.specifications?.Fit || "",
+        Care: product?.specifications?.Care || "",
+        Origin: product?.specifications?.Origin || "",
+      },
+      inStock: product?.inStock !== undefined ? product.inStock : true,
+      rating: product?.rating || 0,
+      reviews: product?.reviews || 0,
+      tags: product?.tags || [],
+      discount: product?.discount || 0,
+      isFeatured: product?.isFeatured || false,
+      isNewArrival: product?.isNewArrival || false,
+      isBestSeller: product?.isBestSeller || false,
+      soldCount: product?.soldCount || 0,
+      images: product?.images || [],
     });
+
+    const [submitLoading, setSubmitLoading] = useState(false);
 
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -721,59 +729,103 @@ function Products() {
     const handleSubmit = async (e) => {
       e.preventDefault();
       setFormError("");
-      if (
-        !formData.name ||
-        !formData.price ||
-        !formData.sku ||
-        !formData.stock ||
-        !formData.category ||
-        !formData.status
-      ) {
-        setFormError("Please fill in all required fields.");
+      setSubmitLoading(true);
+      // Check for at least one image selected
+      if (!formData.images || formData.images.length === 0) {
+        toast.error("Please select at least one image.");
+        setSubmitLoading(false);
         return;
       }
-      let imageUrl = "";
-      if (formData.images && formData.images.length > 0) {
-        const firstImage = formData.images[0];
-        console.log("firstImage", firstImage);
-        if (firstImage.file) {
-          const uploadRes = await uploadAdminAPI.uploadImage(firstImage.file);
-          console.log("uploadRes : ", uploadRes);
-          imageUrl = uploadRes.data.imageUrl;
-          console.log("imageUrl", imageUrl);
-          if (imageUrl && !imageUrl.startsWith("http")) {
-            imageUrl = imageUrl; // Keep as is for dummy data
-          }
-        } else if (firstImage.url) {
-          imageUrl = firstImage.url;
-        } else {
-          imageUrl = firstImage;
+      try {
+        if (
+          !formData.name ||
+          !formData.price ||
+          !formData.category ||
+          !formData.subCategory ||
+          !formData.collectionName ||
+          !formData.gender ||
+          !formData.description
+        ) {
+          toast.error("Please fill in all required fields marked with *.");
+          setSubmitLoading(false);
+          return;
         }
-      }
-      console.log("the final imageurl: ", imageUrl);
-      const payload = {
-        ...formData,
-        image: imageUrl,
-      };
-      console.log("the payload", payload);
-      delete payload.images;
-      if (!imageUrl) {
-        setFormError(
-          "Please upload/select an image before saving the product."
-        );
-        return;
-      }
-      if (!product) {
-        await createProduct(payload);
-        await fetchProducts();
-        onClose();
-      } else {
-        await handleUpdateProduct(product._id, payload);
+        // Upload all images to backend and get URLs
+        let imageUrls = [];
+        if (formData.images && formData.images.length > 0) {
+          try {
+            imageUrls = await Promise.all(
+              formData.images.map(async (img) => {
+                if (img.file) {
+                  const uploadRes = await uploadAdminAPI.uploadImage(img.file);
+                  return uploadRes.data.imageUrl;
+                } else if (img.url) {
+                  // If already a URL (e.g. editing), use as is
+                  return img.url;
+                } else if (typeof img === "string") {
+                  return img;
+                }
+                return null;
+              })
+            );
+          } catch (err) {
+            toast.error(
+              "Failed to upload one or more images. Please try again."
+            );
+            setSubmitLoading(false);
+            return;
+          }
+        }
+        // Always send images as an array, even if only one
+        if (!Array.isArray(imageUrls)) imageUrls = imageUrls ? [imageUrls] : [];
+        // Ensure at least one image in the array if imageUrl exists
+        if ((!imageUrls || imageUrls.length === 0) && imageUrl) {
+          imageUrls = [imageUrl];
+        }
+        // Use the first image as the main image
+        const imageUrl = imageUrls[0] || "";
+        const payload = {
+          ...formData,
+          image: imageUrl,
+          images: imageUrls,
+        };
+        if (!payload.fit) delete payload.fit;
+        delete payload.images;
+        if (!imageUrl) {
+          toast.error(
+            "Please upload/select an image before saving the product. Image is required."
+          );
+          setSubmitLoading(false);
+          return;
+        }
+        if (!product) {
+          try {
+            await createProduct(payload);
+            await fetchProducts();
+            onClose();
+            toast.success("Product created successfully!");
+          } catch (error) {
+            console.error("Failed to create product:", error);
+            toast.error("Failed to create product. Please try again.");
+          }
+        } else {
+          try {
+            await handleUpdateProduct(product._id, payload);
+            await fetchProducts();
+            onClose();
+            toast.success("Product updated successfully!");
+          } catch (error) {
+            console.error("Failed to update product:", error);
+            toast.error("Failed to update product. Please try again.");
+          }
+        }
+      } finally {
+        setSubmitLoading(false);
       }
     };
 
     const BACKEND_URL =
-      process.env.REACT_APP_API_URL || "http://localhost:5000";
+      process.env.REACT_APP_API_URL || "http://localhost:8000";
 
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -787,11 +839,14 @@ function Products() {
                 {formError}
               </Alert>
             )}
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Fields marked with * are required
+            </Alert>
             <Grid container spacing={2}>
               {/* Product Images Section */}
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Product Images
+                  Product Images *
                 </Typography>
                 <ImageUpload
                   images={formData.images}
@@ -827,13 +882,13 @@ function Products() {
               {/* Product Details Section */}
               <Grid item xs={12}>
                 <Typography variant="subtitle1" gutterBottom>
-                  Product Details
+                  Product Details *
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Product Name"
+                  label="Product Name *"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
@@ -843,7 +898,16 @@ function Products() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Description"
+                  label="SKU"
+                  name="sku"
+                  value={formData.sku}
+                  onChange={handleChange}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Description *"
                   name="description"
                   multiline
                   rows={4}
@@ -852,13 +916,15 @@ function Products() {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>
+                    Category <span style={{ color: "red" }}>*</span>
+                  </InputLabel>
                   <Select
                     name="category"
                     value={formData.category}
-                    label="Category"
+                    label="Category *"
                     onChange={handleChange}
                     required
                   >
@@ -870,32 +936,80 @@ function Products() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Sub Category *"
+                  name="subCategory"
+                  value={formData.subCategory}
+                  onChange={handleChange}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
-                  <InputLabel id="gender-label">Gender</InputLabel>
+                  <InputLabel>
+                    Collection <span style={{ color: "red" }}>*</span>
+                  </InputLabel>
                   <Select
-                    labelId="gender-label"
-                    value={formData.gender}
-                    label="Gender"
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        gender: e.target.value,
-                      }))
-                    }
-                    name="gender"
+                    name="collectionName"
+                    value={formData.collectionName}
+                    label="Collection *"
+                    onChange={handleChange}
+                    required
                   >
-                    <MenuItem value="">None</MenuItem>
-                    <MenuItem value="Men">Men</MenuItem>
-                    <MenuItem value="Women">Women</MenuItem>
-                    <MenuItem value="Unisex">Unisex</MenuItem>
+                    {collections.map((collection) => (
+                      <MenuItem key={collection} value={collection}>
+                        {collection}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
               <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>
+                    Gender <span style={{ color: "red" }}>*</span>
+                  </InputLabel>
+                  <Select
+                    name="gender"
+                    value={formData.gender}
+                    label="Gender *"
+                    onChange={handleChange}
+                    required
+                  >
+                    {genders.map((gender) => (
+                      <MenuItem key={gender} value={gender}>
+                        {gender}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>
+                    Fit <span style={{ color: "red" }}>*</span>
+                  </InputLabel>
+                  <Select
+                    name="fit"
+                    value={formData.fit}
+                    label="Fit *"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {fits.map((fit) => (
+                      <MenuItem key={fit} value={fit}>
+                        {fit}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                  label="Price"
+                  label="Price *"
                   name="price"
                   type="number"
                   value={formData.price}
@@ -908,6 +1022,36 @@ function Products() {
                   required
                 />
               </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Original Price"
+                  name="originalPrice"
+                  type="number"
+                  value={formData.originalPrice}
+                  onChange={handleChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">₹</InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Discount (%)"
+                  name="discount"
+                  type="number"
+                  value={formData.discount}
+                  onChange={handleChange}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">%</InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
 
               {/* Inventory Section */}
               <Grid item xs={12}>
@@ -916,46 +1060,93 @@ function Products() {
                   Inventory
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
                 <TextField
                   fullWidth
-                  label="SKU"
-                  name="sku"
-                  value={formData.sku}
-                  onChange={handleChange}
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Stock"
-                  name="stock"
+                  label="Stock Quantity"
+                  name="stockQuantity"
                   type="number"
-                  value={formData.stock}
+                  value={formData.stockQuantity}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.inStock}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          inStock: e.target.checked,
+                        }))
+                      }
+                      name="inStock"
+                    />
+                  }
+                  label="In Stock"
+                />
+              </Grid>
+              {/* Sizes and Colors Section */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" gutterBottom>
+                  Sizes & Colors
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
+                  <InputLabel>
+                    Sizes <span style={{ color: "red" }}>*</span>
+                  </InputLabel>
                   <Select
-                    name="status"
-                    value={formData.status}
-                    label="Status"
-                    onChange={handleChange}
-                    required
+                    multiple
+                    name="sizes"
+                    value={formData.sizes}
+                    label="Sizes *"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        sizes: e.target.value,
+                      }))
+                    }
+                    renderValue={(selected) => selected.join(", ")}
                   >
-                    {statuses.map((status) => (
-                      <MenuItem key={status} value={status}>
-                        {status}
+                    {sizes.map((size) => (
+                      <MenuItem key={size} value={size}>
+                        {size}
                       </MenuItem>
                     ))}
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Colors (comma separated)"
+                  name="colors"
+                  value={formData.colors.join(", ")}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      colors: e.target.value
+                        .split(",")
+                        .map((c) => c.trim())
+                        .filter((c) => c),
+                    }))
+                  }
+                  placeholder="Red, Blue, Green"
+                />
+              </Grid>
+
+              {/* Product Flags Section */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle1" gutterBottom>
+                  Product Flags
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={3}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -973,182 +1164,97 @@ function Products() {
                   label="Best Seller"
                 />
               </Grid>
+              <Grid item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.isFeatured}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isFeatured: e.target.checked,
+                        }))
+                      }
+                      name="isFeatured"
+                      color="primary"
+                    />
+                  }
+                  label="Featured"
+                />
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.isNewArrival}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isNewArrival: e.target.checked,
+                        }))
+                      }
+                      name="isNewArrival"
+                      color="primary"
+                    />
+                  }
+                  label="New Arrival"
+                />
+              </Grid>
 
-              {/* Category Section Checkboxes */}
+              {/* Specifications Section */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle1" gutterBottom>
-                  Category Sections
+                  Specifications
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isTShirts}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isTShirts: e.target.checked,
-                        }))
-                      }
-                      name="isTShirts"
-                      color="primary"
-                    />
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Features (comma separated)"
+                  name="features"
+                  value={formData.features.join(", ")}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      features: e.target.value
+                        .split(",")
+                        .map((f) => f.trim())
+                        .filter((f) => f),
+                    }))
                   }
-                  label="T-Shirts Section"
+                  placeholder="Feature 1, Feature 2, Feature 3"
                 />
               </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isShirts}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isShirts: e.target.checked,
-                        }))
-                      }
-                      name="isShirts"
-                      color="primary"
-                    />
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Tags (comma separated)"
+                  name="tags"
+                  value={formData.tags.join(", ")}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tags: e.target.value
+                        .split(",")
+                        .map((t) => t.trim())
+                        .filter((t) => t),
+                    }))
                   }
-                  label="Shirts Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isOversizedTShirts}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isOversizedTShirts: e.target.checked,
-                        }))
-                      }
-                      name="isOversizedTShirts"
-                      color="primary"
-                    />
-                  }
-                  label="Oversized T-Shirts Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isBottomWear}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isBottomWear: e.target.checked,
-                        }))
-                      }
-                      name="isBottomWear"
-                      color="primary"
-                    />
-                  }
-                  label="Bottom Wear Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isCargoPants}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isCargoPants: e.target.checked,
-                        }))
-                      }
-                      name="isCargoPants"
-                      color="primary"
-                    />
-                  }
-                  label="Cargo Pants Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isJackets}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isJackets: e.target.checked,
-                        }))
-                      }
-                      name="isJackets"
-                      color="primary"
-                    />
-                  }
-                  label="Jackets Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isHoodies}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isHoodies: e.target.checked,
-                        }))
-                      }
-                      name="isHoodies"
-                      color="primary"
-                    />
-                  }
-                  label="Hoodies Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isCoOrdSets}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isCoOrdSets: e.target.checked,
-                        }))
-                      }
-                      name="isCoOrdSets"
-                      color="primary"
-                    />
-                  }
-                  label="Co-Ord Sets Section"
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.isShopByCategory}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isShopByCategory: e.target.checked,
-                        }))
-                      }
-                      name="isShopByCategory"
-                    />
-                  }
-                  label="Shop By Category"
+                  placeholder="Tag 1, Tag 2, Tag 3"
                 />
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
-            <Button type="submit" variant="contained">
+            <LoadingButton
+              type="submit"
+              variant="contained"
+              loading={submitLoading}
+            >
               {product ? "Update Product" : "Add Product"}
-            </Button>
+            </LoadingButton>
           </DialogActions>
         </form>
       </Dialog>
@@ -1181,6 +1287,16 @@ function Products() {
 
   return (
     <Box>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Box
         sx={{
           display: "flex",
@@ -1216,34 +1332,6 @@ function Products() {
           </Button>
         </Box>
       </Box>
-
-      {/* Debug Section - Remove this in production */}
-      <Paper sx={{ p: 2, mb: 3, backgroundColor: "#f5f5f5" }}>
-        <Typography variant="h6" gutterBottom>
-          🐛 Debug Information
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2">
-              Products Count: {products.length}
-            </Typography>
-            <Typography variant="subtitle2">
-              Selected Products: {selectedProducts.length}
-            </Typography>
-            <Typography variant="subtitle2">
-              Selected IDs: {JSON.stringify(selectedProducts)}
-            </Typography>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2">Sample Product IDs:</Typography>
-            {products.slice(0, 3).map((product, index) => (
-              <Typography key={index} variant="body2" color="text.secondary">
-                {index + 1}. {product.name}: {product._id}
-              </Typography>
-            ))}
-          </Grid>
-        </Grid>
-      </Paper>
 
       {/* Filters and Search */}
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -1390,13 +1478,24 @@ function Products() {
       </Box>
 
       {/* Products Display */}
-      {view === "list" ? (
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <Typography>Loading products...</Typography>
+        </Box>
+      ) : filteredProducts.length === 0 ? (
+        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
+          <Typography>No products found</Typography>
+        </Box>
+      ) : view === "list" ? (
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <TableContainer>
-            <Table stickyHeader>
+            <Table stickyHeader sx={{ border: 1, borderColor: "divider" }}>
               <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
+                <TableRow sx={{ border: 1, borderColor: "divider" }}>
+                  <TableCell
+                    padding="checkbox"
+                    sx={{ border: 1, borderColor: "divider" }}
+                  >
                     <Checkbox
                       checked={
                         selectedProducts.length === filteredProducts.length
@@ -1408,31 +1507,56 @@ function Products() {
                       onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>SKU</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Category</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Stock</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Rating</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    SKU
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Name
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Category
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Price
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Stock
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Status
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredProducts
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((product) => (
-                    <TableRow key={product._id}>
-                      <TableCell padding="checkbox">
+                    <TableRow
+                      key={product._id}
+                      sx={{ border: 1, borderColor: "divider" }}
+                    >
+                      <TableCell
+                        padding="checkbox"
+                        sx={{ border: 1, borderColor: "divider" }}
+                      >
                         <Checkbox
                           checked={selectedProducts.includes(product._id)}
                           onChange={() => handleSelectProduct(product._id)}
                         />
                       </TableCell>
-                      <TableCell>{product.sku}</TableCell>
-                      <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        {product.sku}
+                      </TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        {product.name}
+                      </TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        {product.category}
+                      </TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
                         <Box
                           sx={{ display: "flex", alignItems: "center", gap: 1 }}
                         >
@@ -1446,25 +1570,45 @@ function Products() {
                           )}
                         </Box>
                       </TableCell>
-                      <TableCell>{product.stock}</TableCell>
-                      <TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        {product.stockQuantity || 0}
+                      </TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
                         <Chip
-                          label={product.status}
-                          color={getStatusColor(product.status)}
+                          label={getStatusText(product.inStock)}
+                          color={getStatusColor(product.inStock)}
                           size="small"
                         />
                       </TableCell>
-                      <TableCell>
-                        <Box
-                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                        >
-                          {product.rating}
-                          <Typography variant="body2" color="text.secondary">
-                            ({product.reviews})
-                          </Typography>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        <Box sx={{ display: "flex", gap: 1 }}>
+                          <Tooltip title="View Details">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleViewProduct(product)}
+                            >
+                              <ViewIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleEditProduct(product)}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteClick(product)}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </TableCell>
-                      <TableCell>{renderTableActions(product)}</TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -1519,14 +1663,18 @@ function Products() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button
+          <Button onClick={handleDeleteCancel} disabled={!!deleteLoadingId}>
+            Cancel
+          </Button>
+          <LoadingButton
             onClick={handleDeleteConfirm}
             color="error"
             variant="contained"
+            loading={!!deleteLoadingId}
+            disabled={!!deleteLoadingId}
           >
             Delete
-          </Button>
+          </LoadingButton>
         </DialogActions>
       </Dialog>
     </Box>

@@ -560,14 +560,6 @@ const Header = ({ mode, toggleColorMode }) => {
             >
               <FavoriteBorderIcon sx={{ fontSize: 26 }} />
             </IconButton>
-            {/* Notifications Icon - always show */}
-            <IconButton
-              color="inherit"
-              onClick={() => navigate("/alerts")}
-              sx={{ p: 1 }}
-            >
-              <NotificationsIcon sx={{ fontSize: 26 }} />
-            </IconButton>
             {/* Cart Icon - always show */}
             <IconButton
               color="inherit"
@@ -615,7 +607,14 @@ const Header = ({ mode, toggleColorMode }) => {
                 <Button
                   color="inherit"
                   onClick={handleLogout}
-                  sx={{ ml: 2, color: "white", border: "1px solid #fff", borderRadius: 2, px: 2, fontWeight: 600 }}
+                  sx={{
+                    ml: 2,
+                    color: "white",
+                    border: "1px solid #fff",
+                    borderRadius: 2,
+                    px: 2,
+                    fontWeight: 600,
+                  }}
                 >
                   Logout
                 </Button>

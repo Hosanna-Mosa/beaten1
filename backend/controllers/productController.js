@@ -5,6 +5,8 @@ const Product = require("../models/Product");
 // @access  Public
 const getProducts = async (req, res) => {
   try {
+    console.log("camed to here");
+
     const {
       page = 1,
       limit = 12,
@@ -144,6 +146,18 @@ const getProductById = async (req, res) => {
 // @access  Private (Admin only)
 const createProduct = async (req, res) => {
   try {
+    // Ensure images is always an array and image is the 0th index
+    if (Array.isArray(req.body.images)) {
+      if (req.body.images.length === 0 && req.body.image) {
+        req.body.images = [req.body.image];
+      }
+      req.body.image = req.body.images[0];
+    } else if (req.body.images) {
+      req.body.images = [req.body.images];
+      req.body.image = req.body.images[0];
+    } else if (req.body.image) {
+      req.body.images = [req.body.image];
+    }
     const product = await Product.create(req.body);
 
     res.status(201).json({
@@ -166,6 +180,18 @@ const createProduct = async (req, res) => {
 // @access  Private (Admin only)
 const updateProduct = async (req, res) => {
   try {
+    // Ensure images is always an array and image is the 0th index
+    if (Array.isArray(req.body.images)) {
+      if (req.body.images.length === 0 && req.body.image) {
+        req.body.images = [req.body.image];
+      }
+      req.body.image = req.body.images[0];
+    } else if (req.body.images) {
+      req.body.images = [req.body.images];
+      req.body.image = req.body.images[0];
+    } else if (req.body.image) {
+      req.body.images = [req.body.image];
+    }
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

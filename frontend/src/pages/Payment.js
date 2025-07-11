@@ -27,6 +27,17 @@ import { formatPrice } from "../utils/format";
 import axios from "axios";
 import { mockCoupons, validateCoupon } from "../data/mockData";
 
+// Dynamically load Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 const Payment = ({ mode = "dark" }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -110,14 +121,80 @@ const Payment = ({ mode = "dark" }) => {
     setAppliedCoupon(null);
   };
 
-  const handlePlaceOrder = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      // Calculate total with COD charge if applicable
-      const finalTotal = paymentMethod === "cod" ? total + 50 : total;
+  // Razorpay handler (new approach)
+  // const handleRazorpay = async () => {
+  //   const script = document.createElement("script");
+  //   script.src = "https://checkout.razorpay.com/v1/checkout.js";
+  //   script.async = true;
+  //   document.body.appendChild(script);
+  //   script.onload = async () => {
+  //     const options = {
+  //       key:
+  //         process.env.REACT_APP_RAZORPAY_KEY_TEST || "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
+  //       amount: Math.round(total * 100),
+  //       currency: "INR",
+  //       name: "BEATEN",
+  //       description: `Order Payment (Card, UPI, PhonePe, etc.)`,
+  //       handler: async function (response) {
+  //         // Place order after successful payment
+  //         const success = await createOrder("razorpay");
+  //         if (success) {
+  //           setOrderPlaced(true);
+  //           setLoading(false);
+  //           clearCart();
+  //         }
+  //       },
+  //       prefill: {
+  //         name: user?.name || "User",
+  //         email: user?.email || "user@example.com",
+  //         contact: user?.phone || "9876543210",
+  //       },
+  //       theme: { color: "#111" },
+  //     };
+  //     // @ts-ignore
+  //     const rzp = new window.Razorpay(options);
+  //     rzp.open();
+  //   };
+  // };
+  const handleRazorpay = async () => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    script.onload = async () => {
+      const options = {
+        key: "rzp_test_ftcTPKoHNzJjbG",// Razorpay test key
+        amount: Math.round(total * 100),
+        currency: "INR",
+        name: "PK Trends",
+        description: `Order for ${cart.map((item) => item.product.name).join(", ")}`,
+        handler: async function (response) {
+          // Create order after successful payment
+          const success = await createOrder("razorpay");
+          if (success) {
+            setOrderPlaced(true);
+            setLoading(false);
+            clearCart();
+          }
+        },
+        prefill: {
+          name: user?.name || "User",
+          email: user?.email || "user@example.com",
+          contact: user?.phone || "9876543210",
+        },
+        theme: { color: "#111" },
+      };
+      // @ts-ignore
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    };
+  };
 
-      // Prepare order data
+  // Helper to place order in backend
+  const createOrder = async (paymentType) => {
+    try {
+      
+      const finalTotal = paymentMethod === "cod" ? total + 50 : total;
       const orderData = {
         orderItems: cart.map((item) => ({
           product: item.product._id,
@@ -130,94 +207,51 @@ const Payment = ({ mode = "dark" }) => {
         })),
         shippingAddress: selectedAddress,
         paymentInfo: {
-          method: paymentMethod,
-          status: paymentMethod === "cod" ? "Pending" : "Paid",
+          method: paymentType,
+          status: paymentType === "cod" ? "Pending" : "Paid",
         },
         totalPrice: finalTotal,
       };
-
-      if (paymentMethod === "razorpay") {
-        // For Razorpay payments (mock)
-        const mockOrderResponse = {
-          data: {
-            razorpayOrderId: "mock_order_" + Date.now(),
-            amount: finalTotal,
-          },
-        };
-
-        const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY || "mock_key",
-          amount: mockOrderResponse.data.amount * 100,
-          currency: "INR",
-          name: "BEATEN",
-          description: "Order Payment",
-          order_id: mockOrderResponse.data.razorpayOrderId,
-          handler: async function (response) {
-            try {
-              // Payment verified, now place order in backend
-              const apiUrl =
-                process.env.REACT_APP_API_URL || "http://localhost:8000";
-              const token = localStorage.getItem("token");
-              const orderResponse = await axios.post(
-                `${apiUrl}/api/orders`,
-                orderData,
-                {
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              );
-              if (orderResponse.data.success) {
-                setOrderPlaced(true);
-                clearCart();
-              } else {
-                setError(orderResponse.data.message || "Failed to place order");
-              }
-            } catch (err) {
-              setError(
-                err?.response?.data?.message ||
-                  err?.message ||
-                  "Payment verification failed. Order not placed."
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-          prefill: {
-            name: user?.name || "User",
-            email: user?.email || "user@example.com",
-            contact: user?.phone || "9876543210",
-          },
-          theme: { color: "#1976d2" },
-          modal: {
-            ondismiss: () => {
-              setLoading(false);
-              setError("Payment was cancelled");
-            },
-          },
-        };
-
-        const razorpay = new window.Razorpay(options);
-        razorpay.open();
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const token = localStorage.getItem("token");
+      const response = await axios.post(`${apiUrl}/api/orders`, orderData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.success) {
+        return true;
       } else {
-        // For COD payments, send to backend
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
-        const token = localStorage.getItem("token");
-        const response = await axios.post(`${apiUrl}/api/orders`, orderData, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response.data.success) {
-          setOrderPlaced(true);
-          clearCart();
-        } else {
-          setError(response.data.message || "Failed to place order");
-        }
-        setLoading(false);
+        setError(response.data.message || "Failed to place order");
+        return false;
       }
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Payment failed. Please try again."
+      );
+      return false;
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      if (paymentMethod === "razorpay") {
+        await handleRazorpay();
+        setLoading(false);
+        return;
+      }
+      // COD logic
+      const success = await createOrder("cod");
+      if (success) {
+        setOrderPlaced(true);
+        clearCart();
+      }
+      setLoading(false);
     } catch (err) {
       setError(
         err?.response?.data?.message ||

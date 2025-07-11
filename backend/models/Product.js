@@ -11,6 +11,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      default: 0,
     },
     originalPrice: {
       type: Number,
@@ -18,6 +19,7 @@ const productSchema = new mongoose.Schema(
       default: function () {
         return this.price;
       },
+      default: 0,
     },
     image: {
       type: String,
@@ -40,6 +42,7 @@ const productSchema = new mongoose.Schema(
         "Co-ord Sets",
         "Dresses",
       ],
+      default: "T-shirts",
     },
     subCategory: {
       type: String,
@@ -57,26 +60,31 @@ const productSchema = new mongoose.Schema(
         "Summer Collection",
         "Winter Collection",
       ],
+      default: "New Arrivals",
     },
     gender: {
       type: String,
       required: true,
       enum: ["MEN", "WOMEN"],
+      default: "MEN",
     },
     sizes: [
       {
         type: String,
         enum: ["S", "M", "L", "XL", "XXL"],
+        default: "M",
       },
     ],
     colors: [
       {
         type: String,
+        default: "Black",
       },
     ],
     fit: {
       type: String,
       enum: ["Slim", "Oversized", "Regular"],
+      default: "Regular",
     },
     description: {
       type: String,
@@ -138,6 +146,11 @@ const productSchema = new mongoose.Schema(
     },
     sku: {
       type: String,
+    },
+    soldCount: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
   },
   {
