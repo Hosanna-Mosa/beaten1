@@ -47,6 +47,7 @@ const loginValidation = [
   handleValidationErrors,
 ];
 
+
 // Profile update validation rules
 const profileUpdateValidation = [
   body("name")

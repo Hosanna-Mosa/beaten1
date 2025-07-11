@@ -5,11 +5,15 @@ const router = express.Router();
 const authRoutes = require("./auth");
 const productRoutes = require("./products");
 const adminRoutes = require("./admin");
+const orderRoutes = require("./orders");
+const addressRoutes = require("./address");
 
 // Route definitions
 router.use("/auth", authRoutes);
 router.use("/products", productRoutes);
 router.use("/admin", adminRoutes);
+router.use("/orders", orderRoutes);
+router.use("/user/addresses", addressRoutes);
 
 // Health check route
 router.get("/health", (req, res) => {

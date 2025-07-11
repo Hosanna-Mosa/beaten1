@@ -49,44 +49,23 @@ const register = async (req, res, next) => {
   }
 };
 
-// @desc    Authenticate user & get token
-// @route   POST /api/auth/login
-// @access  Public
-const login = async (req, res, next) => {
+const login = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
-
-    // Check for user email
+    // Find user by email
     const user = await User.findOne({ email }).select("+password");
-
     if (!user) {
-      return res.status(STATUS_CODES.UNAUTHORIZED).json({
-        success: false,
-        message: MESSAGES.INVALID_CREDENTIALS,
-      });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(STATUS_CODES.UNAUTHORIZED).json({
-        success: false,
-        message: "User account is deactivated",
-      });
-    }
-
     // Check password
     const isMatch = await user.matchPassword(password);
-
     if (!isMatch) {
-      return res.status(STATUS_CODES.UNAUTHORIZED).json({
-        success: false,
-        message: MESSAGES.INVALID_CREDENTIALS,
-      });
+      return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
-
-    res.status(STATUS_CODES.OK).json({
+    // Success
+    res.json({
       success: true,
-      message: MESSAGES.USER_LOGGED_IN,
+      message: "User logged in successfully",
       data: {
         _id: user._id,
         name: user.name,
@@ -95,8 +74,8 @@ const login = async (req, res, next) => {
         token: generateToken(user._id),
       },
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

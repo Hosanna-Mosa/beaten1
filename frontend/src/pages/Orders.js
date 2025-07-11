@@ -114,21 +114,26 @@ const Orders = ({ mode }) => {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState("");
 
   const fetchOrders = async () => {
+    setLoading(true);
+    setError("");
     try {
-      const { data } = await axios.get(
-         `http://localhost:5000/api/orders/my-orders`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // or use context
-          },
-        }
-      );
-      setOrders(data);
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${apiUrl}/api/orders/my-orders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setOrders(response.data.data || []);
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch orders."
+      );
     } finally {
       setLoading(false);
     }
@@ -234,6 +239,9 @@ const Orders = ({ mode }) => {
         My Orders
       </Typography>
       <Divider sx={{ mb: 4 }} />
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+      )}
       <Grid container spacing={3}>
         {orders.map((order) => (
           <Grid item xs={12} key={order._id}>

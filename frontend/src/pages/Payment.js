@@ -24,7 +24,7 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
-import { mockCoupons, validateCoupon } from '../data/mockData';
+import axios from "axios";
 
 const Payment = ({ mode = "dark" }) => {
   const navigate = useNavigate();
@@ -111,24 +111,27 @@ const Payment = ({ mode = "dark" }) => {
       // Calculate total with COD charge if applicable
       const finalTotal = paymentMethod === "cod" ? total + 50 : total;
 
-      // Mock order creation
-      console.log('Creating order:', {
-        items: cart.map((item) => ({
+      // Prepare order data
+      const orderData = {
+        orderItems: cart.map((item) => ({
           product: item.product._id,
+          name: item.product.name,
           quantity: item.quantity,
           size: item.size,
           color: item.color,
           price: item.product.price,
+          image: item.product.image,
         })),
         shippingAddress: selectedAddress,
-        paymentMethod,
-        totalAmount: finalTotal,
-        codCharge: paymentMethod === "cod" ? 50 : 0,
-        appliedCoupon: appliedCoupon ? appliedCoupon.code : null,
-      });
+        paymentInfo: {
+          method: paymentMethod,
+          status: paymentMethod === "cod" ? "Pending" : "Paid",
+        },
+        totalPrice: finalTotal,
+      };
 
-      // For Razorpay payments (mock)
       if (paymentMethod === "razorpay") {
+        // For Razorpay payments (mock)
         const mockOrderResponse = {
           data: {
             razorpayOrderId: 'mock_order_' + Date.now(),
@@ -145,14 +148,30 @@ const Payment = ({ mode = "dark" }) => {
           order_id: mockOrderResponse.data.razorpayOrderId,
           handler: async function (response) {
             try {
-              // Mock payment verification
-              console.log('Payment verified:', response);
-              setOrderPlaced(true);
-              clearCart();
+              // Payment verified, now place order in backend
+              const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+              const token = localStorage.getItem("token");
+              const orderResponse = await axios.post(
+                `${apiUrl}/api/orders`,
+                orderData,
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+              if (orderResponse.data.success) {
+                setOrderPlaced(true);
+                clearCart();
+              } else {
+                setError(orderResponse.data.message || "Failed to place order");
+              }
             } catch (err) {
               setError(
-                "Payment verification failed: " +
-                  (err.response?.data?.message || err.message)
+                err?.response?.data?.message ||
+                  err?.message ||
+                  "Payment verification failed. Order not placed."
               );
             } finally {
               setLoading(false);
@@ -175,9 +194,25 @@ const Payment = ({ mode = "dark" }) => {
         const razorpay = new window.Razorpay(options);
         razorpay.open();
       } else {
-        // For COD payments
-        setOrderPlaced(true);
-        clearCart();
+        // For COD payments, send to backend
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          `${apiUrl}/api/orders`,
+          orderData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.data.success) {
+          setOrderPlaced(true);
+          clearCart();
+        } else {
+          setError(response.data.message || "Failed to place order");
+        }
         setLoading(false);
       }
     } catch (err) {

@@ -52,7 +52,6 @@ import { useWishlist } from "../context/WishlistContext";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
-import { mockProducts, categories, collections, searchProducts } from '../data/mockData';
 
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
@@ -878,13 +877,16 @@ const Products = ({ mode }) => {
   );
 
   // Add a function to fetch products
-  const fetchProducts = () => {
+  const fetchProducts = async () => {
     setShowLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setProducts(mockProducts);
+    try {
+      const response = await axios.get("/api/products");
+      setProducts(response.data.data || []);
+    } catch (err) {
+      setError("Failed to load products");
+    } finally {
       setShowLoading(false);
-    }, 500);
+    }
   };
 
   // Update useEffect to use fetchProducts

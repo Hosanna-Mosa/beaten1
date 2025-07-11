@@ -610,6 +610,16 @@ const Header = ({ mode, toggleColorMode }) => {
                   <PersonIcon />
                 </Avatar>
               </IconButton>
+              {/* Logout Button - only show if user is logged in */}
+              {user && (
+                <Button
+                  color="inherit"
+                  onClick={handleLogout}
+                  sx={{ ml: 2, color: "white", border: "1px solid #fff", borderRadius: 2, px: 2, fontWeight: 600 }}
+                >
+                  Logout
+                </Button>
+              )}
               <Menu
                 anchorEl={profileAnchorEl}
                 open={Boolean(profileAnchorEl)}
