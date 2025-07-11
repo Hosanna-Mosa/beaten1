@@ -12,6 +12,9 @@ import {
   Divider,
 } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
+import ConnectionTest from "../components/common/ConnectionTest";
+import ToastDemo from "../components/common/ToastDemo";
+import { showError } from "../utils/toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -44,7 +47,9 @@ function Login() {
       // Navigate to the intended destination or dashboard
       navigate(from, { replace: true });
     } catch (err) {
-      setError(err.message || "Login failed. Please try again.");
+      const errorMessage = err.message || "Login failed. Please try again.";
+      setError(errorMessage);
+      // Removed showError(errorMessage) here to avoid duplicate toasts
     } finally {
       setLoading(false);
     }
@@ -52,6 +57,8 @@ function Login() {
 
   return (
     <Container component="main" maxWidth="xs">
+      {/* //  <ConnectionTest /> */}
+      {/* <ToastDemo /> */}
       <Box
         sx={{
           marginTop: 8,
@@ -89,7 +96,7 @@ function Login() {
             <br />
             <strong>Email:</strong> admin@beaten.com
             <br />
-            <strong>Password:</strong> admin123
+            <strong>Password:</strong> Admin123!
           </Typography>
 
           {error && (

@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Admin = require("../models/Admin");
 const { STATUS_CODES, MESSAGES } = require("../utils/constants");
 
 // Protect routes
@@ -36,7 +37,6 @@ const protect = async (req, res, next) => {
 
       next();
     } catch (error) {
-      console.error("Auth middleware error:", error);
       return res.status(STATUS_CODES.UNAUTHORIZED).json({
         success: false,
         message: MESSAGES.TOKEN_INVALID,
@@ -65,4 +65,61 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+// Protect admin routes
+const protectAdmin = async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(" ")[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Check if token is for admin
+      if (decoded.type !== "admin") {
+        return res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: "Invalid token type for admin access",
+        });
+      }
+
+      // Get admin from the token
+      req.admin = await Admin.findById(decoded.id).select("-password");
+
+      if (!req.admin) {
+        return res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: "Admin not found",
+        });
+      }
+
+      if (!req.admin.isActive) {
+        return res.status(STATUS_CODES.UNAUTHORIZED).json({
+          success: false,
+          message: "Admin account is deactivated",
+        });
+      }
+
+      next();
+    } catch (error) {
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+  }
+
+  if (!token) {
+    return res.status(STATUS_CODES.UNAUTHORIZED).json({
+      success: false,
+      message: "Not authorized to access this route",
+    });
+  }
+};
+
+module.exports = { protect, authorize, protectAdmin };

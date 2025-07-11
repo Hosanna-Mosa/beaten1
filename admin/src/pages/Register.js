@@ -13,6 +13,7 @@ import {
   Divider,
 } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
+import { showError, showSuccess } from "../utils/toast";
 
 function Register() {
   const navigate = useNavigate();
@@ -46,8 +47,22 @@ function Register() {
       return false;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    if (formData.name.length < 2 || formData.name.length > 50) {
+      setError("Name must be between 2 and 50 characters");
+      return false;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return false;
+    }
+
+    // Check password complexity
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/;
+    if (!passwordRegex.test(formData.password)) {
+      setError(
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+      );
       return false;
     }
 
@@ -79,11 +94,15 @@ function Register() {
     try {
       await register(formData);
       setSuccess("Registration successful! You can now login.");
+      showSuccess("Registration successful! You can now login.");
       setTimeout(() => {
         navigate("/login");
       }, 2000);
     } catch (err) {
-      setError(err.message || "Registration failed. Please try again.");
+      const errorMessage =
+        err.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
