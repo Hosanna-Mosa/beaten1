@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -31,17 +32,20 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  // Register user (placeholder - no backend connection)
+  // Register user (connects to backend)
   const register = async (userData) => {
     setLoading(true);
     setError(null);
     try {
-      // Placeholder for registration logic
-      console.log('Registration data:', userData);
+      const response = await axios.post('http://localhost:8000/api/auth/register',
+        userData
+      );
       setLoading(false);
-      return { success: true, message: 'Registration successful (placeholder)' };
+      return response.data;
     } catch (err) {
-      setError('Registration failed');
+      setError(
+        err.response?.data?.message || 'Registration failed'
+      );
       setLoading(false);
       throw err;
     }

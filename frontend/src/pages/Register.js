@@ -22,6 +22,8 @@ import WcIcon from "@mui/icons-material/Wc";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useAuth } from "../context/AuthContext";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const validationSchema = Yup.object({
   name: Yup.string()
@@ -72,7 +74,7 @@ const Register = ({ mode }) => {
         setLoading(true);
         setError("");
         setSuccess("");
-        await register({
+        const response = await register({
           name: values.name,
           email: values.email,
           password: values.password,
@@ -80,12 +82,14 @@ const Register = ({ mode }) => {
           dob: values.dob,
           gender: values.gender
         });
-        setSuccess("Registration successful! Redirecting to login...");
+        toast.success(response.message || "Registration successful! Redirecting to login...");
+        setSuccess(response.message || "Registration successful! Redirecting to login...");
         // Navigate to login page after successful registration
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to register");
         setError(err.response?.data?.message || "Failed to register");
       } finally {
         setLoading(false);
@@ -104,6 +108,7 @@ const Register = ({ mode }) => {
         transition: "background 0.3s, color 0.3s",
       }}
     >
+      <ToastContainer />
       <Box
         sx={{
           minHeight: "100vh",

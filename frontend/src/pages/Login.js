@@ -17,6 +17,8 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import LockIcon from "@mui/icons-material/Lock";
 import { useAuth } from "../context/AuthContext";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = ({ mode }) => {
   const navigate = useNavigate();
@@ -87,8 +89,10 @@ const Login = ({ mode }) => {
     setSuccess("");
     try {
       await login({ emailOrPhone: email, password });
+      toast.success("Login successful!");
       navigate(from, { replace: true });
     } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -97,6 +101,7 @@ const Login = ({ mode }) => {
 
   return (
     <Container maxWidth="sm">
+      <ToastContainer />
       <Box
         sx={{
           bgcolor: mode === "dark" ? "#181818" : "#fff",
