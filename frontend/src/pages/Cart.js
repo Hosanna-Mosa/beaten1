@@ -43,22 +43,22 @@ const FALLBACK_IMAGE =
 // Helper function to construct image URL
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
-  
+
   // If it's already a full URL, return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
-  
+
   // If it's a blob URL, return as is
-  if (imagePath.startsWith('blob:')) {
+  if (imagePath.startsWith("blob:")) {
     return imagePath;
   }
-  
+
   // If it's just a filename, construct the full URL
-  if (imagePath && !imagePath.includes('/')) {
+  if (imagePath && !imagePath.includes("/")) {
     return `http://localhost:5000/uploads/${imagePath}`;
   }
-  
+
   return imagePath;
 };
 
@@ -66,7 +66,7 @@ const getImageUrl = (imagePath) => {
 const ProductImage = ({ product, mode, onClick }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState('');
+  const [currentSrc, setCurrentSrc] = useState("");
 
   useEffect(() => {
     const imageUrl = getImageUrl(product.image);
@@ -169,13 +169,10 @@ const Cart = ({ mode }) => {
   };
 
   // Calculate totals
-  const subtotal = cart.reduce(
-    (total, item) => {
-      if (!item.product || typeof item.product.price !== 'number') return total;
-      return total + item.product.price * item.quantity;
-    },
-    0
-  );
+  const subtotal = cart.reduce((total, item) => {
+    if (!item.product || typeof item.product.price !== "number") return total;
+    return total + item.product.price * item.quantity;
+  }, 0);
   const discount = user?.isPremium ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
@@ -218,7 +215,7 @@ const Cart = ({ mode }) => {
         description: selectedItem.product.description,
         category: selectedItem.product.category,
         subCategory: selectedItem.product.subCategory,
-        collection: selectedItem.product.collection,
+        collection: selectedItem.product.collectionName,
         colors: selectedItem.product.colors,
         gender: selectedItem.product.gender,
       };
@@ -380,8 +377,9 @@ const Cart = ({ mode }) => {
             sx={{ p: { xs: 1, md: 2 }, background: "none", boxShadow: "none" }}
           >
             <Grid container spacing={2}>
-              {cart.map((item, idx) => (
-                (!item.product || typeof item.product.price !== 'number') ? null : (
+              {cart.map((item, idx) =>
+                !item.product ||
+                typeof item.product.price !== "number" ? null : (
                   <Grid
                     item
                     xs={12}
@@ -415,7 +413,7 @@ const Cart = ({ mode }) => {
                         </Typography>
                         <Typography
                           variant="body2"
-                         // color={mode === "dark" ? "#fff" : "#181818"}
+                          // color={mode === "dark" ? "#fff" : "#181818"}
                           sx={{ mb: 0.5 }}
                         >
                           {item.product.category}{" "}
@@ -537,7 +535,7 @@ const Cart = ({ mode }) => {
                     </Card>
                   </Grid>
                 )
-              ))}
+              )}
             </Grid>
           </Paper>
         </Grid>
@@ -551,7 +549,7 @@ const Cart = ({ mode }) => {
               boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
               position: { md: "sticky" },
               top: { md: 32 },
-            //  background: mode === "dark" ? "#232323" : "#fff",
+              //  background: mode === "dark" ? "#232323" : "#fff",
               minWidth: 280,
             }}
           >
@@ -562,17 +560,13 @@ const Cart = ({ mode }) => {
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography >
-                Subtotal
-              </Typography>
+              <Typography>Subtotal</Typography>
               <Typography>{formatPrice(subtotal)}</Typography>
             </Box>
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography >
-                Shipping
-              </Typography>
+              <Typography>Shipping</Typography>
               <Typography>
                 {shipping === 0 ? "Free" : formatPrice(shipping)}
               </Typography>
@@ -610,8 +604,8 @@ const Cart = ({ mode }) => {
               onClick={handleCheckout}
               endIcon={<ArrowForwardIcon />}
               sx={{
-                backgroundColor:"#181818",
-                color:  "#fff" ,
+                backgroundColor: "#181818",
+                color: "#fff",
                 py: { xs: 0.7, md: 1 },
                 px: { xs: 2, md: 3 },
                 fontSize: { xs: "0.92rem", md: "0.98rem" },
@@ -641,9 +635,9 @@ const Cart = ({ mode }) => {
               onClick={clearCart}
               sx={{
                 mt: 2,
-                backgroundColor:"#181818",
-                color: "#fff" ,
-            
+                backgroundColor: "#181818",
+                color: "#fff",
+
                 py: { xs: 0.7, md: 1 },
                 px: { xs: 2, md: 3 },
                 fontSize: { xs: "0.92rem", md: "0.98rem" },

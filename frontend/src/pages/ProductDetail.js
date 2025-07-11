@@ -35,6 +35,9 @@ import {
 } from "@mui/icons-material";
 import { useWishlist } from "../context/WishlistContext";
 
+import { getProductById, mockReviews } from "../data/mockData";
+
+
 const matteColors = {
   900: "#1a1a1a",
   800: "#2d2d2d",
@@ -49,13 +52,13 @@ const FALLBACK_IMAGE =
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
-  if (imagePath.startsWith('blob:')) {
+  if (imagePath.startsWith("blob:")) {
     return imagePath;
   }
-  if (imagePath && !imagePath.includes('/')) {
+  if (imagePath && !imagePath.includes("/")) {
     return `http://localhost:5000/uploads/${imagePath}`;
   }
   return imagePath;
@@ -72,12 +75,13 @@ const ProductDetail = ({ mode }) => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mainImageIndex, setMainImageIndex] = useState(0);
-  const images = product?.images && product.images.length > 0
-    ? product.images
-    : product?.image
-      ? [product.image]
-      : [];
-  const mainImage = getImageUrl(images[mainImageIndex] || '');
+  const images =
+    product?.images && product.images.length > 0
+      ? product.images
+      : product?.image
+        ? [product.image]
+        : [];
+  const mainImage = getImageUrl(images[mainImageIndex] || "");
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(
     product?.sizes ? product.sizes[0] : null
@@ -148,8 +152,9 @@ const ProductDetail = ({ mode }) => {
 
   useEffect(() => {
     setLoading(true);
-    
+
     // Get product from mock data
+
     const fetchProduct = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/get-product/${productId}`);
@@ -160,6 +165,7 @@ const ProductDetail = ({ mode }) => {
         setProduct(data);
       } catch (error) {
         console.error("Error fetching product:", error);
+
         setProduct(null);
       }
     };
@@ -184,7 +190,7 @@ const ProductDetail = ({ mode }) => {
 
   if (loading) {
     return (
-      <Box sx={{ py: 8, textAlign: 'center' }}>
+      <Box sx={{ py: 8, textAlign: "center" }}>
         <Container maxWidth="lg">
           <Typography variant="h5">Loading...</Typography>
         </Container>
@@ -193,7 +199,7 @@ const ProductDetail = ({ mode }) => {
   }
   if (!product) {
     return (
-      <Box sx={{ py: 8, textAlign: 'center' }}>
+      <Box sx={{ py: 8, textAlign: "center" }}>
         <Container maxWidth="lg">
           <Typography variant="h5">Product not found</Typography>
         </Container>
@@ -233,8 +239,7 @@ const ProductDetail = ({ mode }) => {
                   <IconButton
                     onClick={() =>
                       setMainImageIndex(
-                        (prev) =>
-                          (prev - 1 + images.length) % images.length
+                        (prev) => (prev - 1 + images.length) % images.length
                       )
                     }
                     sx={{
@@ -279,9 +284,7 @@ const ProductDetail = ({ mode }) => {
                 {images.length > 1 && (
                   <IconButton
                     onClick={() =>
-                      setMainImageIndex(
-                        (prev) => (prev + 1) % images.length
-                      )
+                      setMainImageIndex((prev) => (prev + 1) % images.length)
                     }
                     sx={{
                       position: "absolute",
@@ -321,7 +324,12 @@ const ProductDetail = ({ mode }) => {
                         component="img"
                         src={getImageUrl(img)}
                         alt={`Thumbnail ${index + 1}`}
-                        sx={{ width: '100%', height: 60, objectFit: 'cover', display: 'block' }}
+                        sx={{
+                          width: "100%",
+                          height: 60,
+                          objectFit: "cover",
+                          display: "block",
+                        }}
                       />
                     </Box>
                   </Grid>
@@ -510,8 +518,8 @@ const ProductDetail = ({ mode }) => {
                     onClick={async () => {
                       // Always store only the filename in cart
                       let imageFilename = product.image;
-                      if (imageFilename && imageFilename.startsWith('http')) {
-                        const parts = imageFilename.split('/');
+                      if (imageFilename && imageFilename.startsWith("http")) {
+                        const parts = imageFilename.split("/");
                         imageFilename = parts[parts.length - 1];
                       }
                       const cartProduct = {
@@ -522,11 +530,16 @@ const ProductDetail = ({ mode }) => {
                         description: product.description,
                         category: product.category,
                         subCategory: product.subCategory,
-                        collection: product.collection,
+                        collection: product.collectionName,
                         colors: product.colors,
                         gender: product.gender,
                       };
-                      await addToCart(cartProduct, quantity, selectedSize, selectedColor);
+                      await addToCart(
+                        cartProduct,
+                        quantity,
+                        selectedSize,
+                        selectedColor
+                      );
                       navigate("/cart");
                     }}
                     sx={{
@@ -713,14 +726,20 @@ const ProductDetail = ({ mode }) => {
 
               {/* Stock Display */}
               <Typography sx={{ fontWeight: 500, mb: 1 }}>
-                {product.stock > 0
-                  ? `In Stock: ${product.stock}`
-                  : <span style={{ color: 'red' }}>Out of Stock</span>
-                }
+                {product.stock > 0 ? (
+                  `In Stock: ${product.stock}`
+                ) : (
+                  <span style={{ color: "red" }}>Out of Stock</span>
+                )}
               </Typography>
 
               {cartMessage && (
-                <Typography color="success.main" sx={{ mt: 1, mb: 1, textAlign: 'center' }}>{cartMessage}</Typography>
+                <Typography
+                  color="success.main"
+                  sx={{ mt: 1, mb: 1, textAlign: "center" }}
+                >
+                  {cartMessage}
+                </Typography>
               )}
             </Box>
           </Grid>

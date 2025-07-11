@@ -53,6 +53,14 @@ import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
 
+import {
+  mockProducts,
+  categories,
+  collections,
+  searchProducts,
+} from "../data/mockData";
+
+
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
 // Get all unique colors from products
@@ -64,22 +72,22 @@ const FALLBACK_IMAGE =
 // Helper function to construct image URL
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
-  
+
   // If it's already a full URL, return as is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
-  
+
   // If it's a blob URL, return as is
-  if (imagePath.startsWith('blob:')) {
+  if (imagePath.startsWith("blob:")) {
     return imagePath;
   }
-  
+
   // If it's just a filename, construct the full URL
-  if (imagePath && !imagePath.includes('/')) {
+  if (imagePath && !imagePath.includes("/")) {
     return `http://localhost:5000/uploads/${imagePath}`;
   }
-  
+
   return imagePath;
 };
 
@@ -87,7 +95,7 @@ const getImageUrl = (imagePath) => {
 const ProductImage = ({ product, mode, onClick }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState('');
+  const [currentSrc, setCurrentSrc] = useState("");
 
   useEffect(() => {
     const imageUrl = getImageUrl(product.image);
@@ -186,7 +194,7 @@ const Products = ({ mode }) => {
     gender: [],
     category: [],
     subCategory: [],
-    collection: [],
+    collectionName: [],
     priceRange: [0, 10000],
     sort: "newest",
     size: [],
@@ -208,16 +216,16 @@ const Products = ({ mode }) => {
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = products;
     if (filters.category && filters.category.length > 0) {
-      let categoryFiltered = filtered.filter(p =>
-        filters.category.some(cat =>
-          p.category && p.category.toLowerCase() === cat.toLowerCase()
+      let categoryFiltered = filtered.filter((p) =>
+        filters.category.some(
+          (cat) => p.category && p.category.toLowerCase() === cat.toLowerCase()
         )
       );
       // If no products match the exact category, fall back to name match
       if (categoryFiltered.length === 0) {
-        categoryFiltered = filtered.filter(p =>
-          filters.category.some(cat =>
-            p.name && p.name.toLowerCase().includes(cat.toLowerCase())
+        categoryFiltered = filtered.filter((p) =>
+          filters.category.some(
+            (cat) => p.name && p.name.toLowerCase().includes(cat.toLowerCase())
           )
         );
       }
@@ -229,14 +237,17 @@ const Products = ({ mode }) => {
 
   // Handlers
   const handleFilterChange = (filter, value) => {
-    if (filter !== 'category' || (filter === 'category' && !value.includes('Shop All'))) {
+    if (
+      filter !== "category" ||
+      (filter === "category" && !value.includes("Shop All"))
+    ) {
       setShopAllActive(false);
     }
-    if (filter === 'category' && value.includes('Shop All')) {
+    if (filter === "category" && value.includes("Shop All")) {
       setShopAllActive(true);
     }
     setFilters((prev) => {
-      if (filter === 'gender') {
+      if (filter === "gender") {
         return {
           ...prev,
           gender: value,
@@ -244,14 +255,14 @@ const Products = ({ mode }) => {
           subCategory: [],
         };
       }
-      if (filter === 'category' && value.includes('Shop All')) {
+      if (filter === "category" && value.includes("Shop All")) {
         return {
           gender: [],
           category: [],
           subCategory: [],
-          collection: [],
+          collectionName: [],
           priceRange: [0, 10000],
-          sort: 'newest',
+          sort: "newest",
           size: [],
           color: [],
           fit: [],
@@ -263,7 +274,10 @@ const Products = ({ mode }) => {
       };
     });
     setPage(1);
-    if (filter === 'gender' || (filter === 'category' && value.includes('Shop All'))) {
+    if (
+      filter === "gender" ||
+      (filter === "category" && value.includes("Shop All"))
+    ) {
       setTimeout(fetchProducts, 0);
     }
   };
@@ -303,7 +317,7 @@ const Products = ({ mode }) => {
           description: productToToggle.description,
           category: productToToggle.category,
           subCategory: productToToggle.subCategory,
-          collection: productToToggle.collection,
+          collectionName: productToToggle.collectionName,
           colors: productToToggle.colors,
           gender: productToToggle.gender,
         };
@@ -556,7 +570,7 @@ const Products = ({ mode }) => {
           id="collection-panel-header"
         >
           <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
-            Collections ({filters.collection.length})
+            Collections ({filters.collectionName.length})
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{ pt: 0, pb: 2 }}>
@@ -566,12 +580,14 @@ const Products = ({ mode }) => {
                 key={collection}
                 control={
                   <Checkbox
-                    checked={filters.collection.includes(collection)}
+                    checked={filters.collectionName.includes(collection)}
                     onChange={(e) => {
                       const newCollections = e.target.checked
-                        ? [...filters.collection, collection]
-                        : filters.collection.filter((c) => c !== collection);
-                      handleFilterChange("collection", newCollections);
+                        ? [...filters.collectionName, collection]
+                        : filters.collectionName.filter(
+                            (c) => c !== collection
+                          );
+                      handleFilterChange("collectionName", newCollections);
                     }}
                     size="small"
                   />
@@ -790,10 +806,10 @@ const Products = ({ mode }) => {
       value: option,
     })),
     // Remove main category chips (MEN, WOMEN)
-    // Collection chips
+    // CollectionName chips
     ...collections.map((collection) => ({
       label: collection,
-      filterKey: "collection",
+      filterKey: "collectionName",
       value: collection,
     })),
     // Remove size chips
@@ -927,16 +943,18 @@ const Products = ({ mode }) => {
     </Box>
   );
 
-  // Set collection and category filter from URL on mount
+  // Set collectionName and category filter from URL on mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const collectionParam = params.get("collection");
+    const collectionNameParam = params.get("collectionName");
     const categoryParam = params.get("category");
-      setFilters((prev) => ({
-        ...prev,
-      collection: collectionParam ? [collectionParam] : prev.collection,
+    setFilters((prev) => ({
+      ...prev,
+      collectionName: collectionNameParam
+        ? [collectionNameParam]
+        : prev.collectionName,
       category: categoryParam ? [categoryParam] : prev.category,
-      }));
+    }));
   }, [location.search]);
 
   return (
@@ -951,8 +969,12 @@ const Products = ({ mode }) => {
     >
       <Container maxWidth="xl" sx={{ py: 0, px: { xs: 0, md: 3 } }}>
         {/* Add Refresh Products button */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <Button variant="outlined" onClick={fetchProducts} startIcon={<RefreshIcon />}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={fetchProducts}
+            startIcon={<RefreshIcon />}
+          >
             Refresh Products
           </Button>
         </Box>
@@ -1065,7 +1087,11 @@ const Products = ({ mode }) => {
                               overflow: "hidden",
                             }}
                           >
-                            <ProductImage product={product} mode={mode} onClick={() => handleProductClick(product._id)} />
+                            <ProductImage
+                              product={product}
+                              mode={mode}
+                              onClick={() => handleProductClick(product._id)}
+                            />
                             {/* Wishlist Button */}
                             <Fade in>
                               <IconButton
