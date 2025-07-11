@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretToken");
 
       // Get user from the token
       req.user = await User.findById(decoded.id).select("-password");
@@ -78,7 +78,7 @@ const protectAdmin = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretToken" );
 
       // Check if token is for admin
       if (decoded.type !== "admin") {

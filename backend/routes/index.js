@@ -5,11 +5,13 @@ const router = express.Router();
 const authRoutes = require("./auth");
 const productRoutes = require("./products");
 const adminRoutes = require("./admin");
+const forgotPasswordRoutes = require("./forgotPassword");
 
 // Route definitions
 router.use("/auth", authRoutes);
 router.use("/products", productRoutes);
 router.use("/admin", adminRoutes);
+router.use("/forgot-password", forgotPasswordRoutes);
 
 // Health check route
 router.get("/health", (req, res) => {
@@ -17,7 +19,7 @@ router.get("/health", (req, res) => {
     success: true,
     message: "Beaten API is running",
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV || "development",
   });
 });
 

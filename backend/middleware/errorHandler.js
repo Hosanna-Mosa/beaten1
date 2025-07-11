@@ -38,7 +38,7 @@ const errorHandler = (err, req, res, next) => {
   res.status(error.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR).json({
     success: false,
     message: error.message || MESSAGES.SERVER_ERROR,
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...( "development" && { stack: err.stack }),
   });
 };
 
