@@ -34,7 +34,6 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useWishlist } from "../context/WishlistContext";
-import { getProductById, mockReviews } from '../data/mockData';
 
 const matteColors = {
   900: "#1a1a1a",
@@ -114,7 +113,7 @@ const ProductDetail = ({ mode }) => {
   };
 
   // Use mock reviews data
-  const [reviews, setReviews] = useState(mockReviews);
+  const [reviews, setReviews] = useState([]);
 
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState("");
@@ -151,17 +150,36 @@ const ProductDetail = ({ mode }) => {
     setLoading(true);
     
     // Get product from mock data
-    const product = getProductById(productId);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      if (product) {
-        setProduct(product);
-      } else {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/get-product/${productId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setProduct(data);
+      } catch (error) {
+        console.error("Error fetching product:", error);
         setProduct(null);
       }
-      setLoading(false);
-    }, 500);
+    };
+
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews/get-reviews/${productId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setReviews(data);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        setReviews([]);
+      }
+    };
+
+    fetchProduct();
+    fetchReviews();
   }, [productId]);
 
   if (loading) {

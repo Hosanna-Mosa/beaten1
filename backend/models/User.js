@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    addressBook: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address"
+    }],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     createdAt: {

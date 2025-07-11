@@ -27,7 +27,6 @@ import {
 } from "@mui/icons-material";
 import HeroSearchBar from "../components/common/HeroSearchBar";
 import { 
-  mockProducts, 
   bestSellers, 
   shopByCategory, 
   heroSlides, 

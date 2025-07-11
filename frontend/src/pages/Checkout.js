@@ -41,7 +41,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
-import { mockUsers } from '../data/mockData';
+import axios from "axios";
 
 const steps = ["Shipping Address"];
 
@@ -82,12 +82,14 @@ const Checkout = ({ mode = "dark" }) => {
     fetchAddresses();
   }, []);
 
+  // Replace fetchAddresses with real API call
   const fetchAddresses = async () => {
     try {
-      // Get addresses from mock user data
-      const currentUser = mockUsers[0]; // Use first user for demo
-      const userAddresses = currentUser.addresses || [];
-      
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/user/addresses", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userAddresses = response.data.data || [];
       setAddresses(userAddresses);
       const defaultAddress = userAddresses.find(addr => addr.isDefault);
       if (defaultAddress) {
@@ -100,6 +102,7 @@ const Checkout = ({ mode = "dark" }) => {
     }
   };
 
+  // Replace handleAddressSubmit with real API call
   const handleAddressSubmit = async () => {
     try {
       if (!user) {
@@ -127,20 +130,27 @@ const Checkout = ({ mode = "dark" }) => {
         setError("Please enter a valid 6-digit pincode");
         return;
       }
+      const token = localStorage.getItem("token");
       const addressData = {
-        label: "Home",
-        fullName: newAddress.name.trim(),
-        phone: newAddress.phone.trim(),
-        addressLine1: newAddress.street.trim(),
-        addressLine2: "",
+        address: newAddress.street.trim(),
         city: newAddress.city.trim(),
         state: newAddress.state.trim(),
-        pincode: newAddress.pincode.trim(),
         country: "India",
+        postalCode: newAddress.pincode.trim(),
+        phone: newAddress.phone.trim(),
         isDefault: newAddress.isDefault,
       };
-      // Mock address save (no actual API call)
-      console.log('Saving address:', addressData);
+      if (newAddress._id) {
+        // Edit address
+        await axios.put(`/api/user/addresses/${newAddress._id}`, addressData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        // Add new address
+        await axios.post("/api/user/addresses", addressData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
       setAddressDialog(false);
       setError(null);
       fetchAddresses(); // Refresh addresses
@@ -179,72 +189,46 @@ const handlePlaceOrder = async () => {
   try {
     // Calculate total with COD charge if applicable
     const finalTotal = paymentMethod === "cod" ? total + 50 : total;
-    
-    // Mock order creation
-    console.log('Creating order:', {
-      items: cart.map((item) => ({
-        product: item.product._id,
+
+    // Find the selected address object
+    const selectedAddressObj = addresses.find(addr => String(addr._id) === String(selectedAddress));
+    if (!selectedAddressObj) {
+      setError("Please select a valid shipping address");
+      setLoading(false);
+      return;
+    }
+
+    // Prepare order payload
+    const orderPayload = {
+      orderItems: cart.map(item => ({
+        product: item.product._id, // Ensure this is a real ObjectId from your DB
         quantity: item.quantity,
         size: item.size,
         color: item.color,
         price: item.product.price,
       })),
-      shippingAddress: selectedAddress,
+      shippingAddress: {
+        address: selectedAddressObj.address,
+        city: selectedAddressObj.city,
+        state: selectedAddressObj.state,
+        country: selectedAddressObj.country,
+        postalCode: selectedAddressObj.postalCode,
+        phone: selectedAddressObj.phone,
+      },
       paymentMethod,
       total: finalTotal,
       codCharge: paymentMethod === "cod" ? 50 : 0,
+    };
+
+    const token = localStorage.getItem("token");
+    // Send order to backend
+    await axios.post("/api/orders", orderPayload, {
+      headers: { Authorization: `Bearer ${token}` },
     });
 
-    // For Razorpay payments (mock)
-    if (paymentMethod === "razorpay") {
-      const mockOrderResponse = {
-        data: {
-          razorpayOrderId: 'mock_order_' + Date.now(),
-          amount: finalTotal
-        }
-      };
-
-      const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY || 'mock_key',
-        amount: mockOrderResponse.data.amount * 100,
-        currency: "INR",
-        name: "BEATEN",
-        description: "Order Payment",
-        order_id: mockOrderResponse.data.razorpayOrderId,
-        handler: async function (response) {
-          try {
-            // Mock payment verification
-            console.log('Payment verified:', response);
-            setOrderPlaced(true);
-            clearCart();
-          } catch (err) {
-            setError("Payment verification failed: " + (err.response?.data?.message || err.message));
-          } finally {
-            setLoading(false);
-          }
-        },
-        prefill: {
-          name: user?.name || 'User',
-          email: user?.email || 'user@example.com',
-          contact: user.phone,
-        },
-        theme: { color: "#1976d2" },
-        modal: {
-          ondismiss: () => {
-            setLoading(false);
-            setError("Payment was cancelled");
-          }
-        }
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } else {
-      // For COD payments
-      setOrderPlaced(true);
-      clearCart();
-      setLoading(false);
-    }
+    setOrderPlaced(true);
+    clearCart();
+    setLoading(false);
   } catch (err) {
     setError(err?.response?.data?.message || err?.message || "Payment failed. Please try again.");
     setLoading(false);
@@ -444,9 +428,15 @@ const handlePlaceOrder = async () => {
                               "Are you sure you want to delete this address?"
                             )
                           ) {
-                            // Mock address deletion
-                            console.log('Deleting address:', address._id);
-                            fetchAddresses();
+                            try {
+                              const token = localStorage.getItem("token");
+                              await axios.delete(`/api/user/addresses/${address._id}`, {
+                                headers: { Authorization: `Bearer ${token}` },
+                              });
+                              fetchAddresses();
+                            } catch (err) {
+                              setError("Failed to delete address");
+                            }
                           }
                         }}
                       >

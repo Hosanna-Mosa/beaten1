@@ -14,7 +14,7 @@ const productSchema = new mongoose.Schema({
   originalPrice: {
     type: Number,
     min: 0,
-    default: function() {
+    default:function(){
       return this.price;
     }
   },
