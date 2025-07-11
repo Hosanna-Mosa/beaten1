@@ -27,23 +27,25 @@ import {
 } from "@mui/icons-material";
 import HeroSearchBar from "../components/common/HeroSearchBar";
 import { 
+  mockProducts, 
+  bestSellers, 
   shopByCategory, 
   heroSlides, 
   mobileHeroSlides, 
   collectionsData, 
-  features
+  features,
+  getProductsByCategory 
 } from '../data/mockData';
-import productsApi from '../api/productsApi';
 
 const matteColors = {
-  900: "#1a1a1a",
-  800: "#2d2d2d",
-  700: "#404040",
-  600: "#525252",
-  100: "#f5f5f5",
+  900: "#1a1a1a", // Deepest matte black
+  800: "#2d2d2d", // Rich matte black
+  700: "#404040", // Medium matte black
+  600: "#525252", // Light matte black
+  100: "#f5f5f5", // Off-white
 };
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();
@@ -62,7 +64,7 @@ const Home = ({ mode }) => {
   const [jackets, setJackets] = useState([]);
   const [hoodies, setHoodies] = useState([]);
   const [coOrdSets, setCoOrdSets] = useState([]);
-  const [shopByCategoryState, setShopByCategoryState] = useState([]);
+  const [shopByCategory, setShopByCategory] = useState([]);
 
   // Refs for each section
   const sectionRefs = {
@@ -122,55 +124,46 @@ const Home = ({ mode }) => {
     return () => clearInterval(timer);
   }, [isHovered]);
 
-  // Load data from API
+  // Load best sellers from mock data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch best sellers
-        const bestSellersResponse = await productsApi.getBestSellers(8);
-        setBestSellers(bestSellersResponse.data);
+    setBestSellers(bestSellers);
+  }, []);
 
-        // Fetch products by category
-        const tShirtsResponse = await productsApi.getProductsByCategory('T-shirts', { limit: 3 });
-        setTShirts(tShirtsResponse.data);
+  // Load category sections from mock data
+  useEffect(() => {
+    setTShirts(getProductsByCategory('T-shirts').slice(0, 3));
+  }, []);
 
-        const shirtsResponse = await productsApi.getProductsByCategory('Shirts', { limit: 3 });
-        setShirts(shirtsResponse.data);
+  useEffect(() => {
+    setShirts(getProductsByCategory('Shirts').slice(0, 3));
+  }, []);
 
-        const oversizedResponse = await productsApi.getProducts({ 
-          category: 'T-shirts', 
-          subCategory: 'Oversized', 
-          limit: 3 
-        });
-        setOversizedTShirts(oversizedResponse.data);
+  useEffect(() => {
+    setOversizedTShirts(getProductsByCategory('T-shirts').filter(p => p.subCategory === 'Oversized').slice(0, 3));
+  }, []);
 
-        const bottomWearResponse = await productsApi.getProductsByCategory('Bottom Wear', { limit: 3 });
-        setBottomWear(bottomWearResponse.data);
+  useEffect(() => {
+    setBottomWear(getProductsByCategory('Bottom Wear').slice(0, 3));
+  }, []);
 
-        const cargoPantsResponse = await productsApi.getProducts({ 
-          category: 'Bottom Wear', 
-          subCategory: 'Cargo Pants', 
-          limit: 3 
-        });
-        setCargoPants(cargoPantsResponse.data);
+  useEffect(() => {
+    setCargoPants(getProductsByCategory('Bottom Wear').filter(p => p.subCategory === 'Cargo Pants').slice(0, 3));
+  }, []);
 
-        const jacketsResponse = await productsApi.getProductsByCategory('Jackets', { limit: 3 });
-        setJackets(jacketsResponse.data);
+  useEffect(() => {
+    setJackets(getProductsByCategory('Jackets').slice(0, 3));
+  }, []);
 
-        const hoodiesResponse = await productsApi.getProductsByCategory('Hoodies', { limit: 3 });
-        setHoodies(hoodiesResponse.data);
+  useEffect(() => {
+    setHoodies(getProductsByCategory('Hoodies').slice(0, 3));
+  }, []);
 
-        const coOrdSetsResponse = await productsApi.getProductsByCategory('Co-ord Sets', { limit: 3 });
-        setCoOrdSets(coOrdSetsResponse.data);
+  useEffect(() => {
+    setCoOrdSets(getProductsByCategory('Co-ord Sets').slice(0, 3));
+  }, []);
 
-        // Set shop by category data
-        setShopByCategoryState(shopByCategory);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
+  useEffect(() => {
+    setShopByCategory(shopByCategory);
   }, []);
 
   const scrollToContent = () => {
@@ -370,10 +363,10 @@ const Home = ({ mode }) => {
               scrollbarWidth: "none",
             }}
           >
-            {shopByCategoryState.length === 0 ? (
+            {shopByCategory.length === 0 ? (
               <Typography variant="body1" sx={{ textAlign: 'center', width: '100%' }}>No products yet.</Typography>
             ) : (
-              shopByCategoryState.map((product) => (
+              shopByCategory.map((product) => (
                 <Box
                   key={product._id}
                   sx={{
