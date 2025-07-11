@@ -1,5 +1,18 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
+
+// API Configuration
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+
+// Create axios instance for auth context
+const authApi = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 10000,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 const AuthContext = createContext();
 
@@ -15,15 +28,15 @@ export const AuthProvider = ({ children }) => {
   // Load user from localStorage on mount
   useEffect(() => {
     const loadUser = () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem("token");
+      const userData = localStorage.getItem("user");
       if (token && userData) {
         try {
           setUser(JSON.parse(userData));
         } catch (err) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setError('Invalid user data');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          setError("Invalid user data");
         }
       }
       setLoading(false);
@@ -37,14 +50,12 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register',
-        userData
-      );
+      const response = await authApi.post("/auth/register", userData);
       setLoading(false);
       return response.data;
     } catch (err) {
       setError(
-        err.response?.data?.message || 'Registration failed'
+        err.response?.data?.message || "Registration failed"
       );
       setLoading(false);
       throw err;
@@ -57,17 +68,17 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       // Placeholder for login logic
-      console.log('Login data:', userData);
+      console.log("Login data:", userData);
       const mockUser = { id: 1, name: userData.email, email: userData.email };
-      const mockToken = 'mock-token-' + Date.now();
-      
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const mockToken = "mock-token-" + Date.now();
+
+      localStorage.setItem("token", mockToken);
+      localStorage.setItem("user", JSON.stringify(mockUser));
       setUser(mockUser);
       setLoading(false);
-      return { success: true, message: 'Login successful (placeholder)' };
+      return { success: true, message: "Login successful (placeholder)" };
     } catch (err) {
-      setError('Login failed');
+      setError("Login failed");
       setLoading(false);
       throw err;
     }
@@ -75,8 +86,8 @@ export const AuthProvider = ({ children }) => {
 
   // Logout user
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     setError(null);
   };
@@ -87,14 +98,14 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       // Placeholder for profile update logic
-      console.log('Profile update data:', userData);
+      console.log("Profile update data:", userData);
       const updatedUser = { ...user, ...userData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       setUser(updatedUser);
       setLoading(false);
-      return { success: true, message: 'Profile updated (placeholder)' };
+      return { success: true, message: "Profile updated (placeholder)" };
     } catch (err) {
-      setError('Profile update failed');
+      setError("Profile update failed");
       setLoading(false);
       throw err;
     }
@@ -106,11 +117,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       // Placeholder for password change logic
-      console.log('Password change data:', passwordData);
+      console.log("Password change data:", passwordData);
       setLoading(false);
-      return { success: true, message: 'Password changed (placeholder)' };
+      return { success: true, message: "Password changed (placeholder)" };
     } catch (err) {
-      setError('Password change failed');
+      setError("Password change failed");
       setLoading(false);
       throw err;
     }
@@ -122,11 +133,11 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       // Placeholder for OTP sending logic
-      console.log('Send OTP to:', emailOrPhone);
+      console.log("Send OTP to:", emailOrPhone);
       setLoading(false);
-      return { success: true, message: 'OTP sent (placeholder)' };
+      return { success: true, message: "OTP sent (placeholder)" };
     } catch (err) {
-      setError('Failed to send OTP');
+      setError("Failed to send OTP");
       setLoading(false);
       throw err;
     }
@@ -138,17 +149,17 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       // Placeholder for OTP verification logic
-      console.log('Verify OTP:', emailOrPhone, otp);
+      console.log("Verify OTP:", emailOrPhone, otp);
       const mockUser = { id: 1, name: emailOrPhone, email: emailOrPhone };
-      const mockToken = 'mock-token-' + Date.now();
-      
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const mockToken = "mock-token-" + Date.now();
+
+      localStorage.setItem("token", mockToken);
+      localStorage.setItem("user", JSON.stringify(mockUser));
       setUser(mockUser);
       setLoading(false);
-      return { success: true, message: 'OTP verified (placeholder)' };
+      return { success: true, message: "OTP verified (placeholder)" };
     } catch (err) {
-      setError('OTP verification failed');
+      setError("OTP verification failed");
       setLoading(false);
       throw err;
     }
@@ -164,8 +175,8 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     changePassword,
     sendOTP,
-    verifyOTP
+    verifyOTP,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};

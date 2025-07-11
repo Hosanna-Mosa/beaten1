@@ -34,7 +34,8 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useWishlist } from "../context/WishlistContext";
-import { getProductById, mockReviews } from '../data/mockData';
+import { mockReviews } from '../data/mockData';
+import productsApi from '../api/productsApi';
 
 const matteColors = {
   900: "#1a1a1a",
@@ -148,20 +149,20 @@ const ProductDetail = ({ mode }) => {
     reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
   useEffect(() => {
-    setLoading(true);
-    
-    // Get product from mock data
-    const product = getProductById(productId);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      if (product) {
-        setProduct(product);
-      } else {
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const response = await productsApi.getProductById(productId);
+        setProduct(response.data);
+      } catch (error) {
+        console.error('Error fetching product:', error);
         setProduct(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 500);
+    };
+
+    fetchProduct();
   }, [productId]);
 
   if (loading) {

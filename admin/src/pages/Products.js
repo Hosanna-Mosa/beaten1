@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -40,8 +40,8 @@ import {
   ImageListItem,
   ImageListItemBar,
   DialogContentText,
-  Divider
-} from '@mui/material';
+  Divider,
+} from "@mui/material";
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
@@ -55,99 +55,105 @@ import {
   Category as CategoryIcon,
   Inventory as InventoryIcon,
   AttachMoney as PriceIcon,
-  AddPhotoAlternate as AddPhotoIcon
-} from '@mui/icons-material';
-import { getProducts, createProduct, bulkDeleteProducts, updateProduct, deleteProduct } from '../api/productsAdmin';
-import { uploadAdminAPI } from '../api/uploadAdmin';
+  AddPhotoAlternate as AddPhotoIcon,
+} from "@mui/icons-material";
+import {
+  getProducts,
+  createProduct,
+  bulkDeleteProducts,
+  updateProduct,
+  deleteProduct,
+} from "../api/productsAdmin";
+import { uploadAdminAPI } from "../api/uploadAdmin";
 
 const categories = [
-  'T-shirts',
-  'Shirts',
-  'Bottom Wear',
-  'Sneakers',
-  'Boots',
-  'Sports',
-  'Casual',
-  'Formal',
-  'cargo-pants',
-  'jackets',
-  'co-ord-sets',
+  "T-shirts",
+  "Shirts",
+  "Bottom Wear",
+  "Sneakers",
+  "Boots",
+  "Sports",
+  "Casual",
+  "Formal",
+  "cargo-pants",
+  "jackets",
+  "co-ord-sets",
 ];
-const statuses = ['All', 'In Stock', 'Low Stock', 'Out of Stock'];
+const statuses = ["All", "In Stock", "Low Stock", "Out of Stock"];
 const sortOptions = [
-  { value: 'name_asc', label: 'Name (A-Z)' },
-  { value: 'name_desc', label: 'Name (Z-A)' },
-  { value: 'price_asc', label: 'Price (Low to High)' },
-  { value: 'price_desc', label: 'Price (High to Low)' },
-  { value: 'stock_asc', label: 'Stock (Low to High)' },
-  { value: 'stock_desc', label: 'Stock (High to Low)' },
-  { value: 'rating_desc', label: 'Rating (High to Low)' },
-  { value: 'created_desc', label: 'Newest First' }
+  { value: "name_asc", label: "Name (A-Z)" },
+  { value: "name_desc", label: "Name (Z-A)" },
+  { value: "price_asc", label: "Price (Low to High)" },
+  { value: "price_desc", label: "Price (High to Low)" },
+  { value: "stock_asc", label: "Stock (Low to High)" },
+  { value: "stock_desc", label: "Stock (High to Low)" },
+  { value: "rating_desc", label: "Rating (High to Low)" },
+  { value: "created_desc", label: "Newest First" },
 ];
 
 function Products() {
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedStatus, setSelectedStatus] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [sortBy, setSortBy] = useState('created_desc');
-  const [view, setView] = useState('list');
+  const [sortBy, setSortBy] = useState("created_desc");
+  const [view, setView] = useState("list");
   const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState("");
 
   const fetchProducts = async () => {
     try {
       const res = await getProducts();
-      console.log('API Response:', res);
-      console.log('Products data:', res.data);
-      
+      console.log("API Response:", res);
+      console.log("Products data:", res.data);
+
       const productsData = res.data.products || res.data;
-      console.log('Final products array:', productsData);
-      
+      console.log("Final products array:", productsData);
+
       // Check if we have valid products with _id
       if (Array.isArray(productsData) && productsData.length > 0) {
-        console.log('Sample product _id:', productsData[0]._id);
-        console.log('Sample product structure:', productsData[0]);
+        console.log("Sample product _id:", productsData[0]._id);
+        console.log("Sample product structure:", productsData[0]);
       } else {
-        console.log('No products found or invalid data structure');
+        console.log("No products found or invalid data structure");
       }
-      
+
       setProducts(productsData);
     } catch (error) {
-      console.error('Failed to fetch products:', error);
-      
+      console.error("Failed to fetch products:", error);
+
       // Fallback mock data for testing (remove this in production)
-      console.log('Using fallback mock data for testing');
+      console.log("Using fallback mock data for testing");
       const mockProducts = [
         {
-          _id: '507f1f77bcf86cd799439011',
-          name: 'Test Product 1',
-          sku: 'TEST-001',
-          category: 'T-shirts',
+          _id: "507f1f77bcf86cd799439011",
+          name: "Test Product 1",
+          sku: "TEST-001",
+          category: "T-shirts",
           price: 29.99,
           stock: 100,
-          status: 'In Stock'
+          status: "In Stock",
         },
         {
-          _id: '507f1f77bcf86cd799439012',
-          name: 'Test Product 2',
-          sku: 'TEST-002',
-          category: 'Shirts',
+          _id: "507f1f77bcf86cd799439012",
+          name: "Test Product 2",
+          sku: "TEST-002",
+          category: "Shirts",
           price: 49.99,
           stock: 50,
-          status: 'In Stock'
-        }
+          status: "In Stock",
+        },
       ];
       setProducts(mockProducts);
     }
@@ -197,9 +203,9 @@ function Products() {
   };
 
   const handleSelectProduct = (productId) => {
-    setSelectedProducts(prev => {
+    setSelectedProducts((prev) => {
       if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
+        return prev.filter((id) => id !== productId);
       }
       return [...prev, productId];
     });
@@ -207,7 +213,7 @@ function Products() {
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedProducts(products.map(product => product._id));
+      setSelectedProducts(products.map((product) => product._id));
     } else {
       setSelectedProducts([]);
     }
@@ -215,44 +221,47 @@ function Products() {
 
   const handleBulkDelete = async () => {
     if (selectedProducts.length === 0) return;
-    
-    console.log('Selected products for bulk delete:', selectedProducts);
-    console.log('Selected products type:', typeof selectedProducts);
-    console.log('Selected products length:', selectedProducts.length);
-    
+
+    console.log("Selected products for bulk delete:", selectedProducts);
+    console.log("Selected products type:", typeof selectedProducts);
+    console.log("Selected products length:", selectedProducts.length);
+
     // Log each selected product ID
     selectedProducts.forEach((id, index) => {
-      console.log(`Selected product ${index + 1}:`, id, 'Type:', typeof id);
+      console.log(`Selected product ${index + 1}:`, id, "Type:", typeof id);
     });
-    
+
     try {
-      console.log('Calling bulkDeleteProducts with IDs:', selectedProducts);
+      console.log("Calling bulkDeleteProducts with IDs:", selectedProducts);
       await bulkDeleteProducts(selectedProducts);
-      console.log('Bulk delete successful');
+      console.log("Bulk delete successful");
       await fetchProducts(); // Refresh products after bulk delete
       setSelectedProducts([]); // Clear selection
     } catch (error) {
-      console.error('Failed to bulk delete products:', error);
-      console.error('Error response:', error.response?.data);
+      console.error("Failed to bulk delete products:", error);
+      console.error("Error response:", error.response?.data);
       // You might want to show an error message to the user here
     }
   };
 
   const handleBulkUpdate = () => {
     // Implement bulk update functionality
-    console.log('Updating products:', selectedProducts);
+    console.log("Updating products:", selectedProducts);
   };
 
   const handleExport = () => {
-    const csvContent = products.map(product => 
-      `${product.sku},${product.name},${product.category},${product.price},${product.stock},${product.status}`
-    ).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = products
+      .map(
+        (product) =>
+          `${product.sku},${product.name},${product.category},${product.price},${product.stock},${product.status}`
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `products_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `products_${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -297,8 +306,8 @@ function Products() {
       setDeleteDialogOpen(false);
       setProductToDelete(null);
     } catch (error) {
-      console.error('Failed to delete product:', error);
-      setFormError('Failed to delete product.');
+      console.error("Failed to delete product:", error);
+      setFormError("Failed to delete product.");
     }
   };
 
@@ -314,78 +323,90 @@ function Products() {
       setEditDialogOpen(false);
       setSelectedProduct(null);
     } catch (error) {
-      console.error('Failed to update product:', error);
-      setFormError('Failed to update product.');
+      console.error("Failed to update product:", error);
+      setFormError("Failed to update product.");
     }
   };
 
   const sortOptions = [
-  { value: "latest", label: "Latest" },
-  { value: "oldest", label: "Oldest" },
-  { value: "priceAsc", label: "Price: Low to High" },
-  { value: "priceDesc", label: "Price: High to Low" },
-];
+    { value: "latest", label: "Latest" },
+    { value: "oldest", label: "Oldest" },
+    { value: "priceAsc", label: "Price: Low to High" },
+    { value: "priceDesc", label: "Price: High to Low" },
+  ];
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesStatus = selectedStatus === 'All' || product.status === selectedStatus;
-    const matchesPrice = (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
-                        (!priceRange.max || product.price <= parseFloat(priceRange.max));
-    const matchesFeatured = !showOnlyFeatured || product.featured;
-    return matchesSearch && matchesCategory && matchesStatus && matchesPrice && matchesFeatured;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case 'name_asc':
-        return a.name.localeCompare(b.name);
-      case 'name_desc':
-        return b.name.localeCompare(a.name);
-      case 'price_asc':
-        return a.price - b.price;
-      case 'price_desc':
-        return b.price - a.price;
-      case 'stock_asc':
-        return a.stock - b.stock;
-      case 'stock_desc':
-        return b.stock - a.stock;
-      case 'rating_desc':
-        return b.rating - a.rating;
-      case 'created_desc':
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      default:
-        return 0;
-    }
-  });
+  const filteredProducts = products
+    .filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || product.category === selectedCategory;
+      const matchesStatus =
+        selectedStatus === "All" || product.status === selectedStatus;
+      const matchesPrice =
+        (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
+        (!priceRange.max || product.price <= parseFloat(priceRange.max));
+      const matchesFeatured = !showOnlyFeatured || product.featured;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesStatus &&
+        matchesPrice &&
+        matchesFeatured
+      );
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name_asc":
+          return a.name.localeCompare(b.name);
+        case "name_desc":
+          return b.name.localeCompare(a.name);
+        case "price_asc":
+          return a.price - b.price;
+        case "price_desc":
+          return b.price - a.price;
+        case "stock_asc":
+          return a.stock - b.stock;
+        case "stock_desc":
+          return b.stock - a.stock;
+        case "rating_desc":
+          return b.rating - a.rating;
+        case "created_desc":
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        default:
+          return 0;
+      }
+    });
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'In Stock':
-        return 'success';
-      case 'Low Stock':
-        return 'warning';
-      case 'Out of Stock':
-        return 'error';
+      case "In Stock":
+        return "success";
+      case "Low Stock":
+        return "warning";
+      case "Out of Stock":
+        return "error";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const ProductCard = ({ product }) => (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <CardContent>
-        <Box sx={{ position: 'relative', mb: 2 }}>
+        <Box sx={{ position: "relative", mb: 2 }}>
           <Avatar
-            src={product.image || '/default-product.png'}
+            src={product.image || "/default-product.png"}
             variant="rounded"
-            sx={{ width: '100%', height: 200 }}
+            sx={{ width: "100%", height: 200 }}
           />
           {product.discount > 0 && (
             <Chip
               label={`${product.discount}% OFF`}
               color="error"
               size="small"
-              sx={{ position: 'absolute', top: 8, right: 8 }}
+              sx={{ position: "absolute", top: 8, right: 8 }}
             />
           )}
         </Box>
@@ -393,11 +414,7 @@ function Products() {
           {product.name}
         </Typography>
         <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-          <Chip
-            label={product.category}
-            size="small"
-            icon={<CategoryIcon />}
-          />
+          <Chip label={product.category} size="small" icon={<CategoryIcon />} />
           <Chip
             label={product.status}
             color={getStatusColor(product.status)}
@@ -408,7 +425,14 @@ function Products() {
         <Typography variant="body2" color="text.secondary" gutterBottom>
           SKU: {product.sku}
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 1,
+          }}
+        >
           <Typography variant="h6" color="primary">
             ₹{product.price.toFixed(2)}
           </Typography>
@@ -416,7 +440,7 @@ function Products() {
             Stock: {product.stock}
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
           <Tooltip title="View Details">
             <IconButton size="small" onClick={() => handleViewProduct(product)}>
               <ViewIcon />
@@ -428,8 +452,8 @@ function Products() {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton 
-              size="small" 
+            <IconButton
+              size="small"
               color="error"
               onClick={() => handleDeleteClick(product)}
             >
@@ -444,10 +468,10 @@ function Products() {
   const ImageUpload = ({ images, onImagesChange }) => {
     const handleImageUpload = (event) => {
       const files = Array.from(event.target.files);
-      const newImages = files.map(file => ({
+      const newImages = files.map((file) => ({
         url: URL.createObjectURL(file),
         file: file,
-        name: file.name
+        name: file.name,
       }));
       onImagesChange([...images, ...newImages]);
     };
@@ -462,7 +486,7 @@ function Products() {
         <Box sx={{ mb: 2 }}>
           <input
             accept="image/*"
-            style={{ display: 'none' }}
+            style={{ display: "none" }}
             id="image-upload"
             type="file"
             multiple
@@ -480,20 +504,24 @@ function Products() {
           </label>
         </Box>
         {images.length > 0 && (
-          <ImageList sx={{ width: '100%', height: 200 }} cols={3} rowHeight={164}>
+          <ImageList
+            sx={{ width: "100%", height: 200 }}
+            cols={3}
+            rowHeight={164}
+          >
             {images.map((image, index) => (
               <ImageListItem key={index}>
                 <img
                   src={image.url}
                   alt={`Product ${index + 1}`}
                   loading="lazy"
-                  style={{ height: '100%', objectFit: 'cover' }}
+                  style={{ height: "100%", objectFit: "cover" }}
                 />
                 <ImageListItemBar
                   position="top"
                   actionIcon={
                     <IconButton
-                      sx={{ color: 'white' }}
+                      sx={{ color: "white" }}
                       onClick={() => handleRemoveImage(index)}
                     >
                       <DeleteIcon />
@@ -506,16 +534,18 @@ function Products() {
               <label htmlFor="image-upload">
                 <Box
                   sx={{
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px dashed',
-                    borderColor: 'divider',
-                    cursor: 'pointer'
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "2px dashed",
+                    borderColor: "divider",
+                    cursor: "pointer",
                   }}
                 >
-                  <AddPhotoIcon sx={{ fontSize: 40, color: 'text.secondary' }} />
+                  <AddPhotoIcon
+                    sx={{ fontSize: 40, color: "text.secondary" }}
+                  />
                 </Box>
               </label>
             </ImageListItem>
@@ -530,21 +560,19 @@ function Products() {
 
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-        <DialogTitle>
-          Product Details
-        </DialogTitle>
+        <DialogTitle>Product Details</DialogTitle>
         <DialogContent>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <Box sx={{ position: 'relative', width: '100%', height: 300 }}>
+              <Box sx={{ position: "relative", width: "100%", height: 300 }}>
                 <img
-                  src={product.image || '/default-product.png'}
+                  src={product.image || "/default-product.png"}
                   alt={product.name}
                   style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: 8
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 8,
                   }}
                 />
                 {product.discount > 0 && (
@@ -552,7 +580,7 @@ function Products() {
                     label={`${product.discount}% OFF`}
                     color="error"
                     size="small"
-                    sx={{ position: 'absolute', top: 16, right: 16 }}
+                    sx={{ position: "absolute", top: 16, right: 16 }}
                   />
                 )}
               </Box>
@@ -626,17 +654,11 @@ function Products() {
               </Typography>
               <Box sx={{ mt: 1 }}>
                 <Stack direction="row" spacing={2}>
+                  <Chip label={`Rating: ${product.rating}`} size="small" />
+                  <Chip label={`${product.reviews} Reviews`} size="small" />
                   <Chip
-                    label={`Rating: ${product.rating}`}
-                    size="small"
-                  />
-                  <Chip
-                    label={`${product.reviews} Reviews`}
-                    size="small"
-                  />
-                  <Chip
-                    label={product.featured ? 'Featured' : 'Regular'}
-                    color={product.featured ? 'primary' : 'default'}
+                    label={product.featured ? "Featured" : "Regular"}
+                    color={product.featured ? "primary" : "default"}
                     size="small"
                   />
                 </Stack>
@@ -660,13 +682,13 @@ function Products() {
 
   const EditProductDialog = ({ open, onClose, product = null }) => {
     const [formData, setFormData] = useState({
-      name: product?.name || '',
-      sku: product?.sku || '',
-      price: product?.price || '',
-      stock: product?.stock || '',
-      category: product?.category || '',
-      status: product?.status || 'Active',
-      description: product?.description || '',
+      name: product?.name || "",
+      sku: product?.sku || "",
+      price: product?.price || "",
+      stock: product?.stock || "",
+      category: product?.category || "",
+      status: product?.status || "Active",
+      description: product?.description || "",
       images: product?.images || [],
       isBestSeller: product?.isBestSeller || false,
       isTShirts: product?.isTShirts || false,
@@ -678,42 +700,49 @@ function Products() {
       isHoodies: product?.isHoodies || false,
       isCoOrdSets: product?.isCoOrdSets || false,
       isShopByCategory: product?.isShopByCategory || false,
-      gender: product?.gender || '',
+      gender: product?.gender || "",
     });
 
     const handleChange = (e) => {
       const { name, value } = e.target;
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     };
 
     const handleImagesChange = (newImages) => {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        images: newImages
+        images: newImages,
       }));
     };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      setFormError('');
-      if (!formData.name || !formData.price || !formData.sku || !formData.stock || !formData.category || !formData.status) {
-        setFormError('Please fill in all required fields.');
+      setFormError("");
+      if (
+        !formData.name ||
+        !formData.price ||
+        !formData.sku ||
+        !formData.stock ||
+        !formData.category ||
+        !formData.status
+      ) {
+        setFormError("Please fill in all required fields.");
         return;
       }
-      let imageUrl = '';
+      let imageUrl = "";
       if (formData.images && formData.images.length > 0) {
         const firstImage = formData.images[0];
-        console.log("firstImage", firstImage)
+        console.log("firstImage", firstImage);
         if (firstImage.file) {
           const uploadRes = await uploadAdminAPI.uploadImage(firstImage.file);
-          console.log("uploadRes : ", uploadRes)
+          console.log("uploadRes : ", uploadRes);
           imageUrl = uploadRes.data.imageUrl;
           console.log("imageUrl", imageUrl);
-          if (imageUrl && !imageUrl.startsWith('http')) {
-            imageUrl = `http://localhost:5000${imageUrl}`;
+          if (imageUrl && !imageUrl.startsWith("http")) {
+            imageUrl = imageUrl; // Keep as is for dummy data
           }
         } else if (firstImage.url) {
           imageUrl = firstImage.url;
@@ -721,37 +750,42 @@ function Products() {
           imageUrl = firstImage;
         }
       }
-      console.log("the final imageurl: ", imageUrl)
+      console.log("the final imageurl: ", imageUrl);
       const payload = {
         ...formData,
         image: imageUrl,
       };
-      console.log("the payload", payload)
+      console.log("the payload", payload);
       delete payload.images;
       if (!imageUrl) {
-        setFormError('Please upload/select an image before saving the product.');
+        setFormError(
+          "Please upload/select an image before saving the product."
+        );
         return;
       }
       if (!product) {
         await createProduct(payload);
         await fetchProducts();
-      onClose();
+        onClose();
       } else {
         await handleUpdateProduct(product._id, payload);
       }
     };
 
-    const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const BACKEND_URL =
+      process.env.REACT_APP_API_URL || "http://localhost:5000";
 
     return (
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          {product ? 'Edit Product' : 'Add New Product'}
+          {product ? "Edit Product" : "Add New Product"}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             {formError && (
-              <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {formError}
+              </Alert>
             )}
             <Grid container spacing={2}>
               {/* Product Images Section */}
@@ -765,18 +799,23 @@ function Products() {
                 />
                 {/* Image Preview */}
                 {formData.images && formData.images.length > 0 && (
-                  <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                  <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
                     {formData.images.map((img, idx) => {
                       let url = img.url || img;
-                      if (url && !url.startsWith('http')) {
-                        url = `${BACKEND_URL}${url.startsWith('/uploads') ? '' : '/uploads/'}${url.replace(/^\/uploads\//, '')}`;
+                      if (url && !url.startsWith("http")) {
+                        url = url; // Keep as is for dummy data
                       }
                       return (
                         <img
                           key={idx}
                           src={url}
                           alt={`Preview ${idx + 1}`}
-                          style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, border: '1px solid #eee' }}
+                          style={{
+                            maxWidth: 120,
+                            maxHeight: 120,
+                            borderRadius: 8,
+                            border: "1px solid #eee",
+                          }}
                         />
                       );
                     })}
@@ -838,7 +877,12 @@ function Products() {
                     labelId="gender-label"
                     value={formData.gender}
                     label="Gender"
-                    onChange={e => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
                     name="gender"
                   >
                     <MenuItem value="">None</MenuItem>
@@ -857,7 +901,9 @@ function Products() {
                   value={formData.price}
                   onChange={handleChange}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start">₹</InputAdornment>,
+                    startAdornment: (
+                      <InputAdornment position="start">₹</InputAdornment>
+                    ),
                   }}
                   required
                 />
@@ -914,7 +960,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isBestSeller}
-                      onChange={e => setFormData(prev => ({ ...prev, isBestSeller: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isBestSeller: e.target.checked,
+                        }))
+                      }
                       name="isBestSeller"
                       color="primary"
                     />
@@ -922,7 +973,7 @@ function Products() {
                   label="Best Seller"
                 />
               </Grid>
-              
+
               {/* Category Section Checkboxes */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
@@ -935,7 +986,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isTShirts}
-                      onChange={e => setFormData(prev => ({ ...prev, isTShirts: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isTShirts: e.target.checked,
+                        }))
+                      }
                       name="isTShirts"
                       color="primary"
                     />
@@ -948,7 +1004,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isShirts}
-                      onChange={e => setFormData(prev => ({ ...prev, isShirts: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isShirts: e.target.checked,
+                        }))
+                      }
                       name="isShirts"
                       color="primary"
                     />
@@ -961,7 +1022,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isOversizedTShirts}
-                      onChange={e => setFormData(prev => ({ ...prev, isOversizedTShirts: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isOversizedTShirts: e.target.checked,
+                        }))
+                      }
                       name="isOversizedTShirts"
                       color="primary"
                     />
@@ -974,7 +1040,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isBottomWear}
-                      onChange={e => setFormData(prev => ({ ...prev, isBottomWear: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isBottomWear: e.target.checked,
+                        }))
+                      }
                       name="isBottomWear"
                       color="primary"
                     />
@@ -987,7 +1058,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isCargoPants}
-                      onChange={e => setFormData(prev => ({ ...prev, isCargoPants: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isCargoPants: e.target.checked,
+                        }))
+                      }
                       name="isCargoPants"
                       color="primary"
                     />
@@ -1000,7 +1076,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isJackets}
-                      onChange={e => setFormData(prev => ({ ...prev, isJackets: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isJackets: e.target.checked,
+                        }))
+                      }
                       name="isJackets"
                       color="primary"
                     />
@@ -1013,7 +1094,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isHoodies}
-                      onChange={e => setFormData(prev => ({ ...prev, isHoodies: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isHoodies: e.target.checked,
+                        }))
+                      }
                       name="isHoodies"
                       color="primary"
                     />
@@ -1026,7 +1112,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isCoOrdSets}
-                      onChange={e => setFormData(prev => ({ ...prev, isCoOrdSets: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isCoOrdSets: e.target.checked,
+                        }))
+                      }
                       name="isCoOrdSets"
                       color="primary"
                     />
@@ -1039,7 +1130,12 @@ function Products() {
                   control={
                     <Checkbox
                       checked={formData.isShopByCategory}
-                      onChange={e => setFormData(prev => ({ ...prev, isShopByCategory: e.target.checked }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isShopByCategory: e.target.checked,
+                        }))
+                      }
                       name="isShopByCategory"
                     />
                   }
@@ -1051,7 +1147,7 @@ function Products() {
           <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
             <Button type="submit" variant="contained">
-              {product ? 'Update Product' : 'Add Product'}
+              {product ? "Update Product" : "Add Product"}
             </Button>
           </DialogActions>
         </form>
@@ -1072,8 +1168,8 @@ function Products() {
         </IconButton>
       </Tooltip>
       <Tooltip title="Delete">
-        <IconButton 
-          size="small" 
+        <IconButton
+          size="small"
           color="error"
           onClick={() => handleDeleteClick(product)}
         >
@@ -1085,15 +1181,22 @@ function Products() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
-          Products
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h4">Products</Typography>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             variant="outlined"
             startIcon={<UploadIcon />}
-            onClick={() => {/* Implement import */}}
+            onClick={() => {
+              /* Implement import */
+            }}
           >
             Import
           </Button>
@@ -1115,15 +1218,21 @@ function Products() {
       </Box>
 
       {/* Debug Section - Remove this in production */}
-      <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f5f5f5' }}>
+      <Paper sx={{ p: 2, mb: 3, backgroundColor: "#f5f5f5" }}>
         <Typography variant="h6" gutterBottom>
           🐛 Debug Information
         </Typography>
         <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
-            <Typography variant="subtitle2">Products Count: {products.length}</Typography>
-            <Typography variant="subtitle2">Selected Products: {selectedProducts.length}</Typography>
-            <Typography variant="subtitle2">Selected IDs: {JSON.stringify(selectedProducts)}</Typography>
+            <Typography variant="subtitle2">
+              Products Count: {products.length}
+            </Typography>
+            <Typography variant="subtitle2">
+              Selected Products: {selectedProducts.length}
+            </Typography>
+            <Typography variant="subtitle2">
+              Selected IDs: {JSON.stringify(selectedProducts)}
+            </Typography>
           </Grid>
           <Grid item xs={12} md={6}>
             <Typography variant="subtitle2">Sample Product IDs:</Typography>
@@ -1217,19 +1326,23 @@ function Products() {
         {showFilters && (
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item xs={12} md={4}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   label="Min Price"
                   type="number"
                   value={priceRange.min}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                  onChange={(e) =>
+                    setPriceRange((prev) => ({ ...prev, min: e.target.value }))
+                  }
                   InputProps={{ startAdornment: <PriceIcon /> }}
                 />
                 <TextField
                   label="Max Price"
                   type="number"
                   value={priceRange.max}
-                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                  onChange={(e) =>
+                    setPriceRange((prev) => ({ ...prev, max: e.target.value }))
+                  }
                   InputProps={{ startAdornment: <PriceIcon /> }}
                 />
               </Box>
@@ -1252,21 +1365,12 @@ function Products() {
       {/* Bulk Actions */}
       {selectedProducts.length > 0 && (
         <Paper sx={{ p: 2, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography>
-              {selectedProducts.length} products selected
-            </Typography>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleBulkDelete}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Typography>{selectedProducts.length} products selected</Typography>
+            <Button variant="outlined" color="error" onClick={handleBulkDelete}>
               Delete Selected
             </Button>
-            <Button
-              variant="outlined"
-              onClick={handleBulkUpdate}
-            >
+            <Button variant="outlined" onClick={handleBulkUpdate}>
               Update Selected
             </Button>
           </Box>
@@ -1278,7 +1382,7 @@ function Products() {
         <Tabs
           value={view}
           onChange={(e, newValue) => setView(newValue)}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
+          sx={{ borderBottom: 1, borderColor: "divider" }}
         >
           <Tab value="list" label="List View" />
           <Tab value="grid" label="Grid View" />
@@ -1286,16 +1390,21 @@ function Products() {
       </Box>
 
       {/* Products Display */}
-      {view === 'list' ? (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+      {view === "list" ? (
+        <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <TableContainer>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedProducts.length === filteredProducts.length}
-                      indeterminate={selectedProducts.length > 0 && selectedProducts.length < filteredProducts.length}
+                      checked={
+                        selectedProducts.length === filteredProducts.length
+                      }
+                      indeterminate={
+                        selectedProducts.length > 0 &&
+                        selectedProducts.length < filteredProducts.length
+                      }
                       onChange={handleSelectAll}
                     />
                   </TableCell>
@@ -1324,7 +1433,9 @@ function Products() {
                       <TableCell>{product.name}</TableCell>
                       <TableCell>{product.category}</TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           ₹{product.price.toFixed(2)}
                           {product.discount > 0 && (
                             <Chip
@@ -1344,16 +1455,16 @@ function Products() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
                           {product.rating}
                           <Typography variant="body2" color="text.secondary">
                             ({product.reviews})
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        {renderTableActions(product)}
-                      </TableCell>
+                      <TableCell>{renderTableActions(product)}</TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -1399,21 +1510,19 @@ function Products() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleDeleteCancel}
-      >
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
         <DialogTitle>Delete Product</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+            Are you sure you want to delete "{productToDelete?.name}"? This
+            action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button 
-            onClick={handleDeleteConfirm} 
-            color="error" 
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
             variant="contained"
           >
             Delete
@@ -1424,4 +1533,4 @@ function Products() {
   );
 }
 
-export default Products; 
+export default Products;
