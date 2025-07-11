@@ -45,7 +45,7 @@ router.get(
   getProductsByCategory
 );
 
-router.get("/:id", productIdValidation, handleValidationErrors, getProductById);
+router.get("/:id",  handleValidationErrors, getProductById);
 
 // Protected routes (Admin only)
 router.post(

@@ -156,7 +156,7 @@ const Payment = ({ mode = "dark" }) => {
             try {
               // Payment verified, now place order in backend
               const apiUrl =
-                process.env.REACT_APP_API_URL || "http://localhost:5000";
+                process.env.REACT_APP_API_URL || "http://localhost:8000";
               const token = localStorage.getItem("token");
               const orderResponse = await axios.post(
                 `${apiUrl}/api/orders`,
@@ -202,7 +202,7 @@ const Payment = ({ mode = "dark" }) => {
         razorpay.open();
       } else {
         // For COD payments, send to backend
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
         const token = localStorage.getItem("token");
         const response = await axios.post(`${apiUrl}/api/orders`, orderData, {
           headers: {

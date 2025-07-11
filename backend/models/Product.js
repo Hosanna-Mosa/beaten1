@@ -1,33 +1,148 @@
 const mongoose = require("mongoose");
 
-const variantSchema = new mongoose.Schema(
-  {
-    sku: { type: String, required: true, unique: true },
-    color: String,
-    size: String,
-    price: { type: Number, required: true },
-    stock: { type: Number, default: 0 },
-    images: [String],
-  },
-  { _id: false }
-);
-
 const productSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
-    description: String,
-    brand: String,
-    categories: [{ type: String, index: true }],
-    tags: [String],
-    mainImage: String,
-    images: [String],
-    variants: [variantSchema],
-    isActive: { type: Boolean, default: true },
-    isFeatured: { type: Boolean, default: false },
-    rating: { type: Number, min: 0, max: 5, default: 0 },
-    reviews: { type: Number, min: 0, default: 0 },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    originalPrice: {
+      type: Number,
+      min: 0,
+      default: function () {
+        return this.price;
+      },
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    images: [
+      {
+        type: String,
+      },
+    ],
+    category: {
+      type: String,
+      required: true,
+      enum: [
+        "T-shirts",
+        "Shirts",
+        "Bottom Wear",
+        "Hoodies",
+        "Jackets",
+        "Co-ord Sets",
+        "Dresses",
+      ],
+    },
+    subCategory: {
+      type: String,
+      required: true,
+    },
+    collectionName: {
+      type: String,
+      required: true,
+      enum: [
+        "Beaten Exclusive Collection",
+        "Beaten Launch Sale Vol 1",
+        "Beaten Signature Collection",
+        "New Arrivals",
+        "Best Sellers",
+        "Summer Collection",
+        "Winter Collection",
+      ],
+    },
+    gender: {
+      type: String,
+      required: true,
+      enum: ["MEN", "WOMEN"],
+    },
+    sizes: [
+      {
+        type: String,
+        enum: ["S", "M", "L", "XL", "XXL"],
+      },
+    ],
+    colors: [
+      {
+        type: String,
+      },
+    ],
+    fit: {
+      type: String,
+      enum: ["Slim", "Oversized", "Regular"],
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    features: [
+      {
+        type: String,
+      },
+    ],
+    specifications: {
+      Material: String,
+      Fit: String,
+      Care: String,
+      Origin: String,
+    },
+    inStock: {
+      type: Boolean,
+      default: true,
+    },
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    reviews: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    tags: [
+      {
+        type: String,
+      },
+    ],
+    discount: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    isNewArrival: {
+      type: Boolean,
+      default: false,
+    },
+    isBestSeller: {
+      type: Boolean,
+      default: false,
+    },
+    stockQuantity: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    sku: {
+      type: String,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Product", productSchema);

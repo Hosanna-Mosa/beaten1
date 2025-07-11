@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-
     const loadUser = () => {
       const token = localStorage.getItem("token");
       const userData = localStorage.getItem("user");
@@ -28,28 +27,39 @@ export const AuthProvider = ({ children }) => {
     };
 
     loadUser();
-
   }, []);
 
   const login = async ({ email, password }) => {
     setLoading(true);
     setError(null);
     try {
-
       const response = await axios.post(
-          "http://localhost:8000/api/auth/login",
+        "http://localhost:8000/api/auth/login",
         { email, password }
       );
       setLoading(false);
+      const { token, user } = response.data.data;
+      console.log(response.data.data);
+      
+      console.log(user);
+      console.log(token);
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+      setLoading(false);
       return response.data;
     } catch (err) {
+      console.log("Login error:", err);
       setError(err.response?.data?.message || "login failed");
 
       setLoading(false);
-        return { success: false, message: err.response?.data?.message || "login failed" };
+      return {
+        success: false,
+        message: err.response?.data?.message || "login failed",
+      };
     }
   };
-
 
   // Login user (connects to backend)
   const register = async (userData) => {
@@ -86,7 +96,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setError(null);
   };
-
 
   // Update user profile (placeholder - no backend connection)
   const updateProfile = async (userData) => {
@@ -176,4 +185,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

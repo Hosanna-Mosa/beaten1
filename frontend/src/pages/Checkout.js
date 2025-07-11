@@ -77,6 +77,7 @@ const Checkout = ({ mode = "dark" }) => {
   const discount = user?.isPremium ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
+  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetchAddresses();
@@ -86,7 +87,7 @@ const Checkout = ({ mode = "dark" }) => {
   const fetchAddresses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("/api/user/addresses", {
+      const response = await axios.get(`${BASE_URL}/api/user/addresses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userAddresses = response.data.data || [];
@@ -105,6 +106,8 @@ const Checkout = ({ mode = "dark" }) => {
   // Replace handleAddressSubmit with real API call
   const handleAddressSubmit = async () => {
     try {
+      //console.log("camed to ass");
+      
       if (!user) {
         setError("Please login to save addresses");
         return;
@@ -140,14 +143,16 @@ const Checkout = ({ mode = "dark" }) => {
         phone: newAddress.phone.trim(),
         isDefault: newAddress.isDefault,
       };
+      console.log("came to address submit");
+      
       if (newAddress._id) {
         // Edit address
-        await axios.put(`/api/user/addresses/${newAddress._id}`, addressData, {
+        await axios.put(`${BASE_URL}/api/user/addresses/${newAddress._id}`, addressData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
         // Add new address
-        await axios.post("/api/user/addresses", addressData, {
+        await axios.post(`${BASE_URL}/api/user/addresses`, addressData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -222,7 +227,7 @@ const handlePlaceOrder = async () => {
 
     const token = localStorage.getItem("token");
     // Send order to backend
-    await axios.post("/api/orders", orderPayload, {
+    await axios.post(`${BASE_URL}/api/orders`, orderPayload, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -430,7 +435,7 @@ const handlePlaceOrder = async () => {
                           ) {
                             try {
                               const token = localStorage.getItem("token");
-                              await axios.delete(`/api/user/addresses/${address._id}`, {
+                              await axios.delete(`${BASE_URL}/api/user/addresses/${address._id}`, {
                                 headers: { Authorization: `Bearer ${token}` },
                               });
                               fetchAddresses();
@@ -607,7 +612,7 @@ const handlePlaceOrder = async () => {
         <DialogActions>
           <Button onClick={() => setAddressDialog(false)}>Cancel</Button>
           <Button onClick={handleAddressSubmit} color="primary">
-            Save Address
+            Save Addresses
           </Button>
         </DialogActions>
       </Dialog>

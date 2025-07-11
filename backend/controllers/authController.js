@@ -25,7 +25,7 @@ const register = async (req, res, next) => {
       email,
       password,
     });
-
+    console.log(user);
     if (user) {
       res.status(STATUS_CODES.CREATED).json({
         success: true,
@@ -53,6 +53,8 @@ const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     // Find user by email
+    console.log(email, password);
+    
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
@@ -62,18 +64,32 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
-    // Success
-    res.json({
+    console.log("Last");
+    
+    // // Success
+    //  res.json({
+    //   success: true,
+    //   message: "User logged in successfully",
+    //   data: {
+    //     _id: user._id,
+    //     name: user.name,
+    //     email: user.email,
+    //     role: user.role,
+    //     token: generateToken(user._id),
+    //   },
+    // });
+    return res.status(STATUS_CODES.OK).json({
       success: true,
       message: "User logged in successfully",
       data: {
         _id: user._id,
-        name: user.name,
+        user: user.name,
         email: user.email,
         role: user.role,
         token: generateToken(user._id),
       },
     });
+    
   } catch (err) {
     res.status(500).json({ success: false, message: "Server error" });
   }
@@ -98,7 +114,7 @@ const getProfile = async (req, res, next) => {
       message: MESSAGES.USER_PROFILE_RETRIEVED,
       data: {
         _id: user._id,
-        name: user.name,
+        user: user.name,
         email: user.email,
         role: user.role,
         isActive: user.isActive,
