@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -8,37 +8,48 @@ import {
   Typography,
   Container,
   Alert,
-  CircularProgress
-} from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+  CircularProgress,
+  Divider,
+} from "@mui/material";
+import { useAuth } from "../context/AuthContext";
+import ConnectionTest from "../components/common/ConnectionTest";
+import ToastDemo from "../components/common/ToastDemo";
+import { showError } from "../utils/toast";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+
+  // Get the intended destination from location state, or default to dashboard
+  const from = location.state?.from?.pathname || "/";
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await login(formData);
-      navigate('/');
+      // Navigate to the intended destination or dashboard
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      const errorMessage = err.message || "Login failed. Please try again.";
+      setError(errorMessage);
+      // Removed showError(errorMessage) here to avoid duplicate toasts
     } finally {
       setLoading(false);
     }
@@ -46,41 +57,55 @@ function Login() {
 
   return (
     <Container component="main" maxWidth="xs">
+      {/* //  <ConnectionTest /> */}
+      {/* <ToastDemo /> */}
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         <Paper
           elevation={3}
           sx={{
             padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%'
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
           }}
         >
           <img
             src="/logo.png"
             alt="BEATEN"
-            style={{ width: '150px', marginBottom: '2rem' }}
+            style={{ width: "150px", marginBottom: "2rem" }}
           />
-          
+
           <Typography component="h1" variant="h5" gutterBottom>
             Admin Login
           </Typography>
 
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: 3, textAlign: "center" }}
+          >
+            Use the following credentials to login:
+            <br />
+            <strong>Email:</strong> admin@beaten.com
+            <br />
+            <strong>Password:</strong> Admin123!
+          </Typography>
+
           {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
               {error}
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: "100%" }}>
             <TextField
               margin="normal"
               required
@@ -112,8 +137,30 @@ function Login() {
               sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} /> : 'Sign In'}
+              {loading ? <CircularProgress size={24} /> : "Sign In"}
             </Button>
+
+            <Divider sx={{ my: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                OR
+              </Typography>
+            </Divider>
+
+            <Box sx={{ textAlign: "center" }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{" "}
+                <Link
+                  to="/register"
+                  style={{
+                    color: "#000000",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Register Now
+                </Link>
+              </Typography>
+            </Box>
           </Box>
         </Paper>
       </Box>
@@ -121,4 +168,4 @@ function Login() {
   );
 }
 
-export default Login; 
+export default Login;

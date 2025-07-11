@@ -1,6 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useAuth } from "./AuthContext";
+import axios from "axios";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 const CartContext = createContext();
 
 export const useCart = () => {
@@ -10,10 +12,10 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
     try {
-      const savedCart = localStorage.getItem('cart');
+      const savedCart = localStorage.getItem("cart");
       return savedCart ? JSON.parse(savedCart) : [];
     } catch (error) {
-      console.error('Error loading cart from localStorage:', error);
+      console.error("Error loading cart from localStorage:", error);
       return [];
     }
   });
@@ -27,24 +29,45 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('cart', JSON.stringify(cart));
+      localStorage.setItem("cart", JSON.stringify(cart));
     } catch (error) {
-      console.error('Error saving cart to localStorage:', error);
+      console.error("Error saving cart to localStorage:", error);
     }
   }, [cart]);
+
+  const fetchSavedCart = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/user/me`);
+      const serverCart = response.data.savedCart || [];
+      // Merge server cart with local cart, preferring server data
+      const mergedCart = serverCart.map((serverItem) => {
+        const localItem = cart.find(
+          (item) =>
+            item.product._id === serverItem.product._id &&
+            item.size === serverItem.size &&
+            item.color === serverItem.color
+        );
+        return localItem || serverItem;
+      });
+      setCart(mergedCart);
+    } catch (error) {
+      console.error("Error fetching saved cart:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addToCart = async (product, quantity, size, color) => {
     try {
       const existingItem = cart.find(
-        item =>
+        (item) =>
           item.product._id === product._id &&
           item.size === size &&
           item.color === color
       );
-
       let updatedCart;
       if (existingItem) {
-        updatedCart = cart.map(item =>
+        updatedCart = cart.map((item) =>
           item.product._id === product._id &&
           item.size === size &&
           item.color === color
@@ -58,39 +81,45 @@ export const CartProvider = ({ children }) => {
             product,
             quantity,
             size,
-            color
-          }
+            color,
+          },
         ];
       }
-
       setCart(updatedCart);
-
+      if (user) {
+        await axios.put(`${API_BASE_URL}/user/me`, {
+          savedCart: updatedCart,
+        });
+      }
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to add to cart'
+        message: "Failed to add to cart",
       };
     }
   };
 
   const updateQuantity = async (productId, size, color, quantity) => {
     try {
-      const updatedCart = cart.map(item =>
+      const updatedCart = cart.map((item) =>
         item.product._id === productId &&
         item.size === size &&
         item.color === color
           ? { ...item, quantity }
           : item
       );
-
       setCart(updatedCart);
-
+      if (user) {
+        await axios.put(`${API_BASE_URL}/user/me`, {
+          savedCart: updatedCart,
+        });
+      }
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to update quantity'
+        message: "Failed to update quantity",
       };
     }
   };
@@ -98,21 +127,24 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (productId, size, color) => {
     try {
       const updatedCart = cart.filter(
-        item =>
+        (item) =>
           !(
             item.product._id === productId &&
             item.size === size &&
             item.color === color
           )
       );
-
       setCart(updatedCart);
-
+      if (user) {
+        await axios.put(`${API_BASE_URL}/user/me`, {
+          savedCart: updatedCart,
+        });
+      }
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to remove from cart'
+        message: "Failed to remove from cart",
       };
     }
   };
@@ -120,12 +152,16 @@ export const CartProvider = ({ children }) => {
   const clearCart = async () => {
     try {
       setCart([]);
-
+      if (user) {
+        await axios.put(`${API_BASE_URL}/user/me`, {
+          savedCart: [],
+        });
+      }
       return { success: true };
     } catch (error) {
       return {
         success: false,
-        message: 'Failed to clear cart'
+        message: "Failed to clear cart",
       };
     }
   };
@@ -149,8 +185,8 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     clearCart,
     getCartTotal,
-    getCartCount
+    getCartCount,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
-}; 
+};

@@ -43,7 +43,7 @@ const matteColors = {
   100: "#f5f5f5",
 };
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();

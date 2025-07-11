@@ -1,5 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { authAPI } from "../api/adminAPI";
+import { showError, showSuccess, showWarning } from "../utils/toast";
 
 const AuthContext = createContext();
 
@@ -14,18 +15,16 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('admin_token');
+      const token = localStorage.getItem("admin_token");
       if (token) {
         try {
-          const res = await axios.get('http://localhost:5000/api/auth/me', {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          setUser(res.data.user);
+          const res = await authAPI.getProfile();
+          setUser(res.data);
         } catch (err) {
-          localStorage.removeItem('admin_token');
-          setError(err.response?.data?.message || 'Authentication failed');
+          localStorage.removeItem("admin_token");
+          const errorMessage = err.message || "Authentication failed";
+          setError(errorMessage);
+          showWarning("Session expired. Please login again.");
         }
       }
       setLoading(false);
@@ -36,26 +35,62 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', credentials);
+      const res = await authAPI.login(credentials);
       if (res.data.token) {
-        localStorage.setItem('admin_token', res.data.token);
-        setUser(res.data.user);
+        localStorage.setItem("admin_token", res.data.token);
+        setUser(res.data);
         setError(null);
+        showSuccess("Login successful! Welcome back.");
         return res.data;
       } else {
-        setError('No token received from server');
-        throw new Error('No token received from server');
+        const errorMessage = "No token received from server";
+        setError(errorMessage);
+        showError(errorMessage);
+        throw new Error(errorMessage);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const errorMessage = err.message || "Login failed";
+      setError(errorMessage);
+      showError(errorMessage);
       throw err;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('admin_token');
-    setUser(null);
-    setError(null);
+  const register = async (userData) => {
+    try {
+      const res = await authAPI.register(userData);
+      if (res.data.token) {
+        // For registration, we don't automatically log in the user
+        // They need to login separately
+        setError(null);
+        showSuccess("Registration successful! You can now login.");
+        return res.data;
+      } else {
+        const errorMessage = "Registration completed but no token received";
+        setError(errorMessage);
+        showWarning(errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (err) {
+      const errorMessage = err.message || "Registration failed";
+      setError(errorMessage);
+      showError(errorMessage);
+      throw err;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+      showSuccess("Logged out successfully");
+    } catch (err) {
+      console.error("Logout error:", err);
+      showWarning("Logout completed (some cleanup may have failed)");
+    } finally {
+      localStorage.removeItem("admin_token");
+      setUser(null);
+      setError(null);
+    }
   };
 
   const value = {
@@ -63,8 +98,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
-    logout
+    register,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};

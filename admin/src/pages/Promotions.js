@@ -41,6 +41,7 @@ import {
   Lock as LockIcon,
 } from "@mui/icons-material";
 import { useEffect } from "react";
+import { dummyDataAPI } from "../api/dummyData";
 
 function Promotions() {
   const [page, setPage] = useState(0);
@@ -56,16 +57,8 @@ function Promotions() {
   useEffect(() => {
     const fetchCodes = async () => {
       try {
-        const token = localStorage.getItem('admin_token');
-        const res = await fetch("http://localhost:5000/api/promotions/", {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (!res.ok) throw new Error("Failed to fetch codes");
-        const data = await res.json();
-        setExistingCodes(data);
+        const res = await dummyDataAPI.promotions.getPromotions();
+        setExistingCodes(res.data.promotions);
       } catch (err) {
         console.error("Error fetching codes:", err);
       }
@@ -130,7 +123,13 @@ function Promotions() {
 
   const generateCode = async () => {
     // Validate required fields
-    if (!formData.discount || !formData.minPurchase || !formData.validFrom || !formData.validUntil || !formData.usageLimit) {
+    if (
+      !formData.discount ||
+      !formData.minPurchase ||
+      !formData.validFrom ||
+      !formData.validUntil ||
+      !formData.usageLimit
+    ) {
       alert("Please fill in all required fields");
       return;
     }
@@ -175,39 +174,19 @@ function Promotions() {
     }
 
     try {
-      const token = localStorage.getItem('admin_token');
-      const res = await fetch("http://localhost:5000/api/promotions/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({ codes }),
-      });
-
-      if (res.ok) {
-        const result = await res.json();
-        setGeneratedCodes(codes);
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
-        handleCloseDialog();
-        
-        // Refresh the codes list
-        const refreshRes = await fetch("http://localhost:5000/api/promotions/", {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        if (refreshRes.ok) {
-          const refreshData = await refreshRes.json();
-          setExistingCodes(refreshData);
-        }
-      } else {
-        const errorData = await res.json();
-        console.error("Failed to save codes to backend:", errorData);
-        alert(errorData.message || "Failed to generate codes. Please try again.");
+      // Create promotion using dummy data API
+      for (const code of codes) {
+        await dummyDataAPI.promotions.createPromotion(code);
       }
+
+      setGeneratedCodes(codes);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+      handleCloseDialog();
+
+      // Refresh the codes list
+      const refreshRes = await dummyDataAPI.promotions.getPromotions();
+      setExistingCodes(refreshRes.data.promotions);
     } catch (err) {
       console.error("Error while saving codes:", err);
       alert("Error generating codes. Please check your connection.");
@@ -240,7 +219,7 @@ function Promotions() {
     const csvContent = generatedCodes
       .map(
         (code) =>
-          `${code.code},${code.type},${code.category},${code.discount}%,${code.minPurchase},${code.validFrom},${code.validUntil},${code.usageLimit},${code.recipientName || 'N/A'},${code.recipientEmail || 'N/A'}`
+          `${code.code},${code.type},${code.category},${code.discount}%,${code.minPurchase},${code.validFrom},${code.validUntil},${code.usageLimit},${code.recipientName || "N/A"},${code.recipientEmail || "N/A"}`
       )
       .join("\n");
 
@@ -281,7 +260,7 @@ function Promotions() {
     }
   };
 
-  const filteredCodes = existingCodes.filter(code => {
+  const filteredCodes = existingCodes.filter((code) => {
     if (activeTab === 0) {
       return code.category === "personal" || code.isPersonal;
     } else {
@@ -304,15 +283,19 @@ function Promotions() {
 
       {/* Tabs for Personal vs Public Coupons */}
       <Paper sx={{ mb: 3 }}>
-        <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab 
-            icon={<PersonIcon />} 
-            label="Personal Coupons" 
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{ borderBottom: 1, borderColor: "divider" }}
+        >
+          <Tab
+            icon={<PersonIcon />}
+            label="Personal Coupons"
             iconPosition="start"
           />
-          <Tab 
-            icon={<GroupIcon />} 
-            label="Public Coupons" 
+          <Tab
+            icon={<GroupIcon />}
+            label="Public Coupons"
             iconPosition="start"
           />
         </Tabs>
@@ -324,12 +307,12 @@ function Promotions() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                <LockIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                <LockIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                 Personal Coupons
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Generate exclusive coupons for family members and friends. 
-                These codes are private and can be shared directly with recipients.
+                Generate exclusive coupons for family members and friends. These
+                codes are private and can be shared directly with recipients.
               </Typography>
             </CardContent>
           </Card>
@@ -338,12 +321,12 @@ function Promotions() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                <GroupIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                <GroupIcon sx={{ mr: 1, verticalAlign: "middle" }} />
                 Public Coupons
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Generate general coupons for all users. 
-                These codes can be used by any customer on your platform.
+                Generate general coupons for all users. These codes can be used
+                by any customer on your platform.
               </Typography>
             </CardContent>
           </Card>
@@ -386,8 +369,13 @@ function Promotions() {
                 .map((code) => (
                   <TableRow key={code._id || code.code}>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: "monospace" }}
+                        >
                           {code.code}
                         </Typography>
                         <Tooltip title="Copy Code">
@@ -405,14 +393,22 @@ function Promotions() {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={code.category || (code.isPersonal ? "Personal" : "Public")} 
-                        color={getCategoryColor(code.category || (code.isPersonal ? "personal" : "public"))}
+                        label={
+                          code.category ||
+                          (code.isPersonal ? "Personal" : "Public")
+                        }
+                        color={getCategoryColor(
+                          code.category ||
+                            (code.isPersonal ? "personal" : "public")
+                        )}
                         size="small"
                       />
                     </TableCell>
                     <TableCell>{code.discount}%</TableCell>
                     <TableCell>₹{code.minPurchase}</TableCell>
-                    <TableCell>{new Date(code.validUntil).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {new Date(code.validUntil).toLocaleDateString()}
+                    </TableCell>
                     <TableCell>
                       {code.usedCount}/{code.usageLimit}
                     </TableCell>
@@ -427,8 +423,13 @@ function Promotions() {
                       <TableCell>
                         {code.recipientName ? (
                           <Box>
-                            <Typography variant="body2">{code.recipientName}</Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="body2">
+                              {code.recipientName}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
                               {code.recipientEmail}
                             </Typography>
                           </Box>
@@ -463,7 +464,12 @@ function Promotions() {
       </Paper>
 
       {/* Generate Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           Generate {activeTab === 0 ? "Personal" : "Public"} Coupons
         </DialogTitle>
