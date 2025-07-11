@@ -52,18 +52,12 @@ import { useWishlist } from "../context/WishlistContext";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
-import { productsAPI } from '../api';
+import { mockProducts, categories, collections, searchProducts } from '../data/mockData';
 
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
 // Get all unique colors from products
 const colorOptions = []; // or compute from products if needed
-
-const collections = [
-  "Beaten Exclusive Collection",
-  "Beaten Launch Sale Vol 1",
-  "Beaten Signature Collection",
-];
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
@@ -209,35 +203,7 @@ const Products = ({ mode }) => {
   const [showLoading, setShowLoading] = useState(false);
   const [shopAllActive, setShopAllActive] = useState(false);
 
-  // Filter options
-  const categories = {
-    // 'Shop All': [],
-    MEN: {
-      "T-shirts": ["Regular", "Oversized", "Graphic T-shirts", "Embroidery"],
-      Shirts: ["Casual wear", "Formal wear"],
-      "Bottom Wear": ["Jeans", "Cargo Pants", "Chinos"],
-    },
-    WOMEN: {
-      "T-shirts": ["Regular", "Oversized", "Graphic T-shirts", "Embroidery"],
-    },
-  };
-
-  // 1. Extract unique collections from product data
-  // const uniqueCollections = Array.from(new Set(dummyProducts.map(p => p.collection).filter(Boolean)));
-
-  // 2. Fix typos in collection names in both filter and product data
-  // (Assume all product data is now correct, e.g., 'Beaten Exclusive Collection', 'Beaten Launch Sale Vol 1', 'Beaten Signature Collection', 'New Arrivals', 'Best Sellers', 'Summer Collection', 'Winter Collection')
-  // If needed, update product data here (for brevity, not shown, but you would update any typos in the dummyProducts array)
-
-  // 3. Update collections filter to use uniqueCollections
-  // Replace:
-  // const collections = [ ... ];
-  // With:
-  const collections = [
-    "Beaten Exclusive Collection",
-    "Beaten Launch Sale Vol 1",
-    "Beaten Signature Collection",
-  ];
+  // Use imported categories and collections data
 
   // Filter products by selected filters (category, etc.)
   const filteredAndSortedProducts = React.useMemo(() => {
@@ -914,20 +880,11 @@ const Products = ({ mode }) => {
   // Add a function to fetch products
   const fetchProducts = () => {
     setShowLoading(true);
-    // Use the selected gender from filters
-    const gender = filters.gender && filters.gender.length > 0 ? filters.gender[0] : undefined;
-    const params = {};
-    if (gender) params.gender = gender;
-    productsAPI.getProducts(params)
-      .then(res => {
-        console.log('Fetched products from backend:', res.data); // Debug log
-        setProducts(res.data);
-        setShowLoading(false);
-      })
-      .catch(err => {
-        setError('Failed to fetch products');
-        setShowLoading(false);
-      });
+    // Simulate API delay
+    setTimeout(() => {
+      setProducts(mockProducts);
+      setShowLoading(false);
+    }, 500);
   };
 
   // Update useEffect to use fetchProducts

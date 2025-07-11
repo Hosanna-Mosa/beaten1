@@ -41,7 +41,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
-import { userAPI, ordersAPI } from "../api";
+import { mockUsers } from '../data/mockData';
 
 const steps = ["Shipping Address"];
 
@@ -84,18 +84,16 @@ const Checkout = ({ mode = "dark" }) => {
 
   const fetchAddresses = async () => {
     try {
-      const response = await userAPI.getAddresses();
-      setAddresses(response.data.data || response.data);
-      // Always use string for _id
-      const defaultAddress = (response.data.data || response.data).find(
-        (addr) => addr.isDefault
-      );
+      // Get addresses from mock user data
+      const currentUser = mockUsers[0]; // Use first user for demo
+      const userAddresses = currentUser.addresses || [];
+      
+      setAddresses(userAddresses);
+      const defaultAddress = userAddresses.find(addr => addr.isDefault);
       if (defaultAddress) {
         setSelectedAddress(String(defaultAddress._id));
-      } else if ((response.data.data || response.data).length === 1) {
-        setSelectedAddress(
-          String((response.data.data || response.data)[0]._id)
-        );
+      } else if (userAddresses.length === 1) {
+        setSelectedAddress(String(userAddresses[0]._id));
       }
     } catch (err) {
       setError("Failed to load addresses");
@@ -141,28 +139,20 @@ const Checkout = ({ mode = "dark" }) => {
         country: "India",
         isDefault: newAddress.isDefault,
       };
-      let response;
-      if (newAddress._id) {
-        response = await userAPI.updateAddress(newAddress._id, addressData);
-      } else {
-        response = await userAPI.addAddress(addressData);
-      }
-      if (response.data.status === "success") {
-        setAddressDialog(false);
-        setError(null);
-        fetchAddresses();
-        setNewAddress({
-          name: "",
-          phone: "",
-          street: "",
-          city: "",
-          state: "",
-          pincode: "",
-          isDefault: false,
-        });
-      } else {
-        setError("Failed to save address");
-      }
+      // Mock address save (no actual API call)
+      console.log('Saving address:', addressData);
+      setAddressDialog(false);
+      setError(null);
+      fetchAddresses(); // Refresh addresses
+      setNewAddress({
+        name: "",
+        phone: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        isDefault: false,
+      });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save address");
     }
@@ -190,7 +180,8 @@ const handlePlaceOrder = async () => {
     // Calculate total with COD charge if applicable
     const finalTotal = paymentMethod === "cod" ? total + 50 : total;
     
-    const orderResponse = await ordersAPI.createOrder({
+    // Mock order creation
+    console.log('Creating order:', {
       items: cart.map((item) => ({
         product: item.product._id,
         quantity: item.quantity,
@@ -204,28 +195,26 @@ const handlePlaceOrder = async () => {
       codCharge: paymentMethod === "cod" ? 50 : 0,
     });
 
-    // For Razorpay payments
+    // For Razorpay payments (mock)
     if (paymentMethod === "razorpay") {
-      if (!orderResponse.data.razorpayOrderId) {
-        throw new Error("Missing Razorpay order ID");
-      }
+      const mockOrderResponse = {
+        data: {
+          razorpayOrderId: 'mock_order_' + Date.now(),
+          amount: finalTotal
+        }
+      };
 
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY,
-        amount: orderResponse.data.amount * 100,
+        key: process.env.REACT_APP_RAZORPAY_KEY || 'mock_key',
+        amount: mockOrderResponse.data.amount * 100,
         currency: "INR",
         name: "BEATEN",
         description: "Order Payment",
-        order_id: orderResponse.data.razorpayOrderId,
+        order_id: mockOrderResponse.data.razorpayOrderId,
         handler: async function (response) {
           try {
-            // Use the verifyPayment method from ordersAPI
-            await ordersAPI.verifyPayment({
-              razorpayOrderId: orderResponse.data.razorpayOrderId,
-              paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            });
-            
+            // Mock payment verification
+            console.log('Payment verified:', response);
             setOrderPlaced(true);
             clearCart();
           } catch (err) {
@@ -235,8 +224,8 @@ const handlePlaceOrder = async () => {
           }
         },
         prefill: {
-          name: user.name,
-          email: user.email,
+          name: user?.name || 'User',
+          email: user?.email || 'user@example.com',
           contact: user.phone,
         },
         theme: { color: "#1976d2" },
@@ -455,7 +444,8 @@ const handlePlaceOrder = async () => {
                               "Are you sure you want to delete this address?"
                             )
                           ) {
-                            await userAPI.deleteAddress(address._id);
+                            // Mock address deletion
+                            console.log('Deleting address:', address._id);
                             fetchAddresses();
                           }
                         }}

@@ -26,7 +26,16 @@ import {
   KeyboardArrowRight as ArrowRightIcon,
 } from "@mui/icons-material";
 import HeroSearchBar from "../components/common/HeroSearchBar";
-import { productsAPI } from "../api";
+import { 
+  mockProducts, 
+  bestSellers, 
+  shopByCategory, 
+  heroSlides, 
+  mobileHeroSlides, 
+  collectionsData, 
+  features,
+  getProductsByCategory 
+} from '../data/mockData';
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -69,133 +78,30 @@ const Home = ({ mode }) => {
     "co-ord-sets": useRef(null),
   };
 
-  const heroSlides = [
-    {
-      image: "/images/hero1Desktop.png",
-    },
-    {
-      image: "/Beaten/2.png",
-      title: "PREMIUM STREET",
-      subtitle: "ELEVATE YOUR STYLE",
-      description:
-        "Discover our premium collection crafted with exceptional materials and attention to detail.",
-    },
-    {
-      image: "/Beaten/1.png",
-      title: "LIMITED EDITION",
-      subtitle: "EXCLUSIVE DROPS",
-      description:
-        "Be the first to get your hands on our limited edition pieces. Join the premium club for early access.",
-    },
-    {
-      image: "/Beaten/4.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-
-    {
-      image: "/Beaten/5.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-    {
-      image: "/Beaten/6.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-    {
-      image: "/Beaten/7.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-    {
-      image: "/Beaten/8.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-    {
-      image: "/Beaten/9.png",
-      // title: 'LIMITED EDITION',
-      // subtitle: 'EXCLUSIVE DROPS',
-      // description: 'Be the first to get your hands on our limited edition pieces. Join the premium club for early access.'
-    },
-  ];
-
-  // For heroSlides, add a .jpg image only for mobile
-  const mobileHeroSlides = [
-    { image: "/mobile-version-images/1.jpg" },
-    { image: "/mobile-version-images/2.jpg" },
-    { image: "/mobile-version-images/3.jpg" },
-    { image: "/mobile-version-images/4.jpg" },
-    { image: "/mobile-version-images/5.jpg" },
-    { image: "/mobile-version-images/6.jpg" },
-    { image: "/mobile-version-images/7.jpg" },
-    { image: "/mobile-version-images/8.jpg" },
-    { image: "/mobile-version-images/9.jpg" },
-  ];
-
-  // Fix: use correct slides array for currentSlide and auto-advance
+  // Use imported hero slides data
   const slides = isMobile ? mobileHeroSlides : heroSlides;
 
-  const collections = [
-    {
-      title: "Urban Essentials",
-      description:
-        "Core streetwear pieces that define urban style. Essential for every wardrobe.",
-      image: "/images/category1Desktop.png",
-    },
-    {
-      title: "Premium Street",
-      description:
-        "Elevated streetwear with premium materials and exceptional craftsmanship.",
-      image:
-        "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      link: "/collections/premium-street",
-    },
-    {
-      title: "Limited Edition",
-      description:
-        "Exclusive drops with unique designs. Limited quantities, maximum impact.",
-      image:
-        "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      link: "/collections/limited-edition",
-    },
-    {
-      title: "Signature Series",
-      description:
-        "Our most iconic designs, reimagined for the modern streetwear enthusiast.",
-      image:
-        "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-      link: "/collections/signature",
-    },
-  ];
+  // Use imported collections data
+  const collections = collectionsData;
 
-  const features = [
+  // Use imported features data with icons
+  const featuresWithIcons = [
     {
-      icon: <ShippingIcon sx={{ fontSize: 40 }} />,
-      title: "Express Shipping",
-      description: "Free express shipping on all orders over $100",
+      ...features[0],
+      icon: <ShippingIcon sx={{ fontSize: 40 }} />
     },
     {
-      icon: <SecurityIcon sx={{ fontSize: 40 }} />,
-      title: "Secure Shopping",
-      description: "100% secure payment processing",
+      ...features[1],
+      icon: <SecurityIcon sx={{ fontSize: 40 }} />
     },
     {
-      icon: <SupportIcon sx={{ fontSize: 40 }} />,
-      title: "24/7 Support",
-      description: "Dedicated customer service team",
+      ...features[2],
+      icon: <SupportIcon sx={{ fontSize: 40 }} />
     },
     {
-      icon: <StarIcon sx={{ fontSize: 40 }} />,
-      title: "Premium Quality",
-      description: "Crafted with premium materials",
-    },
+      ...features[3],
+      icon: <StarIcon sx={{ fontSize: 40 }} />
+    }
   ];
 
   useEffect(() => {
@@ -218,65 +124,46 @@ const Home = ({ mode }) => {
     return () => clearInterval(timer);
   }, [isHovered]);
 
+  // Load best sellers from mock data
   useEffect(() => {
-    productsAPI.getBestSellers()
-      .then(res => setBestSellers(res.data))
-      .catch(err => console.error('Failed to fetch best sellers', err));
+    setBestSellers(bestSellers);
   }, []);
 
-  // Fetch products for each category section
+  // Load category sections from mock data
   useEffect(() => {
-    productsAPI.getTShirts()
-      .then(res => setTShirts(res.data))
-      .catch(err => console.error('Failed to fetch T-Shirts', err));
+    setTShirts(getProductsByCategory('T-shirts').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getShirts()
-      .then(res => setShirts(res.data))
-      .catch(err => console.error('Failed to fetch Shirts', err));
+    setShirts(getProductsByCategory('Shirts').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getOversizedTShirts()
-      .then(res => setOversizedTShirts(res.data))
-      .catch(err => console.error('Failed to fetch Oversized T-Shirts', err));
+    setOversizedTShirts(getProductsByCategory('T-shirts').filter(p => p.subCategory === 'Oversized').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getBottomWear()
-      .then(res => setBottomWear(res.data))
-      .catch(err => console.error('Failed to fetch Bottom Wear', err));
+    setBottomWear(getProductsByCategory('Bottom Wear').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getCargoPants()
-      .then(res => setCargoPants(res.data))
-      .catch(err => console.error('Failed to fetch Cargo Pants', err));
+    setCargoPants(getProductsByCategory('Bottom Wear').filter(p => p.subCategory === 'Cargo Pants').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getJackets()
-      .then(res => setJackets(res.data))
-      .catch(err => console.error('Failed to fetch Jackets', err));
+    setJackets(getProductsByCategory('Jackets').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getHoodies()
-      .then(res => setHoodies(res.data))
-      .catch(err => console.error('Failed to fetch Hoodies', err));
+    setHoodies(getProductsByCategory('Hoodies').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getCoOrdSets()
-      .then(res => setCoOrdSets(res.data))
-      .catch(err => console.error('Failed to fetch Co-Ord Sets', err));
+    setCoOrdSets(getProductsByCategory('Co-ord Sets').slice(0, 3));
   }, []);
 
   useEffect(() => {
-    productsAPI.getShopByCategory()
-      .then(res => setShopByCategory(res.data))
-      .catch(err => console.error('Failed to fetch Shop By Category', err));
+    setShopByCategory(shopByCategory);
   }, []);
 
   const scrollToContent = () => {
@@ -1254,7 +1141,7 @@ const Home = ({ mode }) => {
       >
         <Container maxWidth="xl">
           <Grid container spacing={2}>
-            {features.map((feature, index) => (
+                            {featuresWithIcons.map((feature, index) => (
               <Grid item xs={6} md={3} key={index}>
                 <Box
                   sx={{

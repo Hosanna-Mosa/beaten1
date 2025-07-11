@@ -24,7 +24,7 @@ import PaymentsIcon from "@mui/icons-material/Payments";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
-import { ordersAPI, validateCoupon, couponAPI } from "../api";
+import { mockCoupons, validateCoupon } from '../data/mockData';
 
 const Payment = ({ mode = "dark" }) => {
   const navigate = useNavigate();
@@ -46,11 +46,9 @@ const Payment = ({ mode = "dark" }) => {
   const [showOffers, setShowOffers] = useState(false);
 
   useEffect(() => {
-    couponAPI.getAvailableCoupons().then(res => {
-      // Filter only public coupons
-      const publicCoupons = (res.data?.data || []).filter(c => c.category === 'public' || c.isPersonal === false);
-      setAvailableCoupons(publicCoupons);
-    });
+    // Filter only public coupons
+    const publicCoupons = mockCoupons.filter(c => c.category === 'public' || c.isPersonal === false);
+    setAvailableCoupons(publicCoupons);
   }, []);
 
   // Calculate totals
@@ -74,16 +72,21 @@ const Payment = ({ mode = "dark" }) => {
     setCouponError("");
 
     try {
-      const response = await validateCoupon(coupon.trim(), subtotal);
+      const response = validateCoupon(coupon.trim(), subtotal);
       
       if (response.valid) {
-        setCouponDiscount(response.coupon.discountAmount);
+        setCouponDiscount(response.discountAmount);
         setCouponApplied(true);
-        setAppliedCoupon(response.coupon);
+        setAppliedCoupon({ code: coupon.trim(), discountAmount: response.discountAmount });
         setCouponError("");
+      } else {
+        setCouponError(response.message || "Invalid coupon code");
+        setCouponDiscount(0);
+        setCouponApplied(false);
+        setAppliedCoupon(null);
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Invalid coupon code";
+      const errorMessage = "Invalid coupon code";
       setCouponError(errorMessage);
       setCouponDiscount(0);
       setCouponApplied(false);
@@ -108,7 +111,8 @@ const Payment = ({ mode = "dark" }) => {
       // Calculate total with COD charge if applicable
       const finalTotal = paymentMethod === "cod" ? total + 50 : total;
 
-      const orderResponse = await ordersAPI.createOrder({
+      // Mock order creation
+      console.log('Creating order:', {
         items: cart.map((item) => ({
           product: item.product._id,
           quantity: item.quantity,
@@ -116,41 +120,33 @@ const Payment = ({ mode = "dark" }) => {
           color: item.color,
           price: item.product.price,
         })),
-        shippingAddress: {
-          address: String,
-          city: String,
-          postalCode: String,
-          state: String,
-          country: String,
-        },
+        shippingAddress: selectedAddress,
         paymentMethod,
-        totalAmount: finalTotal, // Must be a number
+        totalAmount: finalTotal,
         codCharge: paymentMethod === "cod" ? 50 : 0,
         appliedCoupon: appliedCoupon ? appliedCoupon.code : null,
       });
 
-      // For Razorpay payments
+      // For Razorpay payments (mock)
       if (paymentMethod === "razorpay") {
-        if (!orderResponse.data.razorpayOrderId) {
-          throw new Error("Missing Razorpay order ID");
-        }
+        const mockOrderResponse = {
+          data: {
+            razorpayOrderId: 'mock_order_' + Date.now(),
+            amount: finalTotal
+          }
+        };
 
         const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY,
-          amount: orderResponse.data.amount * 100,
+          key: process.env.REACT_APP_RAZORPAY_KEY || 'mock_key',
+          amount: mockOrderResponse.data.amount * 100,
           currency: "INR",
           name: "BEATEN",
           description: "Order Payment",
-          order_id: orderResponse.data.razorpayOrderId,
+          order_id: mockOrderResponse.data.razorpayOrderId,
           handler: async function (response) {
             try {
-              // Use the verifyPayment method from ordersAPI
-              await ordersAPI.verifyPayment({
-                razorpayOrderId: orderResponse.data.razorpayOrderId,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-              });
-
+              // Mock payment verification
+              console.log('Payment verified:', response);
               setOrderPlaced(true);
               clearCart();
             } catch (err) {
@@ -163,9 +159,9 @@ const Payment = ({ mode = "dark" }) => {
             }
           },
           prefill: {
-            name: user.name,
-            email: user.email,
-            contact: user.phone,
+            name: user?.name || 'User',
+            email: user?.email || 'user@example.com',
+            contact: user?.phone || '9876543210',
           },
           theme: { color: "#1976d2" },
           modal: {
