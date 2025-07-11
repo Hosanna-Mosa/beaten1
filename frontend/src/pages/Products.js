@@ -52,7 +52,7 @@ import { useWishlist } from "../context/WishlistContext";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
-import { mockProducts, categories, collections, searchProducts } from '../data/mockData';
+import productsApi from '../api/productsApi';
 
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
@@ -203,30 +203,27 @@ const Products = ({ mode }) => {
   const [showLoading, setShowLoading] = useState(false);
   const [shopAllActive, setShopAllActive] = useState(false);
 
-  // Use imported categories and collections data
+  // State for categories and collections
+  const [categories, setCategories] = useState({});
+  const [collections, setCollections] = useState([]);
+
+  // Fetch categories and collections
+  const fetchCategories = async () => {
+    try {
+      const response = await productsApi.getCategories();
+      setCategories(response.data);
+      setCollections(response.data.collections || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   // Filter products by selected filters (category, etc.)
   const filteredAndSortedProducts = React.useMemo(() => {
-    let filtered = products;
-    if (filters.category && filters.category.length > 0) {
-      let categoryFiltered = filtered.filter(p =>
-        filters.category.some(cat =>
-          p.category && p.category.toLowerCase() === cat.toLowerCase()
-        )
-      );
-      // If no products match the exact category, fall back to name match
-      if (categoryFiltered.length === 0) {
-        categoryFiltered = filtered.filter(p =>
-          filters.category.some(cat =>
-            p.name && p.name.toLowerCase().includes(cat.toLowerCase())
-          )
-        );
-      }
-      filtered = categoryFiltered;
-    }
-    // Add more filters as needed (gender, price, etc.)
-    return filtered;
-  }, [products, filters]);
+    // Since we're now using the API with server-side filtering,
+    // we just return the products as they come from the API
+    return products;
+  }, [products]);
 
   // Handlers
   const handleFilterChange = (filter, value) => {
@@ -420,123 +417,57 @@ const Products = ({ mode }) => {
               }}
             />
 
-            {/* MEN Section */}
-            <Box sx={{ mt: 1 }}>
-              <Typography
-                sx={{
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "text.primary",
-                  mb: 1,
-                }}
-              >
-                MEN
-              </Typography>
-              {Object.entries(categories["MEN"]).map(([mainCat, subCats]) => (
-                <Box key={mainCat} sx={{ ml: 2, mb: 2 }}>
-                  <Typography
-                    sx={{
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                      color: "text.secondary",
-                      mb: 0.5,
+            {/* Categories from API */}
+            {(categories?.categories || []).map((category) => (
+              <FormControlLabel
+                key={category}
+                control={
+                  <Checkbox
+                    checked={filters.category.includes(category)}
+                    onChange={(e) => {
+                      const newCategories = e.target.checked
+                        ? [...filters.category, category]
+                        : filters.category.filter((c) => c !== category);
+                      handleFilterChange("category", newCategories);
                     }}
-                  >
-                    {mainCat}
-                  </Typography>
-                  <Box sx={{ ml: 1 }}>
-                    {subCats.map((subCat) => (
-                      <FormControlLabel
-                        key={subCat}
-                        control={
-                          <Checkbox
-                            checked={filters.subCategory.includes(subCat)}
-                            onChange={(e) => {
-                              const newSubCategories = e.target.checked
-                                ? [...filters.subCategory, subCat]
-                                : filters.subCategory.filter(
-                                    (c) => c !== subCat
-                                  );
-                              handleFilterChange(
-                                "subCategory",
-                                newSubCategories
-                              );
-                            }}
-                            size="small"
-                          />
-                        }
-                        label={subCat}
-                        sx={{
-                          "& .MuiFormControlLabel-label": {
-                            fontSize: "0.875rem",
-                            color: "text.secondary",
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
+                    size="small"
+                  />
+                }
+                label={category}
+                sx={{
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "0.875rem",
+                    color: "text.secondary",
+                  },
+                }}
+              />
+            ))}
 
-            {/* WOMEN Section */}
-            <Box sx={{ mt: 2 }}>
-              <Typography
-                sx={{
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "text.primary",
-                  mb: 1,
-                }}
-              >
-                WOMEN
-              </Typography>
-              {Object.entries(categories["WOMEN"]).map(([mainCat, subCats]) => (
-                <Box key={mainCat} sx={{ ml: 2, mb: 2 }}>
-                  <Typography
-                    sx={{
-                      fontSize: "0.875rem",
-                      fontWeight: 500,
-                      color: "text.secondary",
-                      mb: 0.5,
+            {/* Sub-categories from API */}
+            {(categories?.subCategories || []).map((subCategory) => (
+              <FormControlLabel
+                key={subCategory}
+                control={
+                  <Checkbox
+                    checked={filters.subCategory.includes(subCategory)}
+                    onChange={(e) => {
+                      const newSubCategories = e.target.checked
+                        ? [...filters.subCategory, subCategory]
+                        : filters.subCategory.filter((c) => c !== subCategory);
+                      handleFilterChange("subCategory", newSubCategories);
                     }}
-                  >
-                    {mainCat}
-                  </Typography>
-                  <Box sx={{ ml: 1 }}>
-                    {subCats.map((subCat) => (
-                      <FormControlLabel
-                        key={subCat}
-                        control={
-                          <Checkbox
-                            checked={filters.subCategory.includes(subCat)}
-                            onChange={(e) => {
-                              const newSubCategories = e.target.checked
-                                ? [...filters.subCategory, subCat]
-                                : filters.subCategory.filter(
-                                    (c) => c !== subCat
-                                  );
-                              handleFilterChange(
-                                "subCategory",
-                                newSubCategories
-                              );
-                            }}
-                            size="small"
-                          />
-                        }
-                        label={subCat}
-                        sx={{
-                          "& .MuiFormControlLabel-label": {
-                            fontSize: "0.875rem",
-                            color: "text.secondary",
-                          },
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
+                    size="small"
+                  />
+                }
+                label={subCategory}
+                sx={{
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "0.875rem",
+                    color: "text.secondary",
+                  },
+                }}
+              />
+            ))}
           </FormGroup>
         </AccordionDetails>
       </Accordion>
@@ -562,7 +493,7 @@ const Products = ({ mode }) => {
         </AccordionSummary>
         <AccordionDetails sx={{ pt: 0, pb: 2 }}>
           <FormGroup>
-            {collections.map((collection) => (
+            {(collections || []).map((collection) => (
               <FormControlLabel
                 key={collection}
                 control={
@@ -776,29 +707,18 @@ const Products = ({ mode }) => {
     </Box>
   );
 
-  // For mobile chips, use only subcategories for category chips (not 'MEN'/'WOMEN')
-  const subCategoryOptions = [
-    ...Object.values(categories["MEN"] || {}).flat(),
-    ...Object.values(categories["WOMEN"] || {}).flat(),
-  ];
-
-  const chipSet = new Set();
+  // For mobile chips, use only arrays:
   const uniqueChips = [
-    // Gender chips
     ...genderOptions.map((option) => ({
       label: option,
       filterKey: "gender",
       value: option,
     })),
-    // Remove main category chips (MEN, WOMEN)
-    // Collection chips
-    ...collections.map((collection) => ({
+    ...(collections || []).map((collection) => ({
       label: collection,
       filterKey: "collection",
       value: collection,
     })),
-    // Remove size chips
-    // Fit chips
     ...fitOptions.map((fit) => ({
       label: fit,
       filterKey: "fit",
@@ -878,13 +798,54 @@ const Products = ({ mode }) => {
   );
 
   // Add a function to fetch products
-  const fetchProducts = () => {
-    setShowLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setProducts(mockProducts);
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Build query parameters
+      const params = {
+        page,
+        limit: 12,
+        sort: filters.sort,
+      };
+
+      // Add filters to params
+      if (filters.category.length > 0) {
+        params.category = filters.category;
+      }
+      if (filters.subCategory.length > 0) {
+        params.subCategory = filters.subCategory;
+      }
+      if (filters.gender.length > 0) {
+        params.gender = filters.gender;
+      }
+      if (filters.collection.length > 0) {
+        params.collection = filters.collection;
+      }
+      if (filters.size.length > 0) {
+        params.size = filters.size;
+      }
+      if (filters.color.length > 0) {
+        params.color = filters.color;
+      }
+      if (filters.fit.length > 0) {
+        params.fit = filters.fit;
+      }
+      if (filters.priceRange[0] > 0) {
+        params.minPrice = filters.priceRange[0];
+      }
+      if (filters.priceRange[1] < 10000) {
+        params.maxPrice = filters.priceRange[1];
+      }
+
+      const response = await productsApi.getProducts(params);
+      setProducts(response.data);
       setShowLoading(false);
-    }, 500);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      setError('Failed to fetch products. Please try again.');
+      setShowLoading(false);
+    }
   };
 
   // Update useEffect to use fetchProducts

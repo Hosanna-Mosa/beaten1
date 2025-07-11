@@ -27,22 +27,20 @@ import {
 } from "@mui/icons-material";
 import HeroSearchBar from "../components/common/HeroSearchBar";
 import { 
-  mockProducts, 
-  bestSellers, 
   shopByCategory, 
   heroSlides, 
   mobileHeroSlides, 
   collectionsData, 
-  features,
-  getProductsByCategory 
+  features
 } from '../data/mockData';
+import productsApi from '../api/productsApi';
 
 const matteColors = {
-  900: "#1a1a1a", // Deepest matte black
-  800: "#2d2d2d", // Rich matte black
-  700: "#404040", // Medium matte black
-  600: "#525252", // Light matte black
-  100: "#f5f5f5", // Off-white
+  900: "#1a1a1a",
+  800: "#2d2d2d",
+  700: "#404040",
+  600: "#525252",
+  100: "#f5f5f5",
 };
 
 const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -64,7 +62,7 @@ const Home = ({ mode }) => {
   const [jackets, setJackets] = useState([]);
   const [hoodies, setHoodies] = useState([]);
   const [coOrdSets, setCoOrdSets] = useState([]);
-  const [shopByCategory, setShopByCategory] = useState([]);
+  const [shopByCategoryState, setShopByCategoryState] = useState([]);
 
   // Refs for each section
   const sectionRefs = {
@@ -124,46 +122,55 @@ const Home = ({ mode }) => {
     return () => clearInterval(timer);
   }, [isHovered]);
 
-  // Load best sellers from mock data
+  // Load data from API
   useEffect(() => {
-    setBestSellers(bestSellers);
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Fetch best sellers
+        const bestSellersResponse = await productsApi.getBestSellers(8);
+        setBestSellers(bestSellersResponse.data);
 
-  // Load category sections from mock data
-  useEffect(() => {
-    setTShirts(getProductsByCategory('T-shirts').slice(0, 3));
-  }, []);
+        // Fetch products by category
+        const tShirtsResponse = await productsApi.getProductsByCategory('T-shirts', { limit: 3 });
+        setTShirts(tShirtsResponse.data);
 
-  useEffect(() => {
-    setShirts(getProductsByCategory('Shirts').slice(0, 3));
-  }, []);
+        const shirtsResponse = await productsApi.getProductsByCategory('Shirts', { limit: 3 });
+        setShirts(shirtsResponse.data);
 
-  useEffect(() => {
-    setOversizedTShirts(getProductsByCategory('T-shirts').filter(p => p.subCategory === 'Oversized').slice(0, 3));
-  }, []);
+        const oversizedResponse = await productsApi.getProducts({ 
+          category: 'T-shirts', 
+          subCategory: 'Oversized', 
+          limit: 3 
+        });
+        setOversizedTShirts(oversizedResponse.data);
 
-  useEffect(() => {
-    setBottomWear(getProductsByCategory('Bottom Wear').slice(0, 3));
-  }, []);
+        const bottomWearResponse = await productsApi.getProductsByCategory('Bottom Wear', { limit: 3 });
+        setBottomWear(bottomWearResponse.data);
 
-  useEffect(() => {
-    setCargoPants(getProductsByCategory('Bottom Wear').filter(p => p.subCategory === 'Cargo Pants').slice(0, 3));
-  }, []);
+        const cargoPantsResponse = await productsApi.getProducts({ 
+          category: 'Bottom Wear', 
+          subCategory: 'Cargo Pants', 
+          limit: 3 
+        });
+        setCargoPants(cargoPantsResponse.data);
 
-  useEffect(() => {
-    setJackets(getProductsByCategory('Jackets').slice(0, 3));
-  }, []);
+        const jacketsResponse = await productsApi.getProductsByCategory('Jackets', { limit: 3 });
+        setJackets(jacketsResponse.data);
 
-  useEffect(() => {
-    setHoodies(getProductsByCategory('Hoodies').slice(0, 3));
-  }, []);
+        const hoodiesResponse = await productsApi.getProductsByCategory('Hoodies', { limit: 3 });
+        setHoodies(hoodiesResponse.data);
 
-  useEffect(() => {
-    setCoOrdSets(getProductsByCategory('Co-ord Sets').slice(0, 3));
-  }, []);
+        const coOrdSetsResponse = await productsApi.getProductsByCategory('Co-ord Sets', { limit: 3 });
+        setCoOrdSets(coOrdSetsResponse.data);
 
-  useEffect(() => {
-    setShopByCategory(shopByCategory);
+        // Set shop by category data
+        setShopByCategoryState(shopByCategory);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const scrollToContent = () => {
@@ -363,10 +370,10 @@ const Home = ({ mode }) => {
               scrollbarWidth: "none",
             }}
           >
-            {shopByCategory.length === 0 ? (
+            {shopByCategoryState.length === 0 ? (
               <Typography variant="body1" sx={{ textAlign: 'center', width: '100%' }}>No products yet.</Typography>
             ) : (
-              shopByCategory.map((product) => (
+              shopByCategoryState.map((product) => (
                 <Box
                   key={product._id}
                   sx={{
