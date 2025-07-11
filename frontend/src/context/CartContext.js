@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
-
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 const CartContext = createContext();
 
 export const useCart = () => {
@@ -39,7 +39,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchSavedCart = async () => {
     try {
-      const response = await axios.get('/api/user/me');
+      const response = await axios.get(`${API_BASE_URL}/user/me`);
       const serverCart = response.data.savedCart || [];
       
       // Merge server cart with local cart, preferring server data
@@ -93,7 +93,7 @@ export const CartProvider = ({ children }) => {
       setCart(updatedCart);
 
       if (user) {
-        await axios.put('/api/user/me', {
+        await axios.put(`${API_BASE_URL}/user/me`, {
           savedCart: updatedCart
         });
       }
@@ -120,7 +120,7 @@ export const CartProvider = ({ children }) => {
       setCart(updatedCart);
 
       if (user) {
-        await axios.put('/api/user/me', {
+        await axios.put(`${API_BASE_URL}/user/me`, {
           savedCart: updatedCart
         });
       }
@@ -148,7 +148,7 @@ export const CartProvider = ({ children }) => {
       setCart(updatedCart);
 
       if (user) {
-        await axios.put('/api/user/me', {
+        await axios.put(`${API_BASE_URL}/user/me`, {
           savedCart: updatedCart
         });
       }
@@ -167,7 +167,7 @@ export const CartProvider = ({ children }) => {
       setCart([]);
 
       if (user) {
-        await axios.put('/api/user/me', {
+          await axios.put(`${API_BASE_URL}/user/me`, {
           savedCart: []
         });
       }

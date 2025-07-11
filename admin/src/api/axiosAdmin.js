@@ -1,38 +1,29 @@
-import axios from 'axios';
+// Dummy API Service - Replaces backend calls with dummy data
+import { dummyDataAPI } from "./dummyData";
 
-// Always use backend server on port 5000 for API calls
-const API_BASE_URL = 'http://localhost:5000/api';
-
-// Helper function to get auth headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-  return {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  };
-};
-
+// Auth APIs
 export const adminAuthAPI = {
   // Register (User or Admin)
-  register: (data) => axios.post(`${API_BASE_URL}/auth/register`, data),
+  register: (data) => dummyDataAPI.auth.register(data),
   // Login (User or Admin)
-  login: (data) => axios.post(`${API_BASE_URL}/auth/login`, data),
+  login: (data) => dummyDataAPI.auth.login(data),
 };
 
 // Dashboard APIs
 export const dashboardAPI = {
   // Get dashboard statistics
-  getStats: () => axios.get(`${API_BASE_URL}/dashboard/stats`, { headers: getAuthHeaders() }),
-  
+  getStats: () => dummyDataAPI.dashboard.getStats(),
+
   // Get sales trend data
-  getSalesTrend: () => axios.get(`${API_BASE_URL}/dashboard/sales-trend`, { headers: getAuthHeaders() }),
-  
+  getSalesTrend: () => dummyDataAPI.dashboard.getSalesTrend(),
+
   // Get category distribution
-  getCategoryDistribution: () => axios.get(`${API_BASE_URL}/dashboard/category-distribution`, { headers: getAuthHeaders() }),
-  
+  getCategoryDistribution: () =>
+    dummyDataAPI.dashboard.getCategoryDistribution(),
+
   // Get recent activities
-  getRecentActivities: () => axios.get(`${API_BASE_URL}/dashboard/recent-activities`, { headers: getAuthHeaders() }),
-  
+  getRecentActivities: () => dummyDataAPI.dashboard.getRecentActivities(),
+
   // Get top products
-  getTopProducts: () => axios.get(`${API_BASE_URL}/dashboard/top-products`, { headers: getAuthHeaders() })
+  getTopProducts: () => dummyDataAPI.dashboard.getTopProducts(),
 };

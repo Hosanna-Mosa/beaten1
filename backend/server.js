@@ -1,26 +1,25 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const path = require('path');
-require('dotenv').config();
+const express = require("express");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const compression = require("compression");
+const rateLimit = require("express-rate-limit");
 
-// Import routes
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/users');
-const productsRoutes = require('./routes/products');
-const cartRoutes = require('./routes/cart');
-const ordersRoutes = require('./routes/orders');
-const uploadRoutes = require('./routes/upload');
-const emailRoutes = require('./routes/email'); 
-const promotionRoutes = require('./routes/Promotions');
-const adminOrder = require("./routes/orderRoutesAdmin");
-const dashboardRoutes = require('./routes/dashboard');
+// Load env vars
+dotenv.config();
+
+// Import database connection
+const connectDB = require("./config/db");
 
 // Import middleware
-const errorHandler = require('./middleware/errorHandler');
-const notFound = require('./middleware/notFound');
+const errorHandler = require("./middleware/errorHandler");
+
+// Import routes
+const routes = require("./routes");
+
+// Connect to database
+connectDB();
 
 const app = express();
 
@@ -30,103 +29,70 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'],
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many requests from this IP, please try again later.",
+  },
+});
+app.use("/api/", limiter);
+
+// Body parser middleware
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Compression middleware
+app.use(compression());
 
 // Logging middleware
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(morgan("combined"));
+}
 
-// ✅ ✅ ✅ FIXED: Serve image uploads correctly
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads'), {
-  setHeaders: (res, path) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-  }
-}));
+// Static files
+app.use("/public", express.static("public"));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'BEATEN API is running',
-    timestamp: new Date().toISOString(),
-    environment: 'development',
+// API routes
+app.use("/api", routes);
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
-// API routes
-app.use('/api/orders/admin',adminOrder);
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/orders', ordersRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/promotions', promotionRoutes);
-app.use('/api/coupons', require('./routes/coupons'));
-app.use('/api/dashboard', dashboardRoutes);
-
-
-// 404 handler
-app.use(notFound);
-
-// Error handler
+// Error handling middleware (must be last)
 app.use(errorHandler);
 
-// MongoDB connection
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
-
-// Start server
 const PORT = process.env.PORT || 5000;
 
-const startServer = async () => {
-  try {
-    await connectDB();
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-      console.log(`🩺 Health check: http://localhost:${PORT}/health`);
-    });
-  } catch (error) {
-    console.error('❌ Server startup error:', error);
-    process.exit(1);
-  }
-};
+const server = app.listen(PORT, () => {
+  console.log(
+    `🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`
+  );
+  console.log(`📡 API available at http://localhost:${PORT}/api`);
+  console.log(`🏥 Health check at http://localhost:${PORT}/api/health`);
+});
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Unhandled Rejection Error: ${err.message}`);
-  process.exit(1);
+process.on("unhandledRejection", (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(() => process.exit(1));
 });
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.log(`Uncaught Exception Error: ${err.message}`);
-  console.log('Shutting down the server...');
-  process.exit(1);
-});
-
-startServer();
 
 module.exports = app;

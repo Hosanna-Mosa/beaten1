@@ -1,35 +1,21 @@
-const User = require('../models/User');
-const OTP = require('../models/OTP');
-const emailService = require('../utils/emailService');
-const smsService = require('../utils/smsService');
-const { validationResult } = require('express-validator');
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
+const { STATUS_CODES, MESSAGES } = require("../utils/constants");
 
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Validation failed',
-        details: errors.array()
-      });
-    }
+    const { name, email, password } = req.body;
 
-    const { name, email, password, phone, dob, gender } = req.body;
+    // Check if user exists
+    const userExists = await User.findOne({ email });
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phone }]
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        status: 'error',
-        message: existingUser.email === email ? 'Email already registered' : 'Phone number already registered'
+    if (userExists) {
+      return res.status(STATUS_CODES.CONFLICT).json({
+        success: false,
+        message: MESSAGES.EMAIL_EXISTS,
       });
     }
 
@@ -38,478 +24,180 @@ const register = async (req, res) => {
       name,
       email,
       password,
-      phone,
-      dob: new Date(dob),
-      gender
     });
 
-    // Generate token
-    const token = user.getSignedJwtToken();
-
-    // Send welcome email (async, don't wait)
-    emailService.sendWelcomeEmail(email, name).catch(console.error);
-
-    // Send welcome SMS (async, don't wait)
-    smsService.sendWelcomeSMS(phone, name).catch(console.error);
-
-    res.status(201).json({
-      status: 'success',
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        gender: user.gender,
-        dob: user.dob,
-        isPremium: user.isPremium,
-        role: user.role,
-        createdAt: user.createdAt
-      }
-    });
-  } catch (error) {
-    console.error('Register error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Registration failed'
-    });
-  }
-};
-
-// @desc    Send OTP for login
-// @route   POST /api/auth/send-otp
-// @access  Public
-const sendOTP = async (req, res) => {
-  try {
-    const { emailOrPhone } = req.body;
-
-    if (!emailOrPhone) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email or phone number is required'
+    if (user) {
+      res.status(STATUS_CODES.CREATED).json({
+        success: true,
+        message: MESSAGES.USER_REGISTERED,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token: generateToken(user._id),
+        },
       });
-    }
-
-    // Check if user exists
-    const user = await User.findOne({
-      $or: [
-        { email: emailOrPhone },
-        { phone: emailOrPhone }
-      ]
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User not found with this email or phone number'
-      });
-    }
-
-    // Check if account is blocked
-    if (user.status === 'blocked') {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Account is blocked. Please contact support.'
-      });
-    }
-
-    // Create OTP
-    const otpDoc = await OTP.createOTP(emailOrPhone, 'login');
-
-    // Send OTP via email or SMS
-    let sendResult;
-    if (emailOrPhone.includes('@')) {
-      // Send via email
-      sendResult = await emailService.sendOTPEmail(emailOrPhone, otpDoc.otp, 'login');
     } else {
-      // Send via SMS
-      const formattedPhone = smsService.validatePhoneNumber(emailOrPhone);
-      if (!formattedPhone) {
-        return res.status(400).json({
-          status: 'error',
-          message: 'Invalid phone number format'
-        });
-      }
-      sendResult = await smsService.sendOTPSMS(formattedPhone, otpDoc.otp, 'login');
-    }
-
-    if (!sendResult.success) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Failed to send OTP. Please try again.'
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Invalid user data",
       });
     }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'OTP sent successfully',
-      emailOrPhone: emailOrPhone.includes('@') ? emailOrPhone : undefined,
-      phone: emailOrPhone.includes('@') ? undefined : emailOrPhone
-    });
   } catch (error) {
-    console.error('Send OTP error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to send OTP'
-    });
+    next(error);
   }
 };
 
-// @desc    Verify OTP and login
-// @route   POST /api/auth/verify-otp
-// @access  Public
-const verifyOTP = async (req, res) => {
-  try {
-    const { emailOrPhone, otp } = req.body;
-
-    if (!emailOrPhone || !otp) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email/phone and OTP are required'
-      });
-    }
-
-    // Check if user exists
-    const user = await User.findOne({
-      $or: [
-        { email: emailOrPhone },
-        { phone: emailOrPhone }
-      ]
-    });
-
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User not found'
-      });
-    }
-
-    // Check if account is blocked
-    if (user.status === 'blocked') {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Account is blocked. Please contact support.'
-      });
-    }
-
-    // Verify OTP
-    const otpResult = await OTP.verifyOTP(emailOrPhone, otp, 'login');
-
-    if (!otpResult.valid) {
-      return res.status(400).json({
-        status: 'error',
-        message: otpResult.message
-      });
-    }
-
-    // Update last login
-    await user.updateLastLogin();
-
-    // Generate token
-    const token = user.getSignedJwtToken();
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Login successful',
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        gender: user.gender,
-        dob: user.dob,
-        isPremium: user.isPremium,
-        premiumExpiry: user.premiumExpiry,
-        role: user.role,
-        lastLogin: user.lastLogin
-      }
-    });
-  } catch (error) {
-    console.error('Verify OTP error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Login failed'
-    });
-  }
-};
-
-// @desc    Login user with password
+// @desc    Authenticate user & get token
 // @route   POST /api/auth/login
 // @access  Public
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
-    // Accept both 'emailOrPhone' and 'email' as identifier
-    const identifier = req.body.emailOrPhone || req.body.email;
-    const { password } = req.body;
+    const { email, password } = req.body;
 
-    if (!identifier || !password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email/phone and password are required'
-      });
-    }
-
-    // Find user and include password for comparison
-    const user = await User.findOne({
-      $or: [
-        { email: identifier },
-        { phone: identifier }
-      ]
-    }).select('+password');
+    // Check for user email
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid credentials'
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: MESSAGES.INVALID_CREDENTIALS,
       });
     }
 
-    // Check if account is blocked
-    if (user.status === 'blocked') {
-      return res.status(403).json({
-        status: 'error',
-        message: 'Account is blocked. Please contact support.'
+    // Check if user is active
+    if (!user.isActive) {
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: "User account is deactivated",
       });
-    }
-
-    // Check if account is locked (skip for admin)
-    if (user.role !== 'admin') {
-      const loginCheck = user.canLogin();
-      if (!loginCheck.canLogin) {
-        return res.status(403).json({
-          status: 'error',
-          message: loginCheck.reason
-        });
-      }
     }
 
     // Check password
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await user.matchPassword(password);
 
     if (!isMatch) {
-      // Increment login attempts (skip for admin)
-      if (user.role !== 'admin') {
-        await user.incLoginAttempts();
-      }
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid credentials'
+      return res.status(STATUS_CODES.UNAUTHORIZED).json({
+        success: false,
+        message: MESSAGES.INVALID_CREDENTIALS,
       });
     }
 
-    // Reset login attempts on successful login (skip for admin)
-    if (user.role !== 'admin') {
-      await user.resetLoginAttempts();
-    }
-
-    // Update last login
-    await user.updateLastLogin();
-
-    // Generate token
-    const token = user.getSignedJwtToken();
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Login successful',
-      token,
-      user: {
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: MESSAGES.USER_LOGGED_IN,
+      data: {
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
-        gender: user.gender,
-        dob: user.dob,
-        isPremium: user.isPremium,
-        premiumExpiry: user.premiumExpiry,
         role: user.role,
-        lastLogin: user.lastLogin
-      }
+        token: generateToken(user._id),
+      },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Login failed'
-    });
+    next(error);
   }
 };
 
-// @desc    Get current user
-// @route   GET /api/auth/me
+// @desc    Get user profile
+// @route   GET /api/auth/profile
 // @access  Private
-const getMe = async (req, res) => {
+const getProfile = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user._id)
-      .populate('addresses')
-      .select('-password');
+    const user = await User.findById(req.user._id);
 
-    res.status(200).json({
-      status: 'success',
-      user
+    if (!user) {
+      return res.status(STATUS_CODES.NOT_FOUND).json({
+        success: false,
+        message: MESSAGES.USER_NOT_FOUND,
+      });
+    }
+
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: MESSAGES.USER_PROFILE_RETRIEVED,
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+      },
     });
   } catch (error) {
-    console.error('Get me error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to get user data'
-    });
+    next(error);
   }
 };
 
-// @desc    Forgot password
-// @route   POST /api/auth/forgot-password
-// @access  Public
-const forgotPassword = async (req, res) => {
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res, next) => {
   try {
-    const { email } = req.body;
+    const { name, email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Email is required'
-      });
+    // Check if email is being updated and if it already exists
+    if (email && email !== req.user.email) {
+      const emailExists = await User.findOne({ email });
+      if (emailExists) {
+        return res.status(STATUS_CODES.CONFLICT).json({
+          success: false,
+          message: MESSAGES.EMAIL_EXISTS,
+        });
+      }
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        name: name || req.user.name,
+        email: email || req.user.email,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
-    if (!user) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'User not found with this email'
-      });
-    }
-
-    // Generate reset token
-    const resetToken = user.getResetPasswordToken();
-    await user.save();
-
-    // Send reset email
-    const emailResult = await emailService.sendPasswordResetEmail(email, resetToken);
-
-    if (!emailResult.success) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Failed to send password reset email'
-      });
-    }
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Password reset email sent'
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: MESSAGES.USER_UPDATED,
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+      },
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to process password reset request'
-    });
+    next(error);
   }
 };
 
-// @desc    Reset password
-// @route   POST /api/auth/reset-password/:token
-// @access  Public
-const resetPassword = async (req, res) => {
+// @desc    Logout user / clear cookie
+// @route   POST /api/auth/logout
+// @access  Private
+const logout = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
-
-    if (!password) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Password is required'
-      });
-    }
-
-    // Hash token
-    const resetPasswordToken = require('crypto')
-      .createHash('sha256')
-      .update(token)
-      .digest('hex');
-
-    // Find user with valid reset token
-    const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Invalid or expired reset token'
-      });
-    }
-
-    // Set new password
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
-
-    res.status(200).json({
-      status: 'success',
-      message: 'Password reset successful'
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: MESSAGES.USER_LOGGED_OUT,
     });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to reset password'
-    });
-  }
-};
-
-// @desc    Refresh token
-// @route   POST /api/auth/refresh
-// @access  Public
-const refreshToken = async (req, res) => {
-  try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Refresh token is required'
-      });
-    }
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
-    // Get user
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Invalid refresh token'
-      });
-    }
-
-    // Generate new access token
-    const newToken = user.getSignedJwtToken();
-
-    res.status(200).json({
-      status: 'success',
-      token: newToken
-    });
-  } catch (error) {
-    console.error('Refresh token error:', error);
-    res.status(401).json({
-      status: 'error',
-      message: 'Invalid refresh token'
-    });
+    next(error);
   }
 };
 
 module.exports = {
   register,
-  sendOTP,
-  verifyOTP,
   login,
-  getMe,
-  forgotPassword,
-  resetPassword,
-  refreshToken
-}; 
+  getProfile,
+  updateProfile,
+  logout,
+};

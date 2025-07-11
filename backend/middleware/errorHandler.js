@@ -1,64 +1,48 @@
+const { STATUS_CODES, MESSAGES } = require("../utils/constants");
+
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  console.error('Error:', err);
+  // Log to console for dev
+  console.log(err);
 
   // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = { message, statusCode: 404 };
+  if (err.name === "CastError") {
+    const message = "Resource not found";
+    error = { message, statusCode: STATUS_CODES.NOT_FOUND };
   }
 
   // Mongoose duplicate key
   if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    const value = err.keyValue[field];
-    const message = `${field} '${value}' already exists`;
-    error = { message, statusCode: 400 };
+    const message = "Duplicate field value entered";
+    error = { message, statusCode: STATUS_CODES.CONFLICT };
   }
 
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
-    error = { message, statusCode: 400 };
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors)
+      .map((val) => val.message)
+      .join(", ");
+    error = { message, statusCode: STATUS_CODES.BAD_REQUEST };
   }
 
   // JWT errors
-  if (err.name === 'JsonWebTokenError') {
-    const message = 'Invalid token';
-    error = { message, statusCode: 401 };
+  if (err.name === "JsonWebTokenError") {
+    const message = "Token is not valid";
+    error = { message, statusCode: STATUS_CODES.UNAUTHORIZED };
   }
 
-  if (err.name === 'TokenExpiredError') {
-    const message = 'Token expired';
-    error = { message, statusCode: 401 };
+  if (err.name === "TokenExpiredError") {
+    const message = "Token has expired";
+    error = { message, statusCode: STATUS_CODES.UNAUTHORIZED };
   }
 
-  // Multer errors
-  if (err.code === 'LIMIT_FILE_SIZE') {
-    const message = 'File too large';
-    error = { message, statusCode: 400 };
-  }
-
-  if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-    const message = 'Unexpected file field';
-    error = { message, statusCode: 400 };
-  }
-
-  // Rate limit errors
-  if (err.status === 429) {
-    const message = 'Too many requests';
-    error = { message, statusCode: 429 };
-  }
-
-  // Default error response
-  res.status(error.statusCode || 500).json({
-    status: 'error',
-    message: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  res.status(error.statusCode || STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+    success: false,
+    message: error.message || MESSAGES.SERVER_ERROR,
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 };
 
-module.exports = errorHandler; 
+module.exports = errorHandler;

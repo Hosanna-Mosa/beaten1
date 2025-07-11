@@ -1,417 +1,238 @@
-# BEATEN Backend API
+# Beaten Backend API
 
-A comprehensive MERN stack backend for the BEATEN e-commerce platform with authentication, user management, and profile functionality.
+A robust Node.js backend API for the Beaten e-commerce platform built with Express.js, MongoDB, and JWT authentication.
 
-## Features
+## 🚀 Features
 
-- **Authentication System**
-  - User registration and login
-  - JWT token-based authentication
-  - OTP-based login support
-  - Password reset functionality
-  - Social login integration
-
-- **Profile Management**
-  - User profile CRUD operations
-  - Address management (add, update, delete)
-  - Saved payment cards management
-  - Avatar upload functionality
-  - Membership status tracking
-  - Account deletion
-
-- **Security Features**
-  - Password hashing with bcrypt
-  - JWT token authentication
-  - Input validation and sanitization
-  - Rate limiting (can be added)
-  - CORS configuration
-
-## Tech Stack
-
-- **Runtime**: Node.js
-- **Framework**: Express.js
+- **Authentication System**: Complete JWT-based authentication with register, login, and profile management
+- **Security**: Helmet, CORS, rate limiting, and input validation
+- **MVC Architecture**: Clean separation of concerns with models, views (controllers), and routes
+- **Error Handling**: Comprehensive error handling with proper HTTP status codes
+- **Logging**: Request logging with Morgan
 - **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens)
-- **Password Hashing**: bcryptjs
-- **Validation**: Mongoose validation + custom validation
-- **Email Service**: Nodemailer (configurable)
-- **SMS Service**: Twilio (configurable)
+- **Validation**: Input validation using express-validator
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 backend/
+├── config/
+│   └── db.js                 # MongoDB connection
 ├── controllers/
-│   ├── authController.js    # Authentication logic
-│   └── userController.js    # Profile management logic
+│   └── authController.js     # Authentication logic
 ├── middleware/
-│   ├── auth.js             # JWT authentication middleware
-│   ├── errorHandler.js     # Global error handling
-│   └── notFound.js         # 404 handler
+│   ├── auth.js              # JWT authentication middleware
+│   ├── errorHandler.js      # Global error handling
+│   └── validation.js        # Input validation
 ├── models/
-│   ├── User.js             # User model
-│   ├── Address.js          # Address model
-│   ├── SavedCard.js        # Saved card model
-│   └── OTP.js              # OTP model
+│   └── User.js              # User schema
 ├── routes/
-│   ├── auth.js             # Authentication routes
-│   └── users.js            # User management routes
+│   ├── auth.js              # Authentication routes
+│   └── index.js             # Main routes
 ├── utils/
-│   ├── emailService.js     # Email service utility
-│   └── smsService.js       # SMS service utility
-├── server.js               # Main server file
-├── setup.js                # Database setup
+│   ├── generateToken.js     # JWT token generation
+│   └── constants.js         # API constants
+├── public/                  # Static files
+├── server.js                # Main server file
 ├── package.json
-└── README.md
+└── env.example              # Environment variables template
 ```
 
-## Installation & Setup
+## 🛠️ Installation
 
-### Prerequisites
+1. **Clone the repository**
 
-- Node.js (v14 or higher)
-- MongoDB (local or cloud)
-- npm or yarn
+   ```bash
+   cd backend
+   ```
 
-### 1. Clone and Install
+2. **Install dependencies**
 
-```bash
-cd backend
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-### 2. Environment Configuration
+3. **Environment Setup**
 
-Copy the example environment file and configure your variables:
+   ```bash
+   cp env.example .env
+   ```
 
-```bash
-cp env.example .env
-```
+   Edit `.env` file with your configuration:
 
-Configure the following environment variables:
+   ```env
+   PORT=5000
+   NODE_ENV=development
+   MONGODB_URI=mongodb://localhost:27017/beaten_db
+   JWT_SECRET=your-super-secret-jwt-key
+   JWT_EXPIRE=7d
+   FRONTEND_URL=http://localhost:3000
+   ```
 
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
+4. **Start MongoDB**
+   Make sure MongoDB is running on your system or use MongoDB Atlas.
 
-# Database
-MONGODB_URI=mongodb://localhost:27017/beaten_db
+5. **Run the server**
 
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_key_here
-JWT_EXPIRE=7d
-JWT_REFRESH_SECRET=your_refresh_secret_key_here
-JWT_REFRESH_EXPIRE=30d
+   ```bash
+   # Development mode
+   npm run dev
 
-# Email Configuration (for OTP and notifications)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASS=your_app_password
-EMAIL_FROM=noreply@beaten.com
+   # Production mode
+   npm start
+   ```
 
-# SMS Configuration (for OTP)
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
-
-# File Upload (for avatars)
-UPLOAD_PATH=./uploads
-MAX_FILE_SIZE=5242880
-
-# CORS Configuration
-FRONTEND_URL=http://localhost:3000
-```
-
-### 3. Database Setup
-
-```bash
-npm run setup
-```
-
-### 4. Start Development Server
-
-```bash
-npm run dev
-```
-
-The server will start on `http://localhost:5000`
-
-## API Endpoints
+## 📡 API Endpoints
 
 ### Authentication Routes
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/auth/register` | Register new user | No |
-| POST | `/api/auth/login` | Login user | No |
-| POST | `/api/auth/send-otp` | Send OTP for login | No |
-| POST | `/api/auth/verify-otp` | Verify OTP for login | No |
-| POST | `/api/auth/forgot-password` | Send password reset email | No |
-| POST | `/api/auth/reset-password/:token` | Reset password | No |
-| GET | `/api/auth/me` | Get current user | Yes |
-| POST | `/api/auth/refresh` | Refresh access token | Yes |
-| POST | `/api/auth/logout` | Logout user | Yes |
+| Method | Endpoint             | Description         | Access  |
+| ------ | -------------------- | ------------------- | ------- |
+| POST   | `/api/auth/register` | Register new user   | Public  |
+| POST   | `/api/auth/login`    | Login user          | Public  |
+| GET    | `/api/auth/profile`  | Get user profile    | Private |
+| PUT    | `/api/auth/profile`  | Update user profile | Private |
+| POST   | `/api/auth/logout`   | Logout user         | Private |
 
-### User Management Routes
+### Health Check
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/users/profile` | Get user profile | Yes |
-| PUT | `/api/users/profile` | Update user profile | Yes |
-| PUT | `/api/users/change-password` | Change password | Yes |
-| DELETE | `/api/users/account` | Delete account | Yes |
-| GET | `/api/users/addresses` | Get user addresses | Yes |
-| POST | `/api/users/addresses` | Add new address | Yes |
-| PUT | `/api/users/addresses/:id` | Update address | Yes |
-| DELETE | `/api/users/addresses/:id` | Delete address | Yes |
-| GET | `/api/users/saved-cards` | Get saved cards | Yes |
-| POST | `/api/users/saved-cards` | Add saved card | Yes |
-| DELETE | `/api/users/saved-cards/:id` | Delete saved card | Yes |
-| GET | `/api/users/membership` | Get membership info | Yes |
-| POST | `/api/users/avatar` | Upload avatar | Yes |
+| Method | Endpoint      | Description       |
+| ------ | ------------- | ----------------- |
+| GET    | `/api/health` | API health status |
 
-## Data Models
+## 🔐 Authentication
 
-### User Model
-```javascript
-{
-  name: String (required),
-  email: String (required, unique),
-  phone: String (required, unique),
-  password: String (required, hashed),
-  dob: Date (required),
-  gender: String (enum: ['male', 'female', 'other']),
-  avatar: String,
-  isPremium: Boolean (default: false),
-  premiumExpiry: Date,
-  role: String (enum: ['user', 'admin'], default: 'user'),
-  status: String (enum: ['active', 'blocked'], default: 'active'),
-  addresses: [ObjectId] (ref: 'Address'),
-  emailVerified: Boolean (default: false),
-  phoneVerified: Boolean (default: false),
-  lastLogin: Date,
-  loginAttempts: Number (default: 0),
-  lockUntil: Date
-}
+The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
+
+```
+Authorization: Bearer <your-jwt-token>
 ```
 
-### Address Model
-```javascript
-{
-  user: ObjectId (ref: 'User', required),
-  label: String (enum: ['Home', 'Work', 'Other'], required),
-  fullName: String (required),
-  phone: String (required),
-  addressLine1: String (required),
-  addressLine2: String,
-  city: String (required),
-  state: String (required),
-  pincode: String (required),
-  country: String (default: 'India'),
-  isDefault: Boolean (default: false),
-  isActive: Boolean (default: true)
-}
-```
+### Register User
 
-### SavedCard Model
-```javascript
-{
-  user: ObjectId (ref: 'User', required),
-  cardType: String (enum: ['visa', 'mastercard', 'amex', 'rupay', 'discover']),
-  last4: String (required),
-  expiryMonth: String (required),
-  expiryYear: String (required),
-  cardholderName: String (required),
-  cardToken: String (required),
-  maskedCardNumber: String (required),
-  isDefault: Boolean (default: false),
-  isActive: Boolean (default: true)
-}
-```
-
-## Authentication Flow
-
-### 1. Registration
-```javascript
+```bash
 POST /api/auth/register
+Content-Type: application/json
+
 {
   "name": "John Doe",
   "email": "john@example.com",
-  "password": "password123",
-  "phone": "9876543210",
-  "dob": "1990-01-01",
-  "gender": "male"
+  "password": "Password123"
 }
 ```
 
-### 2. Login
-```javascript
+### Login User
+
+```bash
 POST /api/auth/login
+Content-Type: application/json
+
 {
-  "emailOrPhone": "john@example.com",
-  "password": "password123"
+  "email": "john@example.com",
+  "password": "Password123"
 }
 ```
 
-### 3. OTP Login
-```javascript
-// Step 1: Send OTP
-POST /api/auth/send-otp
-{
-  "emailOrPhone": "john@example.com"
-}
+## 🛡️ Security Features
 
-// Step 2: Verify OTP
-POST /api/auth/verify-otp
-{
-  "emailOrPhone": "john@example.com",
-  "otp": "123456"
-}
-```
+- **Helmet**: Security headers
+- **CORS**: Cross-origin resource sharing
+- **Rate Limiting**: Prevents abuse
+- **Input Validation**: Sanitizes and validates input
+- **Password Hashing**: bcryptjs for secure password storage
+- **JWT**: Secure token-based authentication
 
-## Profile Management Examples
+## 📊 Response Format
 
-### Update Profile
-```javascript
-PUT /api/users/profile
-Headers: Authorization: Bearer <token>
+All API responses follow a consistent format:
+
+### Success Response
+
+```json
 {
-  "name": "John Updated",
-  "gender": "male",
-  "dob": "1990-01-01",
-  "phone": "9876543210",
-  "email": "john.updated@example.com"
+  "success": true,
+  "message": "Operation successful",
+  "data": {
+    // Response data
+  }
 }
 ```
 
-### Add Address
-```javascript
-POST /api/users/addresses
-Headers: Authorization: Bearer <token>
+### Error Response
+
+```json
 {
-  "label": "Home",
-  "fullName": "John Doe",
-  "phone": "9876543210",
-  "addressLine1": "123 Main Street",
-  "addressLine2": "Apartment 4B",
-  "city": "Mumbai",
-  "state": "Maharashtra",
-  "pincode": "400001",
-  "country": "India",
-  "isDefault": true
+  "success": false,
+  "message": "Error description",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    }
+  ]
 }
 ```
 
-### Add Saved Card
-```javascript
-POST /api/users/saved-cards
-Headers: Authorization: Bearer <token>
-{
-  "cardType": "visa",
-  "last4": "1234",
-  "expiryMonth": "12",
-  "expiryYear": "2026",
-  "cardholderName": "John Doe",
-  "cardToken": "tok_visa_123456",
-  "maskedCardNumber": "**** **** **** 1234",
-  "isDefault": true
-}
-```
-
-## Error Handling
-
-The API uses a centralized error handling system:
-
-```javascript
-// Success Response
-{
-  "status": "success",
-  "message": "Operation completed successfully",
-  "data": { ... }
-}
-
-// Error Response
-{
-  "status": "error",
-  "message": "Error description"
-}
-```
-
-## Security Features
-
-1. **Password Security**
-   - Passwords are hashed using bcryptjs
-   - Minimum 6 characters required
-   - Password comparison is secure
-
-2. **JWT Security**
-   - Tokens expire after 7 days
-   - Refresh tokens for extended sessions
-   - Secure token generation
-
-3. **Input Validation**
-   - Mongoose schema validation
-   - Custom validation middleware
-   - SQL injection prevention
-
-4. **Rate Limiting**
-   - Can be implemented using express-rate-limit
-   - Configurable limits per endpoint
-
-## Testing
+## 🧪 Testing
 
 ### Using Postman
+
 1. Import the provided Postman collection
 2. Set up environment variables
-3. Test all endpoints systematically
+3. Test the endpoints
 
-### Manual Testing
+### Using curl
+
 ```bash
-# Test server health
+# Health check
 curl http://localhost:5000/api/health
 
-# Test registration
+# Register user
 curl -X POST http://localhost:5000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test User","email":"test@example.com","password":"password123","phone":"9876543210","dob":"1990-01-01","gender":"male"}'
+  -d '{"name":"Test User","email":"test@example.com","password":"Password123"}'
+
+# Login user
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"Password123"}'
 ```
 
-## Deployment
+## 🔧 Development
 
-### Environment Variables for Production
-```env
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=your_production_mongodb_uri
-JWT_SECRET=your_strong_jwt_secret
-JWT_REFRESH_SECRET=your_strong_refresh_secret
-```
+### Available Scripts
 
-### PM2 Deployment
-```bash
-npm install -g pm2
-pm2 start server.js --name "beaten-backend"
-pm2 save
-pm2 startup
-```
+- `npm start`: Start production server
+- `npm run dev`: Start development server with nodemon
+- `npm test`: Run tests (to be implemented)
 
-## Contributing
+### Environment Variables
+
+| Variable     | Description               | Default               |
+| ------------ | ------------------------- | --------------------- |
+| PORT         | Server port               | 5000                  |
+| NODE_ENV     | Environment               | development           |
+| MONGODB_URI  | MongoDB connection string | -                     |
+| JWT_SECRET   | JWT secret key            | -                     |
+| JWT_EXPIRE   | JWT expiration time       | 7d                    |
+| FRONTEND_URL | Frontend URL for CORS     | http://localhost:3000 |
+
+## 🚀 Deployment
+
+1. Set `NODE_ENV=production`
+2. Configure production MongoDB URI
+3. Set a strong JWT_SECRET
+4. Configure CORS for production domain
+5. Use PM2 or similar process manager
+
+## 📝 License
+
+MIT License
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation 
