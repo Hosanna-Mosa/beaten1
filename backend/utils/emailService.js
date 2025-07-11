@@ -7,7 +7,7 @@ const createTransporter = () => {
     service: process.env.EMAIL_SERVICE || "gmail",
     auth: {
       user: process.env.EMAIL_USER || "laptoptest7788@gmail.com",
-      pass: process.env.EMAIL_PASSWORD ||"uqfiabjkiqudrgdw",
+      pass: process.env.EMAIL_PASSWORD || "uqfiabjkiqudrgdw",
     },
   });
 };
@@ -142,7 +142,7 @@ const sendOTPEmail = async (email, otp, userType = "user") => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN" <${process.env.EMAIL_USER ||"laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
       to: email,
       subject: subject,
       html: htmlContent,
@@ -260,9 +260,89 @@ const sendPasswordResetSuccessEmail = async (email, userType = "user") => {
   }
 };
 
+// Send order status update email
+const sendOrderStatusEmail = async (email, status, orderId, userName) => {
+  try {
+    const transporter = createTransporter();
+    const statusMessages = {
+      pending: "Your order is pending.",
+      processing: "Your order is being processed.",
+      shipped: "Your order has been shipped!",
+      "out-for-delivery": "Your order is out for delivery!",
+      delivered: "Your order has been delivered!",
+      cancelled: "Your order has been cancelled.",
+    };
+    const subject = `Order #${orderId} Status Update: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9;">
+        <h2 style="color: #1a1a1a;">Hi ${userName || ""},</h2>
+        <p>Your order <b>#${orderId}</b> status has been updated to <b>${status.charAt(0).toUpperCase() + status.slice(1)}</b>.</p>
+        <p>${statusMessages[status] || "Order status updated."}</p>
+        <p>Thank you for shopping with BEATEN!</p>
+        <hr style="margin: 32px 0;" />
+        <p style="font-size: 13px; color: #888;">This is an automated email. Please do not reply.</p>
+      </div>
+    `;
+    const mailOptions = {
+      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      to: email,
+      subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Order status email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending order status email:", error);
+    return false;
+  }
+};
+
+// Send order confirmed email with special styling
+const sendOrderConfirmedEmail = async (email, orderId, userName) => {
+  try {
+    const transporter = createTransporter();
+    const subject = `Order #${orderId} Confirmed! 🎉`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #fffbe6; border-radius: 12px; border: 2px solid #ffe066; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div style="text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">🎉</div>
+          <h1 style="color: #ff9900; margin-bottom: 8px;">Order Confirmed!</h1>
+        </div>
+        <h2 style="color: #1a1a1a;">Hi ${userName || ""},</h2>
+        <p style="font-size: 18px; color: #333;">We're excited to let you know that your order <b>#${orderId}</b> has been <b>confirmed</b> and is being prepared for shipment.</p>
+        <ul style="font-size: 16px; color: #444; margin: 24px 0;">
+          <li>You'll receive another email when your order ships.</li>
+          <li>Track your order status anytime in your BEATEN account.</li>
+        </ul>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="https://beaten.in/account/orders" style="background: #ff9900; color: #fff; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-size: 18px; font-weight: bold;">View My Order</a>
+        </div>
+        <p style="font-size: 16px; color: #333;">Thank you for shopping with <b>BEATEN</b>!<br/>We appreciate your trust and support.</p>
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #ffe066;" />
+        <p style="font-size: 13px; color: #888; text-align: center;">This is an automated email. Please do not reply.</p>
+      </div>
+    `;
+    const mailOptions = {
+      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      to: email,
+      subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Order confirmed email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending order confirmed email:", error);
+    return false;
+  }
+};
+
 module.exports = {
   generateOTP,
   generateResetToken,
   sendOTPEmail,
   sendPasswordResetSuccessEmail,
+  sendOrderStatusEmail,
+  sendOrderConfirmedEmail,
 };

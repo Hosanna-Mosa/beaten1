@@ -26,15 +26,16 @@ import {
   KeyboardArrowRight as ArrowRightIcon,
 } from "@mui/icons-material";
 import HeroSearchBar from "../components/common/HeroSearchBar";
-import { 
-  bestSellers, 
-  shopByCategory, 
-  heroSlides, 
-  mobileHeroSlides, 
-  collectionsData, 
+import {
+  bestSellers,
+  shopByCategory,
+  heroSlides,
+  mobileHeroSlides,
+  collectionsData,
   features,
-  getProductsByCategory 
-} from '../data/mockData';
+  getProductsByCategory,
+} from "../data/mockData";
+import axios from "axios";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -44,7 +45,7 @@ const matteColors = {
   100: "#f5f5f5", // Off-white
 };
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();
@@ -54,6 +55,13 @@ const Home = ({ mode }) => {
   const [currentCollection, setCurrentCollection] = useState(0);
   const collectionsRef = React.useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+
+  // Product data states
+  const [allProducts, setAllProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Category-specific product states
   const [bestSellers, setBestSellers] = useState([]);
   const [tShirts, setTShirts] = useState([]);
   const [shirts, setShirts] = useState([]);
@@ -87,21 +95,123 @@ const Home = ({ mode }) => {
   const featuresWithIcons = [
     {
       ...features[0],
-      icon: <ShippingIcon sx={{ fontSize: 40 }} />
+      icon: <ShippingIcon sx={{ fontSize: 40 }} />,
     },
     {
       ...features[1],
-      icon: <SecurityIcon sx={{ fontSize: 40 }} />
+      icon: <SecurityIcon sx={{ fontSize: 40 }} />,
     },
     {
       ...features[2],
-      icon: <SupportIcon sx={{ fontSize: 40 }} />
+      icon: <SupportIcon sx={{ fontSize: 40 }} />,
     },
     {
       ...features[3],
-      icon: <StarIcon sx={{ fontSize: 40 }} />
-    }
+      icon: <StarIcon sx={{ fontSize: 40 }} />,
+    },
   ];
+
+  // Fetch all products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await axios.get(`${BACKEND_URL}/api/products`);
+
+        if (response.data && response.data.data) {
+          console.log("response.data.data", response.data.data);
+          setAllProducts(response.data.data);
+        } else {
+          setAllProducts([]);
+        }
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError("Failed to load products");
+        setAllProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Process products into categories when allProducts changes
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      console.log("Processing products:", allProducts.length);
+      
+      // Get best sellers (products with highest soldCount)
+      const sortedBySales = [...allProducts].sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+      setBestSellers(sortedBySales.slice(0, 5));
+
+      // Get products by category with proper filtering
+      const tShirtsProducts = allProducts.filter(p => 
+        p.category === 'T-shirts' && p.subCategory !== 'Oversized'
+      );
+      setTShirts(tShirtsProducts.slice(0, 3));
+
+      const shirtsProducts = allProducts.filter(p => p.category === 'Shirts');
+      setShirts(shirtsProducts.slice(0, 3));
+
+      // Oversized T-shirts - filter by both category and subCategory
+      const oversizedTShirtsProducts = allProducts.filter(p => 
+        p.category === 'T-shirts' && 
+        (p.subCategory === 'Oversized' || p.fit === 'Oversized' || p.name.toLowerCase().includes('oversized'))
+      );
+      setOversizedTShirts(oversizedTShirtsProducts.slice(0, 3));
+
+      // Bottom Wear - exclude Cargo Pants
+      const bottomWearProducts = allProducts.filter(p => 
+        p.category === 'Bottom Wear' && p.subCategory !== 'Cargo Pants'
+      );
+      setBottomWear(bottomWearProducts.slice(0, 3));
+
+      // Cargo Pants - specific subcategory
+      const cargoPantsProducts = allProducts.filter(p => 
+        p.category === 'Bottom Wear' && 
+        (p.subCategory === 'Cargo Pants' || p.name.toLowerCase().includes('cargo'))
+      );
+      setCargoPants(cargoPantsProducts.slice(0, 3));
+
+      const jacketsProducts = allProducts.filter(p => p.category === 'Jackets');
+      setJackets(jacketsProducts.slice(0, 3));
+
+      const hoodiesProducts = allProducts.filter(p => p.category === 'Hoodies');
+      setHoodies(hoodiesProducts.slice(0, 3));
+
+      // Co-ord Sets - specific category
+      const coOrdSetsProducts = allProducts.filter(p => 
+        p.category === 'Co-ord Sets' || p.name.toLowerCase().includes('co-ord')
+      );
+      setCoOrdSets(coOrdSetsProducts.slice(0, 3));
+
+      // Set shop by category (mix of different categories)
+      const categoryMix = [
+        ...tShirtsProducts.slice(0, 1),
+        ...shirtsProducts.slice(0, 1),
+        ...bottomWearProducts.slice(0, 1),
+        ...hoodiesProducts.slice(0, 1),
+        ...jacketsProducts.slice(0, 1),
+      ];
+      setShopByCategory(categoryMix);
+
+      // Log the results for debugging
+      console.log("Category counts:", {
+        tShirts: tShirtsProducts.length,
+        shirts: shirtsProducts.length,
+        oversizedTShirts: oversizedTShirtsProducts.length,
+        bottomWear: bottomWearProducts.length,
+        cargoPants: cargoPantsProducts.length,
+        jackets: jacketsProducts.length,
+        hoodies: hoodiesProducts.length,
+        coOrdSets: coOrdSetsProducts.length,
+        bestSellers: sortedBySales.length
+      });
+    }
+  }, [allProducts]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -122,48 +232,6 @@ const Home = ({ mode }) => {
     }, 3000);
     return () => clearInterval(timer);
   }, [isHovered]);
-
-  // Load best sellers from mock data
-  useEffect(() => {
-    setBestSellers(bestSellers);
-  }, []);
-
-  // Load category sections from mock data
-  useEffect(() => {
-    setTShirts(getProductsByCategory('T-shirts').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setShirts(getProductsByCategory('Shirts').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setOversizedTShirts(getProductsByCategory('T-shirts').filter(p => p.subCategory === 'Oversized').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setBottomWear(getProductsByCategory('Bottom Wear').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setCargoPants(getProductsByCategory('Bottom Wear').filter(p => p.subCategory === 'Cargo Pants').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setJackets(getProductsByCategory('Jackets').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setHoodies(getProductsByCategory('Hoodies').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setCoOrdSets(getProductsByCategory('Co-ord Sets').slice(0, 3));
-  }, []);
-
-  useEffect(() => {
-    setShopByCategory(shopByCategory);
-  }, []);
 
   const scrollToContent = () => {
     window.scrollTo({
@@ -362,8 +430,27 @@ const Home = ({ mode }) => {
               scrollbarWidth: "none",
             }}
           >
-            {shopByCategory.length === 0 ? (
-              <Typography variant="body1" sx={{ textAlign: 'center', width: '100%' }}>No products yet.</Typography>
+            {loading ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%" }}
+              >
+                Loading products...
+              </Typography>
+            ) : error ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%", color: "error.main" }}
+              >
+                {error}
+              </Typography>
+            ) : shopByCategory.length === 0 ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%" }}
+              >
+                No products yet.
+              </Typography>
             ) : (
               shopByCategory.map((product) => (
                 <Box
@@ -404,10 +491,10 @@ const Home = ({ mode }) => {
                         component="img"
                         image={
                           product.image
-                            ? product.image.startsWith('http')
+                            ? product.image.startsWith("http")
                               ? product.image
                               : `${BACKEND_URL}/uploads/${product.image}`
-                            : '/images/placeholder.png'
+                            : "/images/placeholder.png"
                         }
                         alt={product.name}
                         sx={{
@@ -514,8 +601,27 @@ const Home = ({ mode }) => {
               scrollbarWidth: "none",
             }}
           >
-            {bestSellers.length === 0 ? (
-              <Typography variant="body1" sx={{ textAlign: 'center', width: '100%' }}>No best sellers yet.</Typography>
+            {loading ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%" }}
+              >
+                Loading best sellers...
+              </Typography>
+            ) : error ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%", color: "error.main" }}
+              >
+                {error}
+              </Typography>
+            ) : bestSellers.length === 0 ? (
+              <Typography
+                variant="body1"
+                sx={{ textAlign: "center", width: "100%" }}
+              >
+                No best sellers yet.
+              </Typography>
             ) : (
               bestSellers.map((product) => (
                 <Box
@@ -556,10 +662,10 @@ const Home = ({ mode }) => {
                         component="img"
                         image={
                           product.image
-                            ? product.image.startsWith('http')
+                            ? product.image.startsWith("http")
                               ? product.image
                               : `${BACKEND_URL}/uploads/${product.image}`
-                            : '/images/placeholder.png'
+                            : "/images/placeholder.png"
                         }
                         alt={product.name}
                         sx={{
@@ -653,8 +759,6 @@ const Home = ({ mode }) => {
           key: "co-ord-sets",
           image: "/images/co-ord-sets.png",
         },
-      
-
       ].map((section, idx) => (
         <Box
           key={section.key}
@@ -866,32 +970,62 @@ const Home = ({ mode }) => {
                 // Get the appropriate products array based on section key
                 let products = [];
                 switch (section.key) {
-                  case 't-shirts':
+                  case "t-shirts":
                     products = tShirts;
                     break;
-                  case 'shirts':
+                  case "shirts":
                     products = shirts;
                     break;
-                  case 'oversized-t-shirts':
+                  case "oversized-t-shirts":
                     products = oversizedTShirts;
                     break;
-                  case 'bottom-wear':
+                  case "bottom-wear":
                     products = bottomWear;
                     break;
-                  case 'cargo-pants':
+                  case "cargo-pants":
                     products = cargoPants;
                     break;
-                  case 'jackets':
+                  case "jackets":
                     products = jackets;
                     break;
-                  case 'hoodies':
+                  case "hoodies":
                     products = hoodies;
                     break;
-                  case 'co-ord-sets':
+                  case "co-ord-sets":
                     products = coOrdSets;
                     break;
                   default:
                     products = [];
+                }
+
+                // If loading, show loading state
+                if (loading) {
+                  return (
+                    <Typography
+                      key="loading"
+                      variant="body1"
+                      sx={{ textAlign: "center", width: "100%" }}
+                    >
+                      Loading {section.name.toLowerCase()}...
+                    </Typography>
+                  );
+                }
+
+                // If error, show error state
+                if (error) {
+                  return (
+                    <Typography
+                      key="error"
+                      variant="body1"
+                      sx={{
+                        textAlign: "center",
+                        width: "100%",
+                        color: "error.main",
+                      }}
+                    >
+                      {error}
+                    </Typography>
+                  );
                 }
 
                 // If no products are available, show dummy products
@@ -1051,10 +1185,10 @@ const Home = ({ mode }) => {
                           component="img"
                           image={
                             product.image
-                              ? product.image.startsWith('http')
+                              ? product.image.startsWith("http")
                                 ? product.image
                                 : `${BACKEND_URL}/uploads/${product.image}`
-                              : '/images/placeholder.png'
+                              : "/images/placeholder.png"
                           }
                           alt={product.name}
                           sx={{
@@ -1140,7 +1274,7 @@ const Home = ({ mode }) => {
       >
         <Container maxWidth="xl">
           <Grid container spacing={2}>
-                            {featuresWithIcons.map((feature, index) => (
+            {featuresWithIcons.map((feature, index) => (
               <Grid item xs={6} md={3} key={index}>
                 <Box
                   sx={{

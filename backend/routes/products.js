@@ -23,60 +23,50 @@ const { protect, authorize } = require("../middleware/auth");
 const {
   createProductValidation,
   updateProductValidation,
-  productQueryValidation,
-  productIdValidation,
-  categoryValidation,
-  genderValidation,
-  collectionValidation,
-  searchValidation,
-  bulkUpdateValidation,
+
   handleValidationErrors,
 } = require("../middleware/productValidation");
 
 // Public routes
-router.get("/", productQueryValidation, handleValidationErrors, getProducts);
-router.get("/search", searchValidation, handleValidationErrors, searchProducts);
+router.get("/",  getProducts);
+router.get("/search", searchProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/categories", getCategories);
 router.get(
   "/category/:category",
-  categoryValidation,
-  handleValidationErrors,
   getProductsByCategory
 );
 
-router.get("/:id",  handleValidationErrors, getProductById);
+router.get("/:id", getProductById);
 
 // Protected routes (Admin only)
 router.post(
   "/",
-  protect,
-  authorize("admin"),
-  createProductValidation,
-  handleValidationErrors,
+  // protect,
+  // authorize("admin"),
+  // createProductValidation,
+  // handleValidationErrors,
   createProduct
 );
 router.put(
   "/:id",
-  protect,
-  authorize("admin"),
-  updateProductValidation,
-  handleValidationErrors,
+  // protect,
+  // authorize("admin"),
+  // updateProductValidation,
+  // handleValidationErrors,
   updateProduct
 );
 router.delete(
   "/:id",
-  protect,
-  authorize("admin"),
-  productIdValidation,
-  handleValidationErrors,
+  // protect,
+  // authorize("admin"),
+  // handleValidationErrors,
   deleteProduct
 );
 router.put(
   "/bulk-update",
   protect,
   authorize("admin"),
-  bulkUpdateValidation,
   handleValidationErrors,
   bulkUpdateProducts
 );

@@ -1,6 +1,27 @@
-const { body, param, query, validationResult } = require("express-validator");
+const { body, param, validationResult } = require("express-validator");
 
-// Validation rules for creating a product (new schema)
+// Allowed enums from schema
+const allowedCategories = [
+  "T-shirts",
+  "Shirts",
+  "Bottom Wear",
+  "Hoodies",
+  "Jackets",
+  "Co-ord Sets",
+  "Dresses",
+];
+const allowedCollections = [
+  "Beaten Exclusive Collection",
+  "Beaten Launch Sale Vol 1",
+  "Beaten Signature Collection",
+  "New Arrivals",
+  "Best Sellers",
+  "Summer Collection",
+  "Winter Collection",
+];
+const allowedGenders = ["MEN", "WOMEN"];
+
+// Validation rules for creating a product (only required fields)
 const createProductValidation = [
   body("name")
     .trim()
@@ -10,86 +31,49 @@ const createProductValidation = [
     .withMessage("Product name must be between 2 and 100 characters"),
 
   body("description")
-    .optional()
+    .notEmpty()
+    .withMessage("Description is required")
     .isString()
     .withMessage("Description must be a string"),
 
-  body("brand").optional().isString().withMessage("Brand must be a string"),
-
-  body("categories")
-    .isArray({ min: 1 })
-    .withMessage("At least one category is required"),
-  body("categories.*").isString().withMessage("Each category must be a string"),
-
-  body("tags").optional().isArray().withMessage("Tags must be an array"),
-  body("tags.*").optional().isString().withMessage("Each tag must be a string"),
-
-  body("mainImage")
+  body("category")
     .notEmpty()
-    .withMessage("Main image is required")
-    .isString()
-    .withMessage("Main image must be a string"),
+    .withMessage("Category is required")
+    .isIn(allowedCategories)
+    .withMessage("Invalid category"),
 
-  body("images").optional().isArray().withMessage("Images must be an array"),
-  body("images.*")
-    .optional()
-    .isString()
-    .withMessage("Each image must be a string"),
-
-  body("isActive")
-    .optional()
-    .isBoolean()
-    .withMessage("isActive must be a boolean"),
-  body("isFeatured")
-    .optional()
-    .isBoolean()
-    .withMessage("isFeatured must be a boolean"),
-
-  body("rating")
-    .optional()
-    .isFloat({ min: 0, max: 5 })
-    .withMessage("Rating must be between 0 and 5"),
-  body("reviews")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Reviews must be a non-negative integer"),
-
-  body("variants")
-    .isArray({ min: 1 })
-    .withMessage("At least one variant is required"),
-  body("variants.*.sku")
+  body("subCategory")
     .notEmpty()
-    .withMessage("SKU is required for each variant")
+    .withMessage("Sub Category is required")
     .isString()
-    .withMessage("SKU must be a string"),
-  body("variants.*.color")
-    .optional()
-    .isString()
-    .withMessage("Color must be a string"),
-  body("variants.*.size")
-    .optional()
-    .isString()
-    .withMessage("Size must be a string"),
-  body("variants.*.price")
+    .withMessage("Sub Category must be a string"),
+
+  body("collectionName")
     .notEmpty()
-    .withMessage("Price is required for each variant")
+    .withMessage("Collection is required")
+    .isIn(allowedCollections)
+    .withMessage("Invalid collection"),
+
+  body("gender")
+    .notEmpty()
+    .withMessage("Gender is required")
+    .isIn(allowedGenders)
+    .withMessage("Invalid gender"),
+
+  body("price")
+    .notEmpty()
+    .withMessage("Price is required")
     .isFloat({ min: 0 })
     .withMessage("Price must be a positive number"),
-  body("variants.*.stock")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Stock must be a non-negative integer"),
-  body("variants.*.images")
-    .optional()
-    .isArray()
-    .withMessage("Variant images must be an array"),
-  body("variants.*.images.*")
-    .optional()
+
+  body("image")
+    .notEmpty()
+    .withMessage("Image is required")
     .isString()
-    .withMessage("Each variant image must be a string"),
+    .withMessage("Image must be a string"),
 ];
 
-// Validation rules for updating a product (new schema)
+// Validation rules for updating a product (only required fields, but all optional)
 const updateProductValidation = [
   param("id").isMongoId().withMessage("Invalid product ID"),
 
@@ -104,219 +88,29 @@ const updateProductValidation = [
     .isString()
     .withMessage("Description must be a string"),
 
-  body("brand").optional().isString().withMessage("Brand must be a string"),
-
-  body("categories")
+  body("category")
     .optional()
-    .isArray({ min: 1 })
-    .withMessage("At least one category is required"),
-  body("categories.*")
+    .isIn(allowedCategories)
+    .withMessage("Invalid category"),
+
+  body("subCategory")
     .optional()
     .isString()
-    .withMessage("Each category must be a string"),
+    .withMessage("Sub Category must be a string"),
 
-  body("tags").optional().isArray().withMessage("Tags must be an array"),
-  body("tags.*").optional().isString().withMessage("Each tag must be a string"),
+  body("collectionName")
+    .optional()
+    .isIn(allowedCollections)
+    .withMessage("Invalid collection"),
 
-  body("mainImage")
-    .optional()
-    .isString()
-    .withMessage("Main image must be a string"),
+  body("gender").optional().isIn(allowedGenders).withMessage("Invalid gender"),
 
-  body("images").optional().isArray().withMessage("Images must be an array"),
-  body("images.*")
-    .optional()
-    .isString()
-    .withMessage("Each image must be a string"),
-
-  body("isActive")
-    .optional()
-    .isBoolean()
-    .withMessage("isActive must be a boolean"),
-  body("isFeatured")
-    .optional()
-    .isBoolean()
-    .withMessage("isFeatured must be a boolean"),
-
-  body("rating")
-    .optional()
-    .isFloat({ min: 0, max: 5 })
-    .withMessage("Rating must be between 0 and 5"),
-  body("reviews")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Reviews must be a non-negative integer"),
-
-  body("variants")
-    .optional()
-    .isArray({ min: 1 })
-    .withMessage("At least one variant is required"),
-  body("variants.*.sku")
-    .optional()
-    .isString()
-    .withMessage("SKU must be a string"),
-  body("variants.*.color")
-    .optional()
-    .isString()
-    .withMessage("Color must be a string"),
-  body("variants.*.size")
-    .optional()
-    .isString()
-    .withMessage("Size must be a string"),
-  body("variants.*.price")
+  body("price")
     .optional()
     .isFloat({ min: 0 })
     .withMessage("Price must be a positive number"),
-  body("variants.*.stock")
-    .optional()
-    .isInt({ min: 0 })
-    .withMessage("Stock must be a non-negative integer"),
-  body("variants.*.images")
-    .optional()
-    .isArray()
-    .withMessage("Variant images must be an array"),
-  body("variants.*.images.*")
-    .optional()
-    .isString()
-    .withMessage("Each variant image must be a string"),
-];
 
-// Validation rules for query parameters
-const productQueryValidation = [
-  query("page")
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage("Page must be a positive integer"),
-
-  query("limit")
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage("Limit must be between 1 and 100"),
-
-  query("minPrice")
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage("Min price must be a positive number"),
-
-  query("maxPrice")
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage("Max price must be a positive number"),
-
-  query("sort")
-    .optional()
-    .isIn(["newest", "price_asc", "price_desc", "rating", "popular"])
-    .withMessage("Invalid sort option"),
-
-  query("category")
-    .optional()
-    .isIn([
-      "T-shirts",
-      "Shirts",
-      "Bottom Wear",
-      "Hoodies",
-      "Jackets",
-      "Co-ord Sets",
-      "Dresses",
-    ])
-    .withMessage("Invalid category"),
-
-  query("gender")
-    .optional()
-    .isIn(["MEN", "WOMEN"])
-    .withMessage("Invalid gender"),
-
-  query("isFeatured")
-    .optional()
-    .isBoolean()
-    .withMessage("isFeatured must be a boolean"),
-
-  query("isNewArrival")
-    .optional()
-    .isBoolean()
-    .withMessage("isNewArrival must be a boolean"),
-
-  query("isBestSeller")
-    .optional()
-    .isBoolean()
-    .withMessage("isBestSeller must be a boolean"),
-
-  query("inStock")
-    .optional()
-    .isBoolean()
-    .withMessage("inStock must be a boolean"),
-];
-
-// Validation rules for product ID parameter
-const productIdValidation = [
-  param("id").isMongoId().withMessage("Invalid product ID"),
-];
-
-// Validation rules for category parameter
-const categoryValidation = [
-  param("category")
-    .trim()
-    .notEmpty()
-    .withMessage("Category is required")
-    .isIn([
-      "T-shirts",
-      "Shirts",
-      "Bottom Wear",
-      "Hoodies",
-      "Jackets",
-      "Co-ord Sets",
-      "Dresses",
-    ])
-    .withMessage("Invalid category"),
-];
-
-// Validation rules for gender parameter
-const genderValidation = [
-  param("gender")
-    .trim()
-    .notEmpty()
-    .withMessage("Gender is required")
-    .isIn(["MEN", "WOMEN"])
-    .withMessage("Invalid gender"),
-];
-
-// Validation rules for collection parameter
-const collectionValidation = [
-  param("collection")
-    .trim()
-    .notEmpty()
-    .withMessage("Collection is required")
-    .isIn([
-      "Beaten Exclusive Collection",
-      "Beaten Launch Sale Vol 1",
-      "Beaten Signature Collection",
-      "New Arrivals",
-      "Best Sellers",
-      "Summer Collection",
-      "Winter Collection",
-    ])
-    .withMessage("Invalid collection"),
-];
-
-// Validation rules for search query
-const searchValidation = [
-  query("q")
-    .trim()
-    .notEmpty()
-    .withMessage("Search query is required")
-    .isLength({ min: 2 })
-    .withMessage("Search query must be at least 2 characters long"),
-];
-
-// Validation rules for bulk update
-const bulkUpdateValidation = [
-  body("products")
-    .isArray({ min: 1 })
-    .withMessage("Products must be a non-empty array"),
-
-  body("products.*._id")
-    .isMongoId()
-    .withMessage("Invalid product ID in bulk update"),
+  body("image").optional().isString().withMessage("Image must be a string"),
 ];
 
 // Middleware to handle validation errors
@@ -339,12 +133,5 @@ const handleValidationErrors = (req, res, next) => {
 module.exports = {
   createProductValidation,
   updateProductValidation,
-  productQueryValidation,
-  productIdValidation,
-  categoryValidation,
-  genderValidation,
-  collectionValidation,
-  searchValidation,
-  bulkUpdateValidation,
   handleValidationErrors,
 };

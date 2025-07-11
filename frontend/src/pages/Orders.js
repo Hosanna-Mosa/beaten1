@@ -37,8 +37,8 @@ import {
 import { useTheme, useMediaQuery } from "@mui/material";
 import { useEffect } from "react";
 import axios from "axios";
-import PendingTimeIcon from '@mui/icons-material/AccessTime';
-import ProcessingInventoryIcon from '@mui/icons-material/Inventory';
+import PendingTimeIcon from "@mui/icons-material/AccessTime";
+import ProcessingInventoryIcon from "@mui/icons-material/Inventory";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -70,8 +70,6 @@ const getStatusIcon = (status) => {
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/80x80?text=Product";
 
-
-
 const trackingSteps = [
   "Order Placed",
   "Processing",
@@ -91,11 +89,15 @@ const matteColors = {
 
 // Add statusStyles map
 const statusStyles = {
-  pending:   { bg: '#ff9800', color: '#fff', icon: <PendingTimeIcon /> }, // orange
-  confirmed: { bg: '#1976d2', color: '#fff', icon: <ProcessingInventoryIcon /> }, // blue
-  shipped:   { bg: '#181818', color: '#fff', icon: <ShippingIcon /> }, // black
-  delivered: { bg: '#388e3c', color: '#fff', icon: <DeliveredIcon /> }, // green
-  cancelled: { bg: '#d32f2f', color: '#fff', icon: <CancelledIcon /> }, // red
+  pending: { bg: "#ff9800", color: "#fff", icon: <PendingTimeIcon /> }, // orange
+  confirmed: {
+    bg: "#1976d2",
+    color: "#fff",
+    icon: <ProcessingInventoryIcon />,
+  }, // blue
+  shipped: { bg: "#181818", color: "#fff", icon: <ShippingIcon /> }, // black
+  delivered: { bg: "#388e3c", color: "#fff", icon: <DeliveredIcon /> }, // green
+  cancelled: { bg: "#d32f2f", color: "#fff", icon: <CancelledIcon /> }, // red
 };
 
 const Orders = ({ mode }) => {
@@ -120,7 +122,7 @@ const Orders = ({ mode }) => {
     setLoading(true);
     setError("");
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5000";
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
       const token = localStorage.getItem("token");
       const response = await axios.get(`${apiUrl}/api/orders/my-orders`, {
         headers: {
@@ -213,7 +215,9 @@ const Orders = ({ mode }) => {
 
   // Update all status displays to default to 'Pending' if order.status is missing or empty
   const getDisplayStatus = (status) => {
-    return status && status.length > 0 ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending';
+    return status && status.length > 0
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : "Pending";
   };
 
   return (
@@ -227,7 +231,7 @@ const Orders = ({ mode }) => {
         transition: "background 0.3s, color 0.3s",
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <Button variant="outlined" onClick={fetchOrders}>
           Refresh Orders
         </Button>
@@ -240,7 +244,9 @@ const Orders = ({ mode }) => {
       </Typography>
       <Divider sx={{ mb: 4 }} />
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
       )}
       <Grid container spacing={3}>
         {orders.map((order) => (
@@ -307,8 +313,8 @@ const Orders = ({ mode }) => {
                   }}
                 >
                   {(expandedOrders.includes(order._id)
-                    ? order.items
-                    : order.items.slice(0, 2)
+                    ? order.orderItems
+                    : order.orderItems.slice(0, 2)
                   ).map((item, idx) => (
                     <Box
                       key={idx}
@@ -405,82 +411,106 @@ const Orders = ({ mode }) => {
                         variant="body2"
                         sx={{ color: "text.secondary", mb: 0.5 }}
                       >
-                        Total: <b>₹{order.totalAmount}</b>
+                        Total: <b>₹{order.totalPrice}</b>
                       </Typography>
                       <Typography
                         variant="body2"
                         sx={{ color: "text.secondary", mb: 0.5 }}
                       >
-                        Delivery Address: {order.shippingAddress && (order.shippingAddress.address || order.shippingAddress.city || order.shippingAddress.state || order.shippingAddress.pincode) ? (
-    <>
-      {order.shippingAddress.address && `${order.shippingAddress.address}, `}
-      {order.shippingAddress.city && `${order.shippingAddress.city}, `}
-      {order.shippingAddress.state && `${order.shippingAddress.state}, `}
-      {order.shippingAddress.pincode && `${order.shippingAddress.pincode}`}
-    </>
-  ) : (
-    order.address || "N/A"
-  )}
+                        Payment Type:{" "}
+                        {order.paymentInfo?.method
+                          ? order.paymentInfo.method.toUpperCase()
+                          : "N/A"}
                       </Typography>
-                      {(order.status === 'pending' || !order.status) ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: 1,
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : order.status === 'confirmed' ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: 1,
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : order.status === 'shipped' ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: 1,
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    color={getStatusColor(order.status)}
-    icon={getStatusIcon(order.status)}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: 1,
-    }}
-  />
-)}
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "text.secondary", mb: 0.5 }}
+                      >
+                        Delivery Address:{" "}
+                        {order.shippingAddress &&
+                        (order.shippingAddress.address ||
+                          order.shippingAddress.city ||
+                          order.shippingAddress.state ||
+                          order.shippingAddress.pincode) ? (
+                          <>
+                            {order.shippingAddress.address &&
+                              `${order.shippingAddress.address}, `}
+                            {order.shippingAddress.city &&
+                              `${order.shippingAddress.city}, `}
+                            {order.shippingAddress.state &&
+                              `${order.shippingAddress.state}, `}
+                            {order.shippingAddress.pincode &&
+                              `${order.shippingAddress.pincode}`}
+                          </>
+                        ) : (
+                          order.address || "N/A"
+                        )}
+                      </Typography>
+                      {order.status === "pending" || !order.status ? (
+                        <Chip
+                          label={getDisplayStatus(order.status)}
+                          icon={statusStyles[order.status]?.icon}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: "1rem",
+                            px: 2,
+                            py: 1,
+                            mt: 1,
+                            backgroundColor: statusStyles[order.status]?.bg,
+                            color: statusStyles[order.status]?.color,
+                            "& .MuiChip-icon": {
+                              color: statusStyles[order.status]?.color,
+                            },
+                          }}
+                        />
+                      ) : order.status === "confirmed" ? (
+                        <Chip
+                          label={getDisplayStatus(order.status)}
+                          icon={statusStyles[order.status]?.icon}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: "1rem",
+                            px: 2,
+                            py: 1,
+                            mt: 1,
+                            backgroundColor: statusStyles[order.status]?.bg,
+                            color: statusStyles[order.status]?.color,
+                            "& .MuiChip-icon": {
+                              color: statusStyles[order.status]?.color,
+                            },
+                          }}
+                        />
+                      ) : order.status === "shipped" ? (
+                        <Chip
+                          label={getDisplayStatus(order.status)}
+                          icon={statusStyles[order.status]?.icon}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: "1rem",
+                            px: 2,
+                            py: 1,
+                            mt: 1,
+                            backgroundColor: statusStyles[order.status]?.bg,
+                            color: statusStyles[order.status]?.color,
+                            "& .MuiChip-icon": {
+                              color: statusStyles[order.status]?.color,
+                            },
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          label={getDisplayStatus(order.status)}
+                          color={getStatusColor(order.status)}
+                          icon={getStatusIcon(order.status)}
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: "1rem",
+                            px: 2,
+                            py: 1,
+                            mt: 1,
+                          }}
+                        />
+                      )}
                     </Box>
                     {/* Action Buttons */}
                     <Box
@@ -664,83 +694,107 @@ const Orders = ({ mode }) => {
                       variant="body2"
                       sx={{ color: "text.secondary", mb: 0.5 }}
                     >
-                      Total: <b>₹{order.totalAmount}</b>
+                      Total: <b>₹{order.totalPrice}</b>
                     </Typography>
                     <Typography
                       variant="body2"
                       sx={{ color: "text.secondary", mb: 0.5 }}
                     >
-                      Delivery Address: {order.shippingAddress && (order.shippingAddress.address || order.shippingAddress.city || order.shippingAddress.state || order.shippingAddress.pincode) ? (
-    <>
-      {order.shippingAddress.address && `${order.shippingAddress.address}, `}
-      {order.shippingAddress.city && `${order.shippingAddress.city}, `}
-      {order.shippingAddress.state && `${order.shippingAddress.state}, `}
-      {order.shippingAddress.pincode && `${order.shippingAddress.pincode}`}
-    </>
-  ) : (
-    order.address || "N/A"
-  )}
+                      Payment Type:{" "}
+                      {order.paymentInfo?.method
+                        ? order.paymentInfo.method.toUpperCase()
+                        : "N/A"}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "text.secondary", mb: 0.5 }}
+                    >
+                      Delivery Address:{" "}
+                      {order.shippingAddress &&
+                      (order.shippingAddress.address ||
+                        order.shippingAddress.city ||
+                        order.shippingAddress.state ||
+                        order.shippingAddress.pincode) ? (
+                        <>
+                          {order.shippingAddress.address &&
+                            `${order.shippingAddress.address}, `}
+                          {order.shippingAddress.city &&
+                            `${order.shippingAddress.city}, `}
+                          {order.shippingAddress.state &&
+                            `${order.shippingAddress.state}, `}
+                          {order.shippingAddress.pincode &&
+                            `${order.shippingAddress.pincode}`}
+                        </>
+                      ) : (
+                        order.address || "N/A"
+                      )}
                     </Typography>
                   </Box>
-                  {(order.status === 'pending' || !order.status) ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: { xs: 2, sm: 0 },
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : order.status === 'confirmed' ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: { xs: 2, sm: 0 },
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : order.status === 'shipped' ? (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    icon={statusStyles[order.status]?.icon}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: { xs: 2, sm: 0 },
-      backgroundColor: statusStyles[order.status]?.bg,
-      color: statusStyles[order.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[order.status]?.color },
-    }}
-  />
-) : (
-  <Chip
-    label={getDisplayStatus(order.status)}
-    color={getStatusColor(order.status)}
-    icon={getStatusIcon(order.status)}
-    sx={{
-      fontWeight: 600,
-      fontSize: "1rem",
-      px: 2,
-      py: 1,
-      mt: { xs: 2, sm: 0 },
-    }}
-  />
-)}
+                  {order.status === "pending" || !order.status ? (
+                    <Chip
+                      label={getDisplayStatus(order.status)}
+                      icon={statusStyles[order.status]?.icon}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        px: 2,
+                        py: 1,
+                        mt: { xs: 2, sm: 0 },
+                        backgroundColor: statusStyles[order.status]?.bg,
+                        color: statusStyles[order.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[order.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : order.status === "confirmed" ? (
+                    <Chip
+                      label={getDisplayStatus(order.status)}
+                      icon={statusStyles[order.status]?.icon}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        px: 2,
+                        py: 1,
+                        mt: { xs: 2, sm: 0 },
+                        backgroundColor: statusStyles[order.status]?.bg,
+                        color: statusStyles[order.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[order.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : order.status === "shipped" ? (
+                    <Chip
+                      label={getDisplayStatus(order.status)}
+                      icon={statusStyles[order.status]?.icon}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        px: 2,
+                        py: 1,
+                        mt: { xs: 2, sm: 0 },
+                        backgroundColor: statusStyles[order.status]?.bg,
+                        color: statusStyles[order.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[order.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : (
+                    <Chip
+                      label={getDisplayStatus(order.status)}
+                      color={getStatusColor(order.status)}
+                      icon={getStatusIcon(order.status)}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "1rem",
+                        px: 2,
+                        py: 1,
+                        mt: { xs: 2, sm: 0 },
+                      }}
+                    />
+                  )}
                 </Box>
                 {/* Product Thumbnails (all items) */}
                 <Box
@@ -752,7 +806,7 @@ const Orders = ({ mode }) => {
                     mb: 1,
                   }}
                 >
-                  {order.items.map((item, idx) => (
+                  {order.orderItems.map((item, idx) => (
                     <Box
                       key={idx}
                       sx={{ display: "flex", alignItems: "center", gap: 1 }}
@@ -929,22 +983,31 @@ const Orders = ({ mode }) => {
                 {new Date(selectedOrder.createdAt).toLocaleDateString()}
               </Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
-                Delivery Address: {selectedOrder.shippingAddress && (selectedOrder.shippingAddress.address || selectedOrder.shippingAddress.city || selectedOrder.shippingAddress.state || selectedOrder.shippingAddress.pincode) ? (
-    <>
-      {selectedOrder.shippingAddress.address && `${selectedOrder.shippingAddress.address}, `}
-      {selectedOrder.shippingAddress.city && `${selectedOrder.shippingAddress.city}, `}
-      {selectedOrder.shippingAddress.state && `${selectedOrder.shippingAddress.state}, `}
-      {selectedOrder.shippingAddress.pincode && `${selectedOrder.shippingAddress.pincode}`}
-    </>
-  ) : (
-    selectedOrder.address || "N/A"
-  )}
+                Delivery Address:{" "}
+                {selectedOrder.shippingAddress &&
+                (selectedOrder.shippingAddress.address ||
+                  selectedOrder.shippingAddress.city ||
+                  selectedOrder.shippingAddress.state ||
+                  selectedOrder.shippingAddress.pincode) ? (
+                  <>
+                    {selectedOrder.shippingAddress.address &&
+                      `${selectedOrder.shippingAddress.address}, `}
+                    {selectedOrder.shippingAddress.city &&
+                      `${selectedOrder.shippingAddress.city}, `}
+                    {selectedOrder.shippingAddress.state &&
+                      `${selectedOrder.shippingAddress.state}, `}
+                    {selectedOrder.shippingAddress.pincode &&
+                      `${selectedOrder.shippingAddress.pincode}`}
+                  </>
+                ) : (
+                  selectedOrder.address || "N/A"
+                )}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
                 Products
               </Typography>
-              {selectedOrder.items.map((item, idx) => (
+              {selectedOrder.orderItems.map((item, idx) => (
                 <Box
                   key={idx}
                   sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}
@@ -972,51 +1035,57 @@ const Orders = ({ mode }) => {
               ))}
               <Divider sx={{ my: 2 }} />
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                Total: ₹{selectedOrder.totalAmount}
+                Total: ₹{selectedOrder.totalPrice}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 600, mt: 1 }}>
                 Status:{" "}
-                {(selectedOrder.status === 'pending' || !selectedOrder.status) ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : selectedOrder.status === 'confirmed' ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : selectedOrder.status === 'shipped' ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    color={getStatusColor(selectedOrder.status)}
-    size="small"
-    icon={getStatusIcon(selectedOrder.status)}
-  />
-)}
+                {selectedOrder.status === "pending" || !selectedOrder.status ? (
+                  <Chip
+                    label={getDisplayStatus(selectedOrder.status)}
+                    icon={statusStyles[selectedOrder.status]?.icon}
+                    size="small"
+                    sx={{
+                      backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                      color: statusStyles[selectedOrder.status]?.color,
+                      "& .MuiChip-icon": {
+                        color: statusStyles[selectedOrder.status]?.color,
+                      },
+                    }}
+                  />
+                ) : selectedOrder.status === "confirmed" ? (
+                  <Chip
+                    label={getDisplayStatus(selectedOrder.status)}
+                    icon={statusStyles[selectedOrder.status]?.icon}
+                    size="small"
+                    sx={{
+                      backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                      color: statusStyles[selectedOrder.status]?.color,
+                      "& .MuiChip-icon": {
+                        color: statusStyles[selectedOrder.status]?.color,
+                      },
+                    }}
+                  />
+                ) : selectedOrder.status === "shipped" ? (
+                  <Chip
+                    label={getDisplayStatus(selectedOrder.status)}
+                    icon={statusStyles[selectedOrder.status]?.icon}
+                    size="small"
+                    sx={{
+                      backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                      color: statusStyles[selectedOrder.status]?.color,
+                      "& .MuiChip-icon": {
+                        color: statusStyles[selectedOrder.status]?.color,
+                      },
+                    }}
+                  />
+                ) : (
+                  <Chip
+                    label={getDisplayStatus(selectedOrder.status)}
+                    color={getStatusColor(selectedOrder.status)}
+                    size="small"
+                    icon={getStatusIcon(selectedOrder.status)}
+                  />
+                )}
               </Typography>
             </Box>
           )}
@@ -1083,47 +1152,54 @@ const Orders = ({ mode }) => {
               <Box sx={{ mt: 3 }}>
                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
                   Current Status:{" "}
-                  {(selectedOrder.status === 'pending' || !selectedOrder.status) ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : selectedOrder.status === 'confirmed' ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : selectedOrder.status === 'shipped' ? (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    icon={statusStyles[selectedOrder.status]?.icon}
-    size="small"
-    sx={{
-      backgroundColor: statusStyles[selectedOrder.status]?.bg,
-      color: statusStyles[selectedOrder.status]?.color,
-      '& .MuiChip-icon': { color: statusStyles[selectedOrder.status]?.color },
-    }}
-  />
-) : (
-  <Chip
-    label={getDisplayStatus(selectedOrder.status)}
-    color={getStatusColor(selectedOrder.status)}
-    size="small"
-    icon={getStatusIcon(selectedOrder.status)}
-  />
-)}
+                  {selectedOrder.status === "pending" ||
+                  !selectedOrder.status ? (
+                    <Chip
+                      label={getDisplayStatus(selectedOrder.status)}
+                      icon={statusStyles[selectedOrder.status]?.icon}
+                      size="small"
+                      sx={{
+                        backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                        color: statusStyles[selectedOrder.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[selectedOrder.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : selectedOrder.status === "confirmed" ? (
+                    <Chip
+                      label={getDisplayStatus(selectedOrder.status)}
+                      icon={statusStyles[selectedOrder.status]?.icon}
+                      size="small"
+                      sx={{
+                        backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                        color: statusStyles[selectedOrder.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[selectedOrder.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : selectedOrder.status === "shipped" ? (
+                    <Chip
+                      label={getDisplayStatus(selectedOrder.status)}
+                      icon={statusStyles[selectedOrder.status]?.icon}
+                      size="small"
+                      sx={{
+                        backgroundColor: statusStyles[selectedOrder.status]?.bg,
+                        color: statusStyles[selectedOrder.status]?.color,
+                        "& .MuiChip-icon": {
+                          color: statusStyles[selectedOrder.status]?.color,
+                        },
+                      }}
+                    />
+                  ) : (
+                    <Chip
+                      label={getDisplayStatus(selectedOrder.status)}
+                      color={getStatusColor(selectedOrder.status)}
+                      size="small"
+                      icon={getStatusIcon(selectedOrder.status)}
+                    />
+                  )}
                 </Typography>
               </Box>
             </Box>

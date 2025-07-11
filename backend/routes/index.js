@@ -10,17 +10,15 @@ const orderRoutes = require("./orders");
 const addressRoutes = require("./address");
 const forgotPasswordRoutes = require("./forgotPassword");
 
-
-
 // Route definitions
 router.use("/auth", authRoutes);
 router.use("/products", productRoutes);
 router.use("/admin", adminRoutes);
+router.use("/upload", require("./upload"));
 
 router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
-
 
 // Health check route
 router.get("/health", (req, res) => {

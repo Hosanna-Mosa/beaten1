@@ -1,9 +1,11 @@
-// Dummy Upload API - Replaces backend calls with dummy data
-import { dummyDataAPI } from "./dummyData";
+import api from "./axiosAdmin";
 
 export const uploadAdminAPI = {
   uploadImage: (file) => {
-    console.log("Uploading file:", file);
-    return dummyDataAPI.upload.uploadImage(file);
+    const formData = new FormData();
+    formData.append("image", file);
+    return api.post("/upload/image", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
   },
 };

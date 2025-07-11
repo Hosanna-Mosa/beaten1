@@ -41,6 +41,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: false,
     stockQuantity: 100,
+    soldCount: 245,
     sku: "TS-PREM-BLK-001",
   },
   {
@@ -77,6 +78,7 @@ const sampleProducts = [
     isNewArrival: true,
     isBestSeller: false,
     stockQuantity: 80,
+    soldCount: 156,
     sku: "SH-CLSC-WHT-002",
   },
   {
@@ -113,6 +115,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: true,
     stockQuantity: 60,
+    soldCount: 389,
     sku: "JK-DEN-BLU-003",
   },
   {
@@ -149,6 +152,7 @@ const sampleProducts = [
     isNewArrival: true,
     isBestSeller: false,
     stockQuantity: 70,
+    soldCount: 98,
     sku: "DR-SUM-YLW-004",
   },
   {
@@ -185,6 +189,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: true,
     stockQuantity: 90,
+    soldCount: 423,
     sku: "HD-URB-BLK-005",
   },
   {
@@ -221,6 +226,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: true,
     stockQuantity: 120,
+    soldCount: 312,
     sku: "BW-CHN-BGE-006",
   },
   {
@@ -257,6 +263,7 @@ const sampleProducts = [
     isNewArrival: true,
     isBestSeller: false,
     stockQuantity: 75,
+    soldCount: 67,
     sku: "TS-GRA-PNK-007",
   },
   {
@@ -293,6 +300,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: true,
     stockQuantity: 65,
+    soldCount: 234,
     sku: "SH-FRM-BLU-008",
   },
   {
@@ -329,6 +337,7 @@ const sampleProducts = [
     isNewArrival: false,
     isBestSeller: false,
     stockQuantity: 55,
+    soldCount: 178,
     sku: "CS-WIN-GRY-009",
   },
   // ... Add 21 more products in the same format, changing names, images, categories, etc.
@@ -384,7 +393,7 @@ const seedProducts = async () => {
 
     // Clear existing products
     //await Product.deleteMany({});
-   // await Product.collection.drop();
+    // await Product.collection.drop();
     //console.log("Cleared existing products");
 
     // Insert new products

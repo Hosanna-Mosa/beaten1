@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
 const routes = require("./routes");
+const apiLogger = require("./middleware/apiLogger");
 
 dotenv.config();
 
@@ -11,7 +12,7 @@ const app = express();
 
 app.use(
   cors({
-    origin:["http://localhost:3000","http://localhost:3001","*"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "*"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -20,6 +21,8 @@ app.use(
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+app.use(apiLogger);
 
 app.use("/public", express.static("public"));
 app.use("/api", routes);

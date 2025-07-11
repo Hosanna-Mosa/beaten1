@@ -214,6 +214,18 @@ const Products = ({ mode }) => {
   // Filter products by selected filters (category, etc.)
   const filteredAndSortedProducts = React.useMemo(() => {
     let filtered = products;
+
+    // Gender filter
+    if (filters.gender && filters.gender.length > 0) {
+      filtered = filtered.filter((p) =>
+        filters.gender.some(
+          (gender) =>
+            p.gender && p.gender.toLowerCase() === gender.toLowerCase()
+        )
+      );
+    }
+
+    // Category filter
     if (filters.category && filters.category.length > 0) {
       let categoryFiltered = filtered.filter((p) =>
         filters.category.some(
@@ -230,9 +242,142 @@ const Products = ({ mode }) => {
       }
       filtered = categoryFiltered;
     }
-    // Add more filters as needed (gender, price, etc.)
-    return filtered;
-  }, [products, filters]);
+
+    // SubCategory filter with improved logic
+    if (filters.subCategory && filters.subCategory.length > 0) {
+      filtered = filtered.filter((p) =>
+        filters.subCategory.some((subCat) => {
+          // Check exact subCategory match
+          if (
+            p.subCategory &&
+            p.subCategory.toLowerCase() === subCat.toLowerCase()
+          ) {
+            return true;
+          }
+
+          // Check if subCategory is in product name
+          if (p.name && p.name.toLowerCase().includes(subCat.toLowerCase())) {
+            return true;
+          }
+
+          // Special handling for specific subcategories
+          if (subCat.toLowerCase() === "cargo pants") {
+            return (
+              p.category === "Bottom Wear" &&
+              (p.subCategory === "Cargo Pants" ||
+                p.name.toLowerCase().includes("cargo"))
+            );
+          }
+
+          if (subCat.toLowerCase() === "oversized") {
+            return (
+              (p.category === "T-shirts" && p.subCategory === "Oversized") ||
+              p.fit === "Oversized" ||
+              p.name.toLowerCase().includes("oversized")
+            );
+          }
+
+          if (subCat.toLowerCase() === "co-ord sets") {
+            return (
+              p.category === "Co-ord Sets" ||
+              p.name.toLowerCase().includes("co-ord")
+            );
+          }
+
+          return false;
+        })
+      );
+    }
+
+    // Collection filter
+    if (filters.collectionName && filters.collectionName.length > 0) {
+      filtered = filtered.filter((p) =>
+        filters.collectionName.some(
+          (collection) =>
+            p.collectionName &&
+            p.collectionName.toLowerCase() === collection.toLowerCase()
+        )
+      );
+    }
+
+    // Price range filter
+    if (filters.priceRange && filters.priceRange.length === 2) {
+      filtered = filtered.filter((p) => {
+        const price = parseFloat(p.price) || 0;
+        return price >= filters.priceRange[0] && price <= filters.priceRange[1];
+      });
+    }
+
+    // Size filter
+    if (filters.size && filters.size.length > 0) {
+      filtered = filtered.filter((p) => {
+        if (!p.sizes || !Array.isArray(p.sizes)) return false;
+        return filters.size.some((size) => p.sizes.includes(size));
+      });
+    }
+
+    // Fit filter
+    if (filters.fit && filters.fit.length > 0) {
+      filtered = filtered.filter((p) =>
+        filters.fit.some(
+          (fit) => p.fit && p.fit.toLowerCase() === fit.toLowerCase()
+        )
+      );
+    }
+
+    // Color filter
+    if (filters.color && filters.color.length > 0) {
+      filtered = filtered.filter((p) => {
+        if (!p.colors || !Array.isArray(p.colors)) return false;
+        return filters.color.some((color) =>
+          p.colors.some(
+            (productColor) => productColor.toLowerCase() === color.toLowerCase()
+          )
+        );
+      });
+    }
+
+    // Search query filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.name?.toLowerCase().includes(query) ||
+          p.description?.toLowerCase().includes(query) ||
+          p.category?.toLowerCase().includes(query) ||
+          p.subCategory?.toLowerCase().includes(query) ||
+          p.collectionName?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sorting
+    let sorted = [...filtered];
+    switch (filters.sort) {
+      case "price_asc":
+        sorted.sort(
+          (a, b) => (parseFloat(a.price) || 0) - (parseFloat(b.price) || 0)
+        );
+        break;
+      case "price_desc":
+        sorted.sort(
+          (a, b) => (parseFloat(b.price) || 0) - (parseFloat(a.price) || 0)
+        );
+        break;
+      case "popular":
+        // Sort by soldCount (popularity)
+        sorted.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+        break;
+      case "newest":
+      default:
+        // Sort by creation date or ID (newest first)
+        sorted.sort(
+          (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+        break;
+    }
+
+    return sorted;
+  }, [products, filters, searchQuery]);
 
   // Handlers
   const handleFilterChange = (filter, value) => {
@@ -752,6 +897,66 @@ const Products = ({ mode }) => {
           </FormGroup>
         </AccordionDetails>
       </Accordion>
+
+      {/* Color Filter */}
+      <Accordion
+        defaultExpanded
+        elevation={0}
+        square
+        sx={{
+          borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
+          "&:before": { display: "none" },
+        }}
+      >
+        <AccordionSummary
+          expandIcon={<FilterIcon fontSize="small" />}
+          aria-controls="color-panel-content"
+          id="color-panel-header"
+        >
+          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+            Color ({filters.color.length})
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ pt: 0, pb: 2 }}>
+          <FormGroup row>
+            {[
+              "Black",
+              "White",
+              "Blue",
+              "Red",
+              "Green",
+              "Yellow",
+              "Pink",
+              "Purple",
+              "Brown",
+              "Gray",
+            ].map((color) => (
+              <FormControlLabel
+                key={color}
+                control={
+                  <Checkbox
+                    checked={filters.color.includes(color)}
+                    onChange={(e) => {
+                      const newColors = e.target.checked
+                        ? [...filters.color, color]
+                        : filters.color.filter((c) => c !== color);
+                      handleFilterChange("color", newColors);
+                    }}
+                    size="small"
+                  />
+                }
+                label={color}
+                sx={{
+                  "& .MuiFormControlLabel-label": {
+                    fontSize: "0.875rem",
+                    color: "text.secondary",
+                  },
+                }}
+              />
+            ))}
+          </FormGroup>
+        </AccordionDetails>
+      </Accordion>
     </>
   );
 
@@ -967,18 +1172,79 @@ const Products = ({ mode }) => {
       }}
     >
       <Container maxWidth="xl" sx={{ py: 0, px: { xs: 0, md: 3 } }}>
-        {/* Add Refresh Products button */}
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        {/* Search and Refresh Section */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+            px: { xs: 2, md: 0 },
+          }}
+        >
+          {/* Search Bar */}
+          <Box sx={{ flex: 1, maxWidth: 400 }}>
+            <TextField
+              fullWidth
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+                endAdornment: searchQuery && (
+                  <InputAdornment position="end">
+                    <IconButton size="small" onClick={() => setSearchQuery("")}>
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "8px",
+                },
+              }}
+            />
+          </Box>
+
+          {/* Refresh Button */}
           <Button
             variant="outlined"
             onClick={fetchProducts}
             startIcon={<RefreshIcon />}
+            sx={{ ml: 2 }}
           >
-            Refresh Products
+            Refresh
           </Button>
         </Box>
         {/* Mobile custom header and chips */}
-        {isMobile && <>{mobileChips}</>}
+        {isMobile && (
+          <>
+            {/* Mobile Product Count */}
+            <Box
+              sx={{
+                display: { xs: "flex", md: "none" },
+                justifyContent: "center",
+                alignItems: "center",
+                py: 1,
+                px: 2,
+                borderBottom: "1px solid #eee",
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ color: "text.secondary", fontWeight: 500 }}
+              >
+                {filteredAndSortedProducts.length} Products
+              </Typography>
+            </Box>
+            {mobileChips}
+          </>
+        )}
         <Grid container spacing={{ xs: 0, md: 3 }} sx={{ mt: 0, pt: 0 }}>
           {/* Restore desktop sidebar filter */}
           <Grid
@@ -1003,6 +1269,60 @@ const Products = ({ mode }) => {
 
           {/* Products Grid */}
           <Grid item xs={12} md={9.5} sx={{ pt: 0, mt: 0 }}>
+            {/* Desktop Sort and View Controls */}
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+                px: 0,
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {filteredAndSortedProducts.length} Products
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <FormControl size="small" sx={{ minWidth: 150 }}>
+                  <Select
+                    value={filters.sort}
+                    onChange={(e) => handleFilterChange("sort", e.target.value)}
+                    displayEmpty
+                    sx={{ fontSize: "0.875rem" }}
+                  >
+                    <MenuItem value="newest">Newest First</MenuItem>
+                    <MenuItem value="price_asc">Price: Low to High</MenuItem>
+                    <MenuItem value="price_desc">Price: High to Low</MenuItem>
+                    <MenuItem value="popular">Most Popular</MenuItem>
+                  </Select>
+                </FormControl>
+                <Box
+                  sx={{
+                    display: "flex",
+                    border: "1px solid #ddd",
+                    borderRadius: 1,
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => setViewMode("grid")}
+                    color={viewMode === "grid" ? "primary" : "default"}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    <ViewModuleIcon />
+                  </IconButton>
+                  <IconButton
+                    size="small"
+                    onClick={() => setViewMode("list")}
+                    color={viewMode === "list" ? "primary" : "default"}
+                    sx={{ borderRadius: 0 }}
+                  >
+                    <ViewListIcon />
+                  </IconButton>
+                </Box>
+              </Box>
+            </Box>
+
             {/* Products Grid/List */}
             <Grid container spacing={0}>
               {showLoading ? (
@@ -1354,25 +1674,52 @@ const Products = ({ mode }) => {
                 pb: { xs: 9, md: 2 },
               }}
             >
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => setDrawerOpen(false)}
-                endIcon={<FilterIcon />}
-                sx={{
-                  py: 1.5,
-                  fontWeight: 600,
-                  fontSize: "1rem",
-                  backgroundColor: "#1a1a1a",
-                  color: "white",
-                  borderRadius: "10px",
-                  "&:hover": {
-                    backgroundColor: "#2d2d2d",
-                  },
-                }}
-              >
-                Apply Filters
-              </Button>
+              <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setFilters({
+                      gender: [],
+                      category: [],
+                      subCategory: [],
+                      collectionName: [],
+                      priceRange: [0, 10000],
+                      sort: "newest",
+                      size: [],
+                      color: [],
+                      fit: [],
+                    });
+                    setSearchQuery("");
+                    setShopAllActive(false);
+                  }}
+                  sx={{
+                    flex: 1,
+                    py: 1,
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  Clear All
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => setDrawerOpen(false)}
+                  endIcon={<FilterIcon />}
+                  sx={{
+                    flex: 1,
+                    py: 1.5,
+                    fontWeight: 600,
+                    fontSize: "1rem",
+                    backgroundColor: "#1a1a1a",
+                    color: "white",
+                    borderRadius: "10px",
+                    "&:hover": {
+                      backgroundColor: "#2d2d2d",
+                    },
+                  }}
+                >
+                  Apply
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Drawer>
