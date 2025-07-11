@@ -157,12 +157,17 @@ const ProductDetail = ({ mode }) => {
 
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/products/get-product/${productId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}/api/products/${productId}`);
+        
+        
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
         const data = await response.json();
-        setProduct(data);
+        console.log(data.data);
+        
+        setProduct(data.data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching product:", error);
 
@@ -171,17 +176,17 @@ const ProductDetail = ({ mode }) => {
     };
 
     const fetchReviews = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews/get-reviews/${productId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setReviews(data);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        setReviews([]);
-      }
+      // try {
+      //   const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews/get-reviews/${productId}`);
+      //   if (!response.ok) {
+      //     throw new Error(`HTTP error! status: ${response.status}`);
+      //   }
+      //   const data = await response.json();
+      //   setReviews(data);
+      // } catch (error) {
+      //   console.error("Error fetching reviews:", error);
+      //   setReviews([]);
+      // }
     };
 
     fetchProduct();

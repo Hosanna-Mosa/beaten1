@@ -60,7 +60,6 @@ import {
   searchProducts,
 } from "../data/mockData";
 
-
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
 // Get all unique colors from products
@@ -896,7 +895,7 @@ const Products = ({ mode }) => {
   const fetchProducts = async () => {
     setShowLoading(true);
     try {
-      const response = await axios.get("/api/products");
+      const response = await axios.get("http://localhost:8000/api/products");
       setProducts(response.data.data || []);
     } catch (err) {
       setError("Failed to load products");
