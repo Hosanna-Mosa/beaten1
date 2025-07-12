@@ -45,8 +45,7 @@ router.get("/dashboard", dashboardAnalytics);
 // List all returns
 router.get("/returns", protectAdmin, async (req, res) => {
   try {
-    // Aggregate all returns from all users
-    const users = await User.find({}, "email returns");
+
     const allReturns = [];
     users.forEach((user) => {
       (user.returns || []).forEach((ret) => {
