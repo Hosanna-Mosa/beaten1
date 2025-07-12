@@ -1,6 +1,9 @@
 const Admin = require("../models/Admin");
 const generateToken = require("../utils/generateToken");
 const { STATUS_CODES, MESSAGES } = require("../utils/constants");
+const User = require("../models/User");
+const Order = require("../models/Order");
+const Product = require("../models/Product");
 
 // @desc    Register admin
 // @route   POST /api/admin/register
@@ -243,6 +246,61 @@ const logout = async (req, res, next) => {
   }
 };
 
+// @desc    Get dashboard analytics (admin)
+// @route   GET /api/admin/dashboard
+// @access  Private (Admin only)
+const dashboardAnalytics = async (req, res) => {
+  try {
+    // Total users
+    const totalUsers = await User.countDocuments();
+    // Total orders
+    const totalOrders = await Order.countDocuments();
+    // Total products
+    const totalProducts = await Product.countDocuments();
+    // Total revenue (only delivered orders)
+    const orders = await Order.find();
+    const totalRevenue = orders
+      .filter((o) => (o.status || "").toLowerCase() === "delivered")
+      .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    // Category distribution
+    const categoryStats = await Product.aggregate([
+      { $unwind: "$categories" },
+      { $group: { _id: "$categories", count: { $sum: 1 } } },
+    ]);
+    // Recent activities (last 10 orders)
+    const recentOrders = await Order.find()
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate("user", "name");
+    const recentActivities = recentOrders.map((order) => ({
+      id: order._id,
+      type: "order",
+      message: `Order #${order._id.toString().slice(-6)} placed by ${order.user?.name || "Unknown"}`,
+      time: order.createdAt,
+      amount: order.totalPrice,
+    }));
+    res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalOrders,
+        totalProducts,
+        totalRevenue,
+        categoryStats,
+        recentActivities,
+      },
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Error fetching dashboard analytics",
+        error: error.message,
+      });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -250,4 +308,5 @@ module.exports = {
   updateProfile,
   changePassword,
   logout,
+  dashboardAnalytics,
 };

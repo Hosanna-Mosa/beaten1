@@ -158,8 +158,9 @@ const Header = ({ mode, toggleColorMode }) => {
       sx={{
         position: "relative",
         textAlign: "center",
-        bgcolor: "black",
+        bgcolor: "black", // ensure background is black
         height: "100%",
+        minHeight: "100vh", // ensure it fills the viewport
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -342,7 +343,7 @@ const Header = ({ mode, toggleColorMode }) => {
           display: "flex",
           alignItems: "center",
           ml: 2,
-          bgcolor: "transparent",
+          bgcolor: "black",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -722,6 +723,14 @@ const Header = ({ mode, toggleColorMode }) => {
           "& .MuiDrawer-paper": {
             width: "100vw",
             maxWidth: "100vw",
+            zIndex: 10000,
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh", // ensure full viewport height
+            minHeight: "100vh",
+            backgroundColor: "black", // ensure black background
+            boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
           },
         }}
         PaperProps={{
@@ -732,7 +741,9 @@ const Header = ({ mode, toggleColorMode }) => {
             position: "fixed",
             top: 0,
             left: 0,
-            height: "100%",
+            height: "100vh", // ensure full viewport height
+            minHeight: "100vh",
+            backgroundColor: "black", // ensure black background
             boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
           },
         }}

@@ -48,16 +48,8 @@ export const adminAuthAPI = {
 
 // Dashboard APIs
 export const dashboardAPI = {
-  // Get dashboard statistics
-  getStats: () => api.get("/dashboard/stats"),
-  // Get sales trend data
-  getSalesTrend: () => api.get("/dashboard/sales-trend"),
-  // Get category distribution
-  getCategoryDistribution: () => api.get("/dashboard/category-distribution"),
-  // Get recent activities
-  getRecentActivities: () => api.get("/dashboard/recent-activities"),
-  // Get top products
-  getTopProducts: () => api.get("/dashboard/top-products"),
+  // Get all dashboard analytics in one call
+  getDashboardAnalytics: () => api.get("/admin/dashboard"),
 };
 
 // Products APIs
