@@ -106,7 +106,7 @@ const Profile = ({ mode }) => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:8000/api/user/profile", {
+        const res = await axios.get(process.env.REACT_APP_API_URL || "http://localhost:8000/api/user/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProfileUser(res.data.data);
@@ -179,12 +179,12 @@ const Profile = ({ mode }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      await axios.patch('http://localhost:8000/api/user/profile', profileForm, {
+      await axios.patch(process.env.REACT_APP_API_URL || 'http://localhost:8000/api/user/profile', profileForm, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEditProfileDialog(false);
       // Refresh profile
-      const res = await axios.get('http://localhost:8000/api/user/profile', {
+      const res = await axios.get(process.env.REACT_APP_API_URL ||'http://localhost:8000/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
@@ -222,18 +222,18 @@ const Profile = ({ mode }) => {
       setLoading(true);
       const token = localStorage.getItem('token');
       if (isAddAddress) {
-        await axios.post(`http://localhost:8000/api/user/addresses`, addressForm, {
+        await axios.post(process.env.REACT_APP_API_URL || `http://localhost:8000/api/user/addresses`, addressForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
       } else {
-        await axios.patch(`http://localhost:8000/api/user/addresses/${addressToEdit._id}`, addressForm, {
+        await axios.patch(process.env.REACT_APP_API_URL ||`http://localhost:8000/api/user/addresses/${addressToEdit._id}`, addressForm, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
       setEditAddressDialog(false);
       setIsAddAddress(false);
       // Refresh profile
-      const res = await axios.get('http://localhost:8000/api/user/profile', {
+      const res = await axios.get(process.env.REACT_APP_API_URL || 'http://localhost:8000/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
@@ -252,13 +252,13 @@ const Profile = ({ mode }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:8000/api/user/addresses/${addressToDelete._id}`, {
+      await axios.delete(process.env.REACT_APP_API_URL || `http://localhost:8000/api/user/addresses/${addressToDelete._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDeleteAddressDialog(false);
       setAddressToDelete(null);
       // Refresh profile
-      const res = await axios.get('http://localhost:8000/api/user/profile', {
+      const res = await axios.get(process.env.REACT_APP_API_URL ||'http://localhost:8000/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
