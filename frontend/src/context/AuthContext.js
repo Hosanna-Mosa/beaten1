@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/auth/login",
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api/auth/login",
         { email, password }
       );
       setLoading(false);
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/auth/register",
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api/auth/register",
         userData
       );
       const { token, user } = response.data.data;

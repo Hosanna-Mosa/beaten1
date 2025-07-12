@@ -4,10 +4,10 @@ const crypto = require("crypto");
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || "gmail",
+    service:  "gmail",
     auth: {
       user: process.env.EMAIL_USER || "laptoptest7788@gmail.com",
-      pass: process.env.EMAIL_PASSWORD || "uqfiabjkiqudrgdw",
+      pass: process.env.EMAIL_PASS || "uqfiabjkiqudrgdw",
     },
   });
 };

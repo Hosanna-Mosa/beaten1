@@ -190,7 +190,7 @@ const Orders = ({ mode }) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8000/api/user/return', {
+      await axios.post(process.env.REACT_APP_API_URL || 'http://localhost:8000/api/user/return', {
         orderId: returnItem.orderId,
         productId: returnItem.item.product || returnItem.item._id,
         reason: returnReason

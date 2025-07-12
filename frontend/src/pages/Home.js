@@ -36,6 +36,7 @@ import {
   getProductsByCategory,
 } from "../data/mockData";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -45,12 +46,14 @@ const matteColors = {
   100: "#f5f5f5", // Off-white
 };
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+const BACKEND_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentCollection, setCurrentCollection] = useState(0);
   const collectionsRef = React.useRef(null);
@@ -60,6 +63,11 @@ const Home = ({ mode }) => {
   const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // User profile states
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Category-specific product states
   const [bestSellers, setBestSellers] = useState([]);
@@ -111,6 +119,64 @@ const Home = ({ mode }) => {
     },
   ];
 
+  // Fetch user profile and check subscription status
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        setIsSubscribed(false);
+        return;
+      }
+
+      try {
+        setProfileLoading(true);
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          setIsSubscribed(false);
+          return;
+        }
+
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.data && response.data.data) {
+          const profile = response.data.data;
+          // Fallback: ensure subscription object always exists
+          const subscription = profile.subscription || {
+            isSubscribed: false,
+            subscriptionCost: 0,
+            subscriptionDate: null,
+            subscriptionExpiry: null,
+            subscriptionType: "",
+          };
+          setUserProfile({ ...profile, subscription });
+          
+
+          // Check if user is subscribed and subscription is not expired
+          const isCurrentlySubscribed =
+            subscription.isSubscribed &&
+            subscription.subscriptionExpiry &&
+            new Date(subscription.subscriptionExpiry) > new Date();
+
+          setIsSubscribed(isCurrentlySubscribed);
+          console.log("User profile:", profile);
+          console.log("User subscription status:", isCurrentlySubscribed);
+          console.log("Subscription details:", subscription);
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
+        setIsSubscribed(false);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
   // Fetch all products from backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -142,49 +208,62 @@ const Home = ({ mode }) => {
   useEffect(() => {
     if (allProducts.length > 0) {
       console.log("Processing products:", allProducts.length);
-      
+
       // Get best sellers (products with highest soldCount)
-      const sortedBySales = [...allProducts].sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+      const sortedBySales = [...allProducts].sort(
+        (a, b) => (b.soldCount || 0) - (a.soldCount || 0)
+      );
       setBestSellers(sortedBySales.slice(0, 5));
 
       // Get products by category with proper filtering
-      const tShirtsProducts = allProducts.filter(p => 
-        p.category === 'T-shirts' && p.subCategory !== 'Oversized'
+      const tShirtsProducts = allProducts.filter(
+        (p) => p.category === "T-shirts" && p.subCategory !== "Oversized"
       );
       setTShirts(tShirtsProducts.slice(0, 3));
 
-      const shirtsProducts = allProducts.filter(p => p.category === 'Shirts');
+      const shirtsProducts = allProducts.filter((p) => p.category === "Shirts");
       setShirts(shirtsProducts.slice(0, 3));
 
       // Oversized T-shirts - filter by both category and subCategory
-      const oversizedTShirtsProducts = allProducts.filter(p => 
-        p.category === 'T-shirts' && 
-        (p.subCategory === 'Oversized' || p.fit === 'Oversized' || p.name.toLowerCase().includes('oversized'))
+      const oversizedTShirtsProducts = allProducts.filter(
+        (p) =>
+          p.category === "T-shirts" &&
+          (p.subCategory === "Oversized" ||
+            p.fit === "Oversized" ||
+            p.name.toLowerCase().includes("oversized"))
       );
       setOversizedTShirts(oversizedTShirtsProducts.slice(0, 3));
 
       // Bottom Wear - exclude Cargo Pants
-      const bottomWearProducts = allProducts.filter(p => 
-        p.category === 'Bottom Wear' && p.subCategory !== 'Cargo Pants'
+      const bottomWearProducts = allProducts.filter(
+        (p) => p.category === "Bottom Wear" && p.subCategory !== "Cargo Pants"
       );
       setBottomWear(bottomWearProducts.slice(0, 3));
 
       // Cargo Pants - specific subcategory
-      const cargoPantsProducts = allProducts.filter(p => 
-        p.category === 'Bottom Wear' && 
-        (p.subCategory === 'Cargo Pants' || p.name.toLowerCase().includes('cargo'))
+      const cargoPantsProducts = allProducts.filter(
+        (p) =>
+          p.category === "Bottom Wear" &&
+          (p.subCategory === "Cargo Pants" ||
+            p.name.toLowerCase().includes("cargo"))
       );
       setCargoPants(cargoPantsProducts.slice(0, 3));
 
-      const jacketsProducts = allProducts.filter(p => p.category === 'Jackets');
+      const jacketsProducts = allProducts.filter(
+        (p) => p.category === "Jackets"
+      );
       setJackets(jacketsProducts.slice(0, 3));
 
-      const hoodiesProducts = allProducts.filter(p => p.category === 'Hoodies');
+      const hoodiesProducts = allProducts.filter(
+        (p) => p.category === "Hoodies"
+      );
       setHoodies(hoodiesProducts.slice(0, 3));
 
       // Co-ord Sets - specific category
-      const coOrdSetsProducts = allProducts.filter(p => 
-        p.category === 'Co-ord Sets' || p.name.toLowerCase().includes('co-ord')
+      const coOrdSetsProducts = allProducts.filter(
+        (p) =>
+          p.category === "Co-ord Sets" ||
+          p.name.toLowerCase().includes("co-ord")
       );
       setCoOrdSets(coOrdSetsProducts.slice(0, 3));
 
@@ -208,7 +287,7 @@ const Home = ({ mode }) => {
         jackets: jacketsProducts.length,
         hoodies: hoodiesProducts.length,
         coOrdSets: coOrdSetsProducts.length,
-        bestSellers: sortedBySales.length
+        bestSellers: sortedBySales.length,
       });
     }
   }, [allProducts]);
@@ -266,6 +345,50 @@ const Home = ({ mode }) => {
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const getButtonPosition = (sectionKey, isMobile) => {
+    const positions = {
+      "t-shirts": {
+        mobile: { left: "20%", top: "85%" },
+        desktop: { left: "59%", top: "85%" },
+      },
+      shirts: {
+        mobile: { left: "60%", top: "75%" },
+        desktop: { left: "52%", top: "80%" },
+      },
+      "oversized-t-shirts": {
+        mobile: { left: "63%", top: "74%" },
+        desktop: { left: "55%", top: "85%" },
+      },
+      "bottom-wear": {
+        mobile: { left: "65%", top: "70%" },
+        desktop: { left: "56%", top: "78%" },
+      },
+      "cargo-pants": {
+        mobile: { left: "60%", top: "75%" },
+        desktop: { left: "44%", top: "79%" },
+      },
+      jackets: {
+        mobile: { left: "75%", top: "75%" },
+        desktop: { left: "47%", top: "80%" },
+      },
+      hoodies: {
+        mobile: { left: "50%", top: "73%" },
+        desktop: { left: "50%", top: "80%" },
+      },
+      "co-ord-sets": {
+        mobile: { left: "63%", top: "75%" },
+        desktop: { left: "53%", top: "80%" },
+      },
+    };
+
+    return (
+      positions[sectionKey]?.[isMobile ? "mobile" : "desktop"] || {
+        left: "50%",
+        top: "87%",
+      }
+    );
   };
 
   return (
@@ -745,26 +868,26 @@ const Home = ({ mode }) => {
         {
           name: "BOTTOM WEAR",
           key: "bottom-wear",
-          image: "/images/bottom-wear.png",
+          image: "/images/bottom wear.png",
         },
         {
           name: "CARGO PANTS",
           key: "cargo-pants",
-          image: "/images/cargo-pants.png",
+          image: "/images/cargo pants.png",
         },
         { name: "JACKETS", key: "jackets", image: "/images/jackets.png" },
         { name: "HOODIES", key: "hoodies", image: "/images/hoodies.png" },
         {
           name: "CO-ORD SETS",
           key: "co-ord-sets",
-          image: "/images/co-ord-sets.png",
+          image: "/images/co-ord sets.png",
         },
       ].map((section, idx) => (
         <Box
           key={section.key}
           ref={sectionRefs[section.key]}
           sx={{
-            py: { xs: 4, md: 6 },
+            py: 0,
             bgcolor: mode === "dark" ? "#181818" : "#fff",
           }}
         >
@@ -815,6 +938,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "small" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "shirts" ? (
                 <>
@@ -828,6 +984,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "oversized-t-shirts" ? (
                 <>
@@ -841,6 +1030,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "bottom-wear" ? (
                 <>
@@ -854,6 +1076,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "cargo-pants" ? (
                 <>
@@ -867,6 +1122,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "jackets" ? (
                 <>
@@ -880,6 +1168,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "hoodies" ? (
                 <>
@@ -893,6 +1214,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : section.key === "co-ord-sets" ? (
                 <>
@@ -906,6 +1260,39 @@ const Home = ({ mode }) => {
                       display: "block",
                     }}
                   />
+                  <Button
+                    size={isMobile ? "medium" : "large"}
+                    sx={{
+                      position: "absolute",
+                      left: getButtonPosition(section.key, isMobile).left,
+                      top: getButtonPosition(section.key, isMobile).top,
+                      transform: "translate(-50%, -50%)",
+                      backgroundColor: matteColors[900],
+                      color: "white",
+                      fontSize: { xs: "0.92rem", md: "1.15rem" },
+                      py: { xs: 0.7, md: 1.5 },
+                      px: { xs: 2, md: 5 },
+                      borderRadius: { xs: 8, md: 10 },
+                      width: "auto",
+                      minWidth: 0,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        transform: "translate(-50%, -52%)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      },
+                      transition: "all 0.3s ease",
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      zIndex: 2,
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/products?category=${encodeURIComponent(section.key)}`
+                      )
+                    }
+                  >
+                    SHOP ALL
+                  </Button>
                 </>
               ) : (
                 <img
@@ -919,7 +1306,7 @@ const Home = ({ mode }) => {
                   }}
                 />
               )}
-              <Button
+              {/* <Button
                 size={isMobile ? "medium" : "large"}
                 sx={{
                   position: "absolute",
@@ -951,14 +1338,14 @@ const Home = ({ mode }) => {
                 }
               >
                 SHOP ALL
-              </Button>
+              </Button> */}
             </Box>
             <Box
               sx={{
                 mt: 1.5,
                 display: { xs: "flex", md: "grid" },
                 gridTemplateColumns: { md: "repeat(5, 1fr)" },
-                gap: { xs: 2, md: 3 },
+                gap: { xs: 0.5, md: 3 },
                 overflowX: { xs: "auto", md: "visible" },
                 py: { xs: 0, md: 2 },
                 "&::-webkit-scrollbar": { display: "none" },
@@ -966,189 +1353,18 @@ const Home = ({ mode }) => {
                 scrollbarWidth: "none",
               }}
             >
-              {(() => {
-                // Get the appropriate products array based on section key
-                let products = [];
-                switch (section.key) {
-                  case "t-shirts":
-                    products = tShirts;
-                    break;
-                  case "shirts":
-                    products = shirts;
-                    break;
-                  case "oversized-t-shirts":
-                    products = oversizedTShirts;
-                    break;
-                  case "bottom-wear":
-                    products = bottomWear;
-                    break;
-                  case "cargo-pants":
-                    products = cargoPants;
-                    break;
-                  case "jackets":
-                    products = jackets;
-                    break;
-                  case "hoodies":
-                    products = hoodies;
-                    break;
-                  case "co-ord-sets":
-                    products = coOrdSets;
-                    break;
-                  default:
-                    products = [];
-                }
-
-                // If loading, show loading state
-                if (loading) {
-                  return (
-                    <Typography
-                      key="loading"
-                      variant="body1"
-                      sx={{ textAlign: "center", width: "100%" }}
-                    >
-                      Loading {section.name.toLowerCase()}...
-                    </Typography>
-                  );
-                }
-
-                // If error, show error state
-                if (error) {
-                  return (
-                    <Typography
-                      key="error"
-                      variant="body1"
-                      sx={{
-                        textAlign: "center",
-                        width: "100%",
-                        color: "error.main",
-                      }}
-                    >
-                      {error}
-                    </Typography>
-                  );
-                }
-
-                // If no products are available, show dummy products
-                if (!products || products.length === 0) {
-                  return [1, 2, 3, 4, 5].map((i) => {
-                    const colors = [
-                      ["#000", "#fff", "#c00"],
-                      ["#1976d2", "#ffeb3b", "#43a047"],
-                      ["#f44336", "#e91e63", "#9c27b0"],
-                      ["#ff9800", "#795548", "#607d8b"],
-                      ["#212121", "#bdbdbd", "#ffd600"],
-                    ][(i - 1) % 5];
-                    return (
-                      <Box
-                        key={i}
-                        sx={{
-                          flex: { xs: "0 0 50%", md: "unset" },
-                          minWidth: { xs: "50%", md: "unset" },
-                          maxWidth: { xs: "50%", md: "unset" },
-                          p: 0,
-                          display: "flex",
-                        }}
-                      >
-                        <Card
-                          elevation={0}
-                          sx={{
-                            borderRadius: 0,
-                            overflow: "hidden",
-                            cursor: "pointer",
-                            transition: "all 0.3s ease",
-                            minHeight: { xs: 240, md: 300 },
-                            width: "100%",
-                            "&:hover": {
-                              boxShadow: 4,
-                              transform: "translateY(-8px) scale(1.04)",
-                            },
-                          }}
-                          onClick={() => handleProductClick(i)}
-                        >
-                          <Box
-                            sx={{
-                              position: "relative",
-                              width: "100%",
-                              pt: "160%",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <CardMedia
-                              component="img"
-                              image={
-                                [
-                                  "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80",
-                                  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
-                                  "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80",
-                                  "https://images.unsplash.com/photo-1469398715555-76331a6c7c9b?auto=format&fit=crop&w=600&q=80",
-                                  "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80",
-                                ][(i - 1) % 5]
-                              }
-                              alt={`Product ${i}`}
-                              sx={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover",
-                                transition: "transform 0.3s ease-in-out",
-                              }}
-                            />
-                          </Box>
-                          <CardContent sx={{ textAlign: "center", p: 1 }}>
-                            <Typography
-                              variant="subtitle1"
-                              sx={{ fontWeight: 600 }}
-                            >
-                              {section.name} {i}
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                gap: 0.7,
-                                my: 1,
-                              }}
-                            >
-                              {colors.map((color, idx) => (
-                                <Box
-                                  key={idx}
-                                  sx={{
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: "50%",
-                                    background: color,
-                                    border: "1.5px solid #eee",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
-                                  }}
-                                />
-                              ))}
-                            </Box>
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{
-                                fontSize: {
-                                  xs: "0.82rem",
-                                  sm: "0.92rem",
-                                  md: "1rem",
-                                },
-                              }}
-                            >
-                              ₹{1999 + i * 100}
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Box>
-                    );
-                  });
-                }
-
-                // Display actual products
-                return products.slice(0, 5).map((product, index) => (
+              {[1, 2, 3, 4, 5].map((i) => {
+                // Sample colors for demo
+                const colors = [
+                  ["#000", "#fff", "#c00"],
+                  ["#1976d2", "#ffeb3b", "#43a047"],
+                  ["#f44336", "#e91e63", "#9c27b0"],
+                  ["#ff9800", "#795548", "#607d8b"],
+                  ["#212121", "#bdbdbd", "#ffd600"],
+                ][(i - 1) % 5];
+                return (
                   <Box
-                    key={product._id || index}
+                    key={i}
                     sx={{
                       flex: { xs: "0 0 50%", md: "unset" },
                       minWidth: { xs: "50%", md: "unset" },
@@ -1171,7 +1387,7 @@ const Home = ({ mode }) => {
                           transform: "translateY(-8px) scale(1.04)",
                         },
                       }}
-                      onClick={() => handleProductClick(product._id)}
+                      onClick={() => handleProductClick(i)}
                     >
                       <Box
                         sx={{
@@ -1184,13 +1400,15 @@ const Home = ({ mode }) => {
                         <CardMedia
                           component="img"
                           image={
-                            product.image
-                              ? product.image.startsWith("http")
-                                ? product.image
-                                : `${BACKEND_URL}/uploads/${product.image}`
-                              : "/images/placeholder.png"
+                            [
+                              "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80",
+                              "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
+                              "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80",
+                              "https://images.unsplash.com/photo-1469398715555-76331a6c7c9b?auto=format&fit=crop&w=600&q=80",
+                              "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80",
+                            ][(i - 1) % 5]
                           }
-                          alt={product.name}
+                          alt={`Product ${i}`}
                           sx={{
                             position: "absolute",
                             top: 0,
@@ -1207,8 +1425,30 @@ const Home = ({ mode }) => {
                           variant="subtitle1"
                           sx={{ fontWeight: 600 }}
                         >
-                          {product.name}
+                          {section.name} {i}
                         </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            gap: 0.7,
+                            my: 1,
+                          }}
+                        >
+                          {colors.map((color, idx) => (
+                            <Box
+                              key={idx}
+                              sx={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: "50%",
+                                background: color,
+                                border: "1.5px solid #eee",
+                                boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
+                              }}
+                            />
+                          ))}
+                        </Box>
                         <Typography
                           variant="body2"
                           color="text.secondary"
@@ -1220,13 +1460,13 @@ const Home = ({ mode }) => {
                             },
                           }}
                         >
-                          ₹{product.price}
+                          ₹{1999 + i * 100}
                         </Typography>
                       </CardContent>
                     </Card>
                   </Box>
-                ));
-              })()}
+                );
+              })}
             </Box>
             <Box
               sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 4 }}
@@ -1317,231 +1557,233 @@ const Home = ({ mode }) => {
         </Container>
       </Box>
 
-      {/* Premium Membership Banner */}
-      <Box
-        sx={{
-          py: { xs: 2, md: 3 },
-          pb: { xs: 2, md: 2 },
-          mb: 0,
-          bgcolor: mode === "dark" ? "#181818" : "#f7f7f7",
-        }}
-      >
-        <Container maxWidth="xl">
-          <Paper
-            sx={{
-              p: { xs: 2, md: 6 },
-              background:
-                mode === "dark"
-                  ? "linear-gradient(45deg, #181818 30%, #232323 90%)"
-                  : "linear-gradient(45deg, #000000 30%, #1a1a1a 90%)",
-              color: "white",
-              mb: { xs: 0, md: 6 },
-              borderRadius: 2,
-              position: "relative",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
+      {/* Premium Membership Banner - Only show if user is not subscribed */}
+      {!profileLoading && !isSubscribed && (
+        <Box
+          sx={{
+            py: { xs: 2, md: 3 },
+            pb: { xs: 2, md: 2 },
+            mb: 0,
+            bgcolor: mode === "dark" ? "#181818" : "#f7f7f7",
+          }}
+        >
+          <Container maxWidth="xl">
+            <Paper
+              sx={{
+                p: { xs: 2, md: 6 },
                 background:
-                  "radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 60%)",
-                pointerEvents: "none",
-              },
-            }}
-          >
-            <Grid container spacing={4} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <Box
-                  sx={{
-                    bgcolor: "transparent",
-                    color: "white",
-                    borderRadius: 2,
-                    p: { xs: 2, md: 3 },
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    justifyContent: "center",
-                    height: "100%",
-                  }}
-                >
-                  <Typography
-                    variant="h3"
+                  mode === "dark"
+                    ? "linear-gradient(45deg, #181818 30%, #232323 90%)"
+                    : "linear-gradient(45deg, #000000 30%, #1a1a1a 90%)",
+                color: "white",
+                mb: { xs: 0, md: 6 },
+                borderRadius: 2,
+                position: "relative",
+                overflow: "hidden",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background:
+                    "radial-gradient(circle at top right, rgba(255,255,255,0.1) 0%, transparent 60%)",
+                  pointerEvents: "none",
+                },
+              }}
+            >
+              <Grid container spacing={4} alignItems="center">
+                <Grid item xs={12} md={6}>
+                  <Box
                     sx={{
-                      fontWeight: 800,
-                      mb: 1.2,
-                      letterSpacing: "-0.02em",
-                      background:
-                        "linear-gradient(90deg, #C9A14A 0%, #FFD700 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                      fontSize: { xs: "1.1rem", md: "2rem" },
-                    }}
-                  >
-                    Join BEATEN CLUB
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      opacity: 0.85,
-                      mb: 2,
+                      bgcolor: "transparent",
                       color: "white",
-                      fontWeight: 400,
-                      fontSize: { xs: "0.9rem", md: "1.1rem" },
+                      borderRadius: 2,
+                      p: { xs: 2, md: 3 },
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      justifyContent: "center",
+                      height: "100%",
                     }}
                   >
-                    Unlock exclusive streetwear experiences, rewards, and VIP
-                    treatment as a BEATEN CLUB member.
-                  </Typography>
-                  <Stack direction="row" spacing={2}>
-                    <Button
-                      variant="contained"
-                      size={isMobile ? "large" : "medium"}
+                    <Typography
+                      variant="h3"
                       sx={{
+                        fontWeight: 800,
+                        mb: 1.2,
+                        letterSpacing: "-0.02em",
                         background:
-                          "linear-gradient(90deg, #FFD700 0%, #C9A14A 100%)",
-                        color: "black",
-                        py: isMobile ? 1.2 : 1,
-                        px: isMobile ? 3 : 4,
-                        fontSize: { xs: "0.7rem", md: "0.9rem" },
-                        borderRadius: 10,
-                        width: "auto",
-                        minWidth: 0,
-                        "&:hover": {
-                          background:
-                            "linear-gradient(90deg, #C9A14A 0%, #FFD700 100%)",
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        },
-                        transition: "all 0.3s ease",
-                        alignSelf: "center",
-                        whiteSpace: "nowrap",
+                          "linear-gradient(90deg, #C9A14A 0%, #FFD700 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                        fontSize: { xs: "1.1rem", md: "2rem" },
                       }}
-                      onClick={() => navigate("/premium")}
                     >
-                      JOIN NOW
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size={isMobile ? "large" : "medium"}
-                      onClick={() => navigate("/premium")}
+                      Join BEATEN CLUB
+                    </Typography>
+                    <Typography
+                      variant="h6"
                       sx={{
-                        borderColor: matteColors[900],
-                        color: matteColors[900],
-                        backgroundColor: "white",
-                        py: isMobile ? 1.2 : 1,
-                        px: isMobile ? 3 : 4,
-                        fontSize: { xs: "0.7rem", md: "0.9rem" },
-                        borderRadius: 10,
-                        width: "auto",
-                        minWidth: 0,
-                        "&:hover": {
-                          backgroundColor: matteColors[100],
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        },
-                        transition: "all 0.3s ease",
-                        alignSelf: "center",
-                        whiteSpace: "nowrap",
+                        opacity: 0.85,
+                        mb: 2,
+                        color: "white",
+                        fontWeight: 400,
+                        fontSize: { xs: "0.9rem", md: "1.1rem" },
                       }}
                     >
-                      LEARN MORE
-                    </Button>
-                  </Stack>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box
-                  sx={{
-                    bgcolor: "#181818",
-                    color: "white",
-                    borderRadius: 2,
-                    p: { xs: 2, md: 3 },
-                    boxShadow: 3,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    height: "100%",
-                  }}
-                >
-                  <Grid container spacing={1.2} sx={{ width: "100%" }}>
-                    {[
-                      "Early Access to new drops",
-                      "Exclusive Member Discounts",
-                      "Free Express Shipping",
-                      "VIP Customer Support",
-                      "Special Birthday Rewards",
-                    ].map((point, idx) => (
-                      <Grid item xs={12} sm={6} key={idx}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            mb: 1.5,
-                            color: mode === "dark" ? "fff" : "181818",
-                            bgcolor: mode === "dark" ? "fff" : "181818",
-                          }}
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            style={{ marginRight: 8 }}
-                          >
-                            <defs>
-                              <linearGradient
-                                id={`gold-gradient-${idx}`}
-                                x1="0"
-                                y1="0"
-                                x2="1"
-                                y2="1"
-                              >
-                                <stop offset="0%" stopColor="#C9A14A" />
-                                <stop offset="100%" stopColor="#FFD700" />
-                              </linearGradient>
-                            </defs>
-                            <path
-                              d="M9 16.2l-3.5-3.5 1.41-1.41L9 13.38l7.09-7.09 1.41 1.41z"
-                              fill={`url(#gold-gradient-${idx})`}
-                            />
-                            <circle
-                              cx="12"
-                              cy="12"
-                              r="11"
-                              stroke={`url(#gold-gradient-${idx})`}
-                              strokeWidth="2"
-                              fill="none"
-                            />
-                          </svg>
-                          <span
-                            style={{
-                              fontWeight: 500,
-                              color: "white",
-                              fontSize: {
-                                xs: "0.65rem",
-                                sm: "0.75rem",
-                                md: "0.85rem",
-                              },
+                      Unlock exclusive streetwear experiences, rewards, and VIP
+                      treatment as a BEATEN CLUB member.
+                    </Typography>
+                    <Stack direction="row" spacing={2}>
+                      <Button
+                        variant="contained"
+                        size={isMobile ? "large" : "medium"}
+                        sx={{
+                          background:
+                            "linear-gradient(90deg, #FFD700 0%, #C9A14A 100%)",
+                          color: "black",
+                          py: isMobile ? 1.2 : 1,
+                          px: isMobile ? 3 : 4,
+                          fontSize: { xs: "0.7rem", md: "0.9rem" },
+                          borderRadius: 10,
+                          width: "auto",
+                          minWidth: 0,
+                          "&:hover": {
+                            background:
+                              "linear-gradient(90deg, #C9A14A 0%, #FFD700 100%)",
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          },
+                          transition: "all 0.3s ease",
+                          alignSelf: "center",
+                          whiteSpace: "nowrap",
+                        }}
+                        onClick={() => navigate("/premium")}
+                      >
+                        JOIN NOW
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size={isMobile ? "large" : "medium"}
+                        onClick={() => navigate("/premium")}
+                        sx={{
+                          borderColor: matteColors[900],
+                          color: matteColors[900],
+                          backgroundColor: "white",
+                          py: isMobile ? 1.2 : 1,
+                          px: isMobile ? 3 : 4,
+                          fontSize: { xs: "0.7rem", md: "0.9rem" },
+                          borderRadius: 10,
+                          width: "auto",
+                          minWidth: 0,
+                          "&:hover": {
+                            backgroundColor: matteColors[100],
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          },
+                          transition: "all 0.3s ease",
+                          alignSelf: "center",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        LEARN MORE
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Box
+                    sx={{
+                      bgcolor: "#181818",
+                      color: "white",
+                      borderRadius: 2,
+                      p: { xs: 2, md: 3 },
+                      boxShadow: 3,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "100%",
+                    }}
+                  >
+                    <Grid container spacing={1.2} sx={{ width: "100%" }}>
+                      {[
+                        "Early Access to new drops",
+                        "Exclusive Member Discounts",
+                        "Free Express Shipping",
+                        "VIP Customer Support",
+                        "Special Birthday Rewards",
+                      ].map((point, idx) => (
+                        <Grid item xs={12} sm={6} key={idx}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 1.5,
+                              color: mode === "dark" ? "fff" : "181818",
+                              bgcolor: mode === "dark" ? "fff" : "181818",
                             }}
                           >
-                            {point}
-                          </span>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              style={{ marginRight: 8 }}
+                            >
+                              <defs>
+                                <linearGradient
+                                  id={`gold-gradient-${idx}`}
+                                  x1="0"
+                                  y1="0"
+                                  x2="1"
+                                  y2="1"
+                                >
+                                  <stop offset="0%" stopColor="#C9A14A" />
+                                  <stop offset="100%" stopColor="#FFD700" />
+                                </linearGradient>
+                              </defs>
+                              <path
+                                d="M9 16.2l-3.5-3.5 1.41-1.41L9 13.38l7.09-7.09 1.41 1.41z"
+                                fill={`url(#gold-gradient-${idx})`}
+                              />
+                              <circle
+                                cx="12"
+                                cy="12"
+                                r="11"
+                                stroke={`url(#gold-gradient-${idx})`}
+                                strokeWidth="2"
+                                fill="none"
+                              />
+                            </svg>
+                            <span
+                              style={{
+                                fontWeight: 500,
+                                color: "white",
+                                fontSize: {
+                                  xs: "0.65rem",
+                                  sm: "0.75rem",
+                                  md: "0.85rem",
+                                },
+                              }}
+                            >
+                              {point}
+                            </span>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                </Grid>
               </Grid>
-            </Grid>
-          </Paper>
-        </Container>
-      </Box>
+            </Paper>
+          </Container>
+        </Box>
+      )}
     </Box>
   );
 };

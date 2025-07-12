@@ -67,7 +67,7 @@ const colorOptions = []; // or compute from products if needed
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
@@ -1107,7 +1107,7 @@ const Products = ({ mode }) => {
   const fetchProducts = async () => {
     setShowLoading(true);
     try {
-      const response = await axios.get("http://localhost:8000/api/products");
+      const response = await axios.get(process.env.REACT_APP_API_URL||"http://localhost:8000/api/products");
       setProducts(response.data.data || []);
     } catch (err) {
       setError("Failed to load products");

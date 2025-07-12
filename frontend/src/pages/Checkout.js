@@ -78,7 +78,7 @@ const Checkout = ({ mode = "dark" }) => {
   const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
-  const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetchAddresses();

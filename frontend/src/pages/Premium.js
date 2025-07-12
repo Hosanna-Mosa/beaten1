@@ -147,7 +147,7 @@ const Premium = ({ mode }) => {
 
     script.onload = () => {
       const options = {
-        key: "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
+        key: process.env.REACT_APP_RAZOR_KEY || "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
         amount: 24900, // ₹249 in paise
         currency: "INR",
         name: "BEATEN Premium",
