@@ -10,6 +10,7 @@ const userRoutes = require("./user");
 const orderRoutes = require("./orders");
 const addressRoutes = require("./address");
 const forgotPasswordRoutes = require("./forgotPassword");
+const emailRoutes = require("./email");
 
 
 // Route definitions
@@ -23,6 +24,7 @@ router.use(require("./coupons"));
 router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
+router.use("/email", emailRoutes);
 
 
 // Health check route

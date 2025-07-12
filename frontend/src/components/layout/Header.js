@@ -542,17 +542,6 @@ const Header = ({ mode, toggleColorMode }) => {
               zIndex: 2,
             }}
           >
-            {/* Search Bar - beside Wishlist Icon */}
-            <Box
-              sx={{
-                display: { xs: "none", md: "flex" },
-                alignItems: "center",
-                mr: 2,
-                ml: 2,
-              }}
-            >
-              <HeroSearchBar colorMode="light" />
-            </Box>
             {/* Wishlist Icon - only show on md and up */}
             <IconButton
               color="inherit"

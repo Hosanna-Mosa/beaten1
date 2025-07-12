@@ -1053,10 +1053,24 @@ const Products = ({ mode }) => {
           clickable
           onClick={() => {
             const isActive = filters[chip.filterKey].includes(chip.value);
-            const newValues = isActive
-              ? filters[chip.filterKey].filter((val) => val !== chip.value)
-              : [...filters[chip.filterKey], chip.value];
-            handleFilterChange(chip.filterKey, newValues);
+            if (isActive) {
+              // Deselect all filters
+              handleFilterChange(chip.filterKey, []);
+            } else {
+              // Clear all filters, then set only this chip as active
+              setFilters({
+                gender: chip.filterKey === "gender" ? [chip.value] : [],
+                category: [],
+                subCategory: [],
+                collectionName: chip.filterKey === "collectionName" ? [chip.value] : [],
+                priceRange: [0, 10000],
+                sort: "newest",
+                size: [],
+                color: [],
+                fit: chip.filterKey === "fit" ? [chip.value] : [],
+              });
+              setPage(1);
+            }
           }}
           sx={{
             height: 32,
@@ -1164,56 +1178,47 @@ const Products = ({ mode }) => {
         transition: "background 0.3s, color 0.3s",
       }}
     >
-      <Container maxWidth="xl" sx={{ py: 0, px: { xs: 0, md: 3 } }}>
-        {/* Search and Refresh Section */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-            px: { xs: 2, md: 0 },
+      {/* Edge-to-edge Search Bar */}
+      <Box
+        sx={{
+          width: '100vw',
+          position: 'relative',
+          left: '50%',
+          right: '50%',
+          transform: 'translateX(-50%)',
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          zIndex: 10,
+          mb: 2,
+        }}
+      >
+        <TextField
+          fullWidth
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            endAdornment: searchQuery && (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setSearchQuery("")}>
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
           }}
-        >
-          {/* Search Bar */}
-          <Box sx={{ flex: 1, maxWidth: 400 }}>
-            <TextField
-              fullWidth
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: searchQuery && (
-                  <InputAdornment position="end">
-                    <IconButton size="small" onClick={() => setSearchQuery("")}>
-                      <CloseIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "8px",
-                },
-              }}
-            />
-          </Box>
-
-          {/* Refresh Button */}
-          <Button
-            variant="outlined"
-            onClick={fetchProducts}
-            startIcon={<RefreshIcon />}
-            sx={{ ml: 2 }}
-          >
-            Refresh
-          </Button>
-        </Box>
+          sx={{
+            width: '100%',
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        />
+      </Box>
+      <Container maxWidth="xl" sx={{ py: 0, px: { xs: 0, md: 3 } }}>
         {/* Mobile custom header and chips */}
         {isMobile && (
           <>
