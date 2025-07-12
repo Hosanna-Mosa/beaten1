@@ -168,10 +168,36 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// @desc    Get a single order for the logged-in user
+// @route   GET /api/orders/my/:id
+// @access  Private
+const getMyOrderById = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id })
+      .populate("shippingAddress");
+    if (!order) {
+      return res.status(STATUS_CODES.NOT_FOUND).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message || "Failed to fetch order",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
   getAllOrders,
   getOrderById,
   updateOrderStatus,
+  getMyOrderById,
 };

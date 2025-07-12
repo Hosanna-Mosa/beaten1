@@ -18,6 +18,7 @@ import {
   Inventory as ProductsIcon,
   LocalOffer as PromotionsIcon
 } from '@mui/icons-material';
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
@@ -25,7 +26,12 @@ const menuItems = [
   { text: 'Products', icon: <ProductsIcon />, path: '/products' },
   { text: 'Orders', icon: <OrdersIcon />, path: '/orders' },
   // { text: 'Customers', icon: <CustomersIcon />, path: '/customers' },
-  { text: 'Promotions', icon: <PromotionsIcon />, path: '/promotions' }
+  { text: 'Promotions', icon: <PromotionsIcon />, path: '/promotions' },
+  {
+    text: 'Returns',
+    icon: <AssignmentReturnIcon />,
+    path: '/returns',
+  },
 ];
 
 function Sidebar() {

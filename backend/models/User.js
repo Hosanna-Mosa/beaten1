@@ -38,10 +38,32 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other", ""],
+      default: "",
+    },
+    dob: {
+      type: String,
+      default: "",
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
     addressBook: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address"
     }],
+    returns: [
+      {
+        orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        reason: { type: String, required: true },
+        status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+        date: { type: Date, default: Date.now }
+      }
+    ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     createdAt: {

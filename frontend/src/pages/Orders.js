@@ -39,6 +39,7 @@ import { useEffect } from "react";
 import axios from "axios";
 import PendingTimeIcon from "@mui/icons-material/AccessTime";
 import ProcessingInventoryIcon from "@mui/icons-material/Inventory";
+import MuiAlert from '@mui/material/Alert';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -111,6 +112,8 @@ const Orders = ({ mode }) => {
   const [returnReason, setReturnReason] = useState("");
   const [returnComment, setReturnComment] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -183,11 +186,32 @@ const Orders = ({ mode }) => {
     setReturnItem(null);
   };
 
-  const handleSubmitReturn = (e) => {
+  const handleSubmitReturn = async (e) => {
     e.preventDefault();
-    setReturnDialogOpen(false);
-    setSnackbarOpen(true);
-    setReturnItem(null);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:8000/api/user/return', {
+        orderId: returnItem.orderId,
+        productId: returnItem.item.product || returnItem.item._id,
+        reason: returnReason
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSnackbarMsg('Return request submitted!');
+      setSnackbarSeverity('success');
+    } catch (err) {
+      let msg = 'Failed to submit return request.';
+      if (err.response && err.response.data && err.response.data.message) {
+        msg = err.response.data.message;
+      }
+      setSnackbarMsg(msg);
+      setSnackbarSeverity('error');
+    } finally {
+      setReturnDialogOpen(false);
+      setSnackbarOpen(true);
+      setReturnItem(null);
+      console.log('Snackbar should open now');
+    }
   };
 
   if (orders.length === 0) {
@@ -231,9 +255,22 @@ const Orders = ({ mode }) => {
         transition: "background 0.3s, color 0.3s",
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2, gap: 2 }}>
         <Button variant="outlined" onClick={fetchOrders}>
           Refresh Orders
+        </Button>
+        <Button 
+          variant="contained" 
+          onClick={() => navigate('/returns')}
+          sx={{
+            bgcolor: matteColors[900],
+            color: 'white',
+            '&:hover': {
+              bgcolor: matteColors[800],
+            },
+          }}
+        >
+          My Returns
         </Button>
       </Box>
       <Typography
@@ -584,40 +621,6 @@ const Orders = ({ mode }) => {
                         Track Order
                       </Button>
                       <Button
-                        variant="outlined"
-                        startIcon={<InvoiceIcon />}
-                        sx={{
-                          fontWeight: 600,
-                          minWidth: 150,
-                          borderColor: matteColors[900],
-                          color: matteColors[900],
-                          backgroundColor: "white",
-                          py: { xs: 0.7, md: 1 },
-                          px: { xs: 2, md: 3 },
-                          fontSize: { xs: "0.92rem", md: "0.98rem" },
-                          borderRadius: 10,
-                          minHeight: { xs: 36, md: 42 },
-                          textTransform: "none",
-                          alignSelf: { xs: "stretch", md: "center" },
-                          whiteSpace: "nowrap",
-                          transition: "all 0.3s ease",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                          "&:hover": {
-                            backgroundColor: matteColors[100],
-                            borderColor: matteColors[800],
-                            color: matteColors[800],
-                            transform: "translateY(-2px)",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                          },
-                        }}
-                        onClick={() =>
-                          alert("Download Invoice feature coming soon!")
-                        }
-                        fullWidth={isMobile}
-                      >
-                        Download Invoice
-                      </Button>
-                      <Button
                         variant="contained"
                         startIcon={<ExchangeIcon />}
                         sx={{
@@ -641,12 +644,10 @@ const Orders = ({ mode }) => {
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                           },
                         }}
-                        onClick={() =>
-                          alert("Exchange/Return feature coming soon!")
-                        }
+                        onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
                         fullWidth={isMobile}
                       >
-                        Exchange or Return
+                        Return
                       </Button>
                     </Box>
                   </>
@@ -900,39 +901,6 @@ const Orders = ({ mode }) => {
                     Track Order
                   </Button>
                   <Button
-                    variant="outlined"
-                    startIcon={<InvoiceIcon />}
-                    sx={{
-                      fontWeight: 600,
-                      minWidth: 150,
-                      borderColor: matteColors[900],
-                      color: matteColors[900],
-                      backgroundColor: "white",
-                      py: { xs: 0.7, md: 1 },
-                      px: { xs: 2, md: 3 },
-                      fontSize: { xs: "0.92rem", md: "0.98rem" },
-                      borderRadius: 10,
-                      minHeight: { xs: 36, md: 42 },
-                      textTransform: "none",
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                      "&:hover": {
-                        backgroundColor: matteColors[100],
-                        borderColor: matteColors[800],
-                        color: matteColors[800],
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                      },
-                    }}
-                    onClick={() =>
-                      alert("Download Invoice feature coming soon!")
-                    }
-                  >
-                    Download Invoice
-                  </Button>
-                  <Button
                     variant="contained"
                     startIcon={<ExchangeIcon />}
                     sx={{
@@ -956,11 +924,9 @@ const Orders = ({ mode }) => {
                         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                       },
                     }}
-                    onClick={() =>
-                      alert("Exchange/Return feature coming soon!")
-                    }
+                    onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
                   >
-                    Exchange or Return
+                    Return
                   </Button>
                 </Box>
               </Paper>
@@ -1241,7 +1207,7 @@ const Orders = ({ mode }) => {
         fullWidth
       >
         <form onSubmit={handleSubmitReturn}>
-          <DialogTitle>Return/Exchange - {returnItem?.item?.name}</DialogTitle>
+          <DialogTitle>Return - {returnItem?.item?.name}</DialogTitle>
           <DialogContent dividers>
             <TextField
               select
@@ -1283,13 +1249,20 @@ const Orders = ({ mode }) => {
       </Dialog>
       <Snackbar
         open={snackbarOpen}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 2000 }}
       >
-        <Alert severity="success" sx={{ width: "100%" }}>
-          Return/Exchange request submitted!
-        </Alert>
+        <MuiAlert
+          elevation={6}
+          variant="filled"
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          sx={{ width: "100%" }}
+        >
+          {snackbarMsg}
+        </MuiAlert>
       </Snackbar>
     </Container>
   );
