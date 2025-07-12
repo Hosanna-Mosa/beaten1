@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Box,
   Paper,
@@ -159,6 +159,18 @@ function Products() {
     fetchProducts();
   }, []);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [
+    searchTerm,
+    selectedCategory,
+    selectedStatus,
+    priceRange,
+    showOnlyFeatured,
+    sortBy,
+  ]);
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -170,22 +182,18 @@ function Products() {
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   const handleCategoryChange = (event) => {
     setSelectedCategory(event.target.value);
-    setPage(0);
   };
 
   const handleStatusChange = (event) => {
     setSelectedStatus(event.target.value);
-    setPage(0);
   };
 
   const handleSortChange = (event) => {
     setSortBy(event.target.value);
-    setPage(0);
   };
 
   const handleOpenDialog = (product = null) => {
@@ -209,7 +217,7 @@ function Products() {
 
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedProducts(products.map((product) => product._id));
+      setSelectedProducts(getFilteredProducts().map((product) => product._id));
     } else {
       setSelectedProducts([]);
     }
@@ -235,10 +243,10 @@ function Products() {
   };
 
   const handleExport = () => {
-    const csvContent = products
+    const csvContent = getFilteredProducts()
       .map(
         (product) =>
-          `${product.sku},${product.name},${product.category},${product.price},${product.stock},${product.status}`
+          `${product.sku || "N/A"},${product.name},${product.category},${product.price},${product.stockQuantity || 0},${product.inStock ? "In Stock" : "Out of Stock"}`
       )
       .join("\n");
 
@@ -319,58 +327,77 @@ function Products() {
     }
   };
 
-  const sortOptions = [
-    { value: "latest", label: "Latest" },
-    { value: "oldest", label: "Oldest" },
-    { value: "priceAsc", label: "Price: Low to High" },
-    { value: "priceDesc", label: "Price: High to Low" },
-  ];
+  // Remove duplicate sortOptions - using the one defined at the top
 
-  const filteredProducts = products
-    .filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" || product.category === selectedCategory;
-      const matchesStatus =
-        selectedStatus === "All" ||
-        (selectedStatus === "In Stock" && product.inStock) ||
-        (selectedStatus === "Out of Stock" && !product.inStock);
-      const matchesPrice =
-        (!priceRange.min || product.price >= parseFloat(priceRange.min)) &&
-        (!priceRange.max || product.price <= parseFloat(priceRange.max));
-      const matchesFeatured = !showOnlyFeatured || product.featured;
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesStatus &&
-        matchesPrice &&
-        matchesFeatured
-      );
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name_asc":
-          return a.name.localeCompare(b.name);
-        case "name_desc":
-          return b.name.localeCompare(a.name);
-        case "price_asc":
-          return a.price - b.price;
-        case "price_desc":
-          return b.price - a.price;
-        case "stock_asc":
-          return (a.stockQuantity || 0) - (b.stockQuantity || 0);
-        case "stock_desc":
-          return (b.stockQuantity || 0) - (a.stockQuantity || 0);
-        case "rating_desc":
-          return b.rating - a.rating;
-        case "created_desc":
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        default:
-          return 0;
-      }
-    });
+  // Function to get filtered and sorted products
+  const getFilteredProducts = useCallback(() => {
+    return products
+      .filter((product) => {
+        // Search filter
+        const searchLower = searchTerm.toLowerCase();
+        const matchesSearch =
+          product.name.toLowerCase().includes(searchLower) ||
+          (product.sku && product.sku.toLowerCase().includes(searchLower));
+
+        // Category filter
+        const matchesCategory =
+          selectedCategory === "All" || product.category === selectedCategory;
+
+        // Status filter
+        const matchesStatus =
+          selectedStatus === "All" ||
+          (selectedStatus === "In Stock" && product.inStock) ||
+          (selectedStatus === "Out of Stock" && !product.inStock);
+
+        // Price range filter
+        const minPrice = priceRange.min ? parseFloat(priceRange.min) : null;
+        const maxPrice = priceRange.max ? parseFloat(priceRange.max) : null;
+        const matchesPrice =
+          (!minPrice || product.price >= minPrice) &&
+          (!maxPrice || product.price <= maxPrice);
+
+        // Featured filter
+        const matchesFeatured = !showOnlyFeatured || product.featured;
+
+        return (
+          matchesSearch &&
+          matchesCategory &&
+          matchesStatus &&
+          matchesPrice &&
+          matchesFeatured
+        );
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "name_asc":
+            return a.name.localeCompare(b.name);
+          case "name_desc":
+            return b.name.localeCompare(a.name);
+          case "price_asc":
+            return a.price - b.price;
+          case "price_desc":
+            return b.price - a.price;
+          case "stock_asc":
+            return (a.stockQuantity || 0) - (b.stockQuantity || 0);
+          case "stock_desc":
+            return (b.stockQuantity || 0) - (a.stockQuantity || 0);
+          case "rating_desc":
+            return (b.rating || 0) - (a.rating || 0);
+          case "created_desc":
+            return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          default:
+            return 0;
+        }
+      });
+  }, [
+    products,
+    searchTerm,
+    selectedCategory,
+    selectedStatus,
+    priceRange,
+    showOnlyFeatured,
+    sortBy,
+  ]);
 
   const getStatusColor = (inStock) => {
     return inStock ? "success" : "error";
@@ -1307,15 +1334,15 @@ function Products() {
       >
         <Typography variant="h4">Products</Typography>
         <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
+          {/* <Button
             variant="outlined"
             startIcon={<UploadIcon />}
             onClick={() => {
-              /* Implement import */
+              
             }}
           >
             Import
-          </Button>
+          </Button> */}
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
@@ -1359,6 +1386,7 @@ function Products() {
                 label="Category"
                 onChange={handleCategoryChange}
               >
+                <MenuItem value="All">All Categories</MenuItem>
                 {categories.map((category) => (
                   <MenuItem key={category} value={category}>
                     {category}
@@ -1399,7 +1427,7 @@ function Products() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2}>
+          {/* <Grid item xs={12} md={2}>
             <Button
               fullWidth
               variant="outlined"
@@ -1408,7 +1436,7 @@ function Products() {
             >
               More Filters
             </Button>
-          </Grid>
+          </Grid> */}
         </Grid>
 
         {showFilters && (
@@ -1465,6 +1493,32 @@ function Products() {
         </Paper>
       )}
 
+      {/* Results Summary */}
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Showing {getFilteredProducts().length} of {products.length} products
+          {(searchTerm ||
+            selectedCategory !== "All" ||
+            selectedStatus !== "All" ||
+            priceRange.min ||
+            priceRange.max ||
+            showOnlyFeatured) && <span> (filtered)</span>}
+        </Typography>
+        {getFilteredProducts().length > 0 && (
+          <Typography variant="body2" color="text.secondary">
+            Page {page + 1} of{" "}
+            {Math.ceil(getFilteredProducts().length / rowsPerPage)}
+          </Typography>
+        )}
+      </Box>
+
       {/* View Toggle */}
       <Box sx={{ mb: 3 }}>
         <Tabs
@@ -1482,7 +1536,7 @@ function Products() {
         <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <Typography>Loading products...</Typography>
         </Box>
-      ) : filteredProducts.length === 0 ? (
+      ) : getFilteredProducts().length === 0 ? (
         <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
           <Typography>No products found</Typography>
         </Box>
@@ -1498,11 +1552,11 @@ function Products() {
                   >
                     <Checkbox
                       checked={
-                        selectedProducts.length === filteredProducts.length
+                        selectedProducts.length === getFilteredProducts().length
                       }
                       indeterminate={
                         selectedProducts.length > 0 &&
-                        selectedProducts.length < filteredProducts.length
+                        selectedProducts.length < getFilteredProducts().length
                       }
                       onChange={handleSelectAll}
                     />
@@ -1531,7 +1585,7 @@ function Products() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredProducts
+                {getFilteredProducts()
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((product) => (
                     <TableRow
@@ -1617,7 +1671,7 @@ function Products() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={filteredProducts.length}
+            count={getFilteredProducts().length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -1626,7 +1680,7 @@ function Products() {
         </Paper>
       ) : (
         <Grid container spacing={3}>
-          {filteredProducts
+          {getFilteredProducts()
             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
             .map((product) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
