@@ -1631,95 +1631,38 @@ const Products = ({ mode }) => {
                 variant="h6"
                 sx={{ fontSize: "1.1rem", fontWeight: 600 }}
               >
-                Filters
+                Sort
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <Select
-                    value={filters.sort}
-                    onChange={(e) => handleFilterChange("sort", e.target.value)}
-                    displayEmpty
-                    sx={{ fontSize: "0.875rem" }}
-                  >
-                    <MenuItem value="newest">Newest</MenuItem>
-                    <MenuItem value="price_asc">Price: Low to High</MenuItem>
-                    <MenuItem value="price_desc">Price: High to Low</MenuItem>
-                    <MenuItem value="popular">Most Popular</MenuItem>
-                  </Select>
-                </FormControl>
-                <IconButton onClick={() => setDrawerOpen(false)} size="small">
-                  <CloseIcon />
-                </IconButton>
-              </Box>
+              <IconButton onClick={() => setDrawerOpen(false)} size="small">
+                <CloseIcon />
+              </IconButton>
             </Box>
 
-            {/* Filter Content */}
+            {/* Only Sort Dropdown for Mobile Drawer */}
             <Box
               sx={{
                 flex: 1,
                 overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                p: 3,
               }}
             >
-              {filterBody}
-            </Box>
-
-            {/* Filter Footer */}
-            <Box
-              sx={{
-                p: 2,
-                borderTop: "1px solid rgba(0, 0, 0, 0.1)",
-                bgcolor: "background.paper",
-                position: "sticky",
-                bottom: 0,
-                pb: { xs: 9, md: 2 },
-              }}
-            >
-              <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    setFilters({
-                      gender: [],
-                      category: [],
-                      subCategory: [],
-                      collectionName: [],
-                      priceRange: [0, 10000],
-                      sort: "newest",
-                      size: [],
-                      color: [],
-                      fit: [],
-                    });
-                    setSearchQuery("");
-                    setShopAllActive(false);
-                  }}
-                  sx={{
-                    flex: 1,
-                    py: 1,
-                    fontSize: "0.875rem",
-                  }}
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <Select
+                  value={filters.sort}
+                  onChange={(e) => handleFilterChange("sort", e.target.value)}
+                  displayEmpty
+                  sx={{ fontSize: "1rem" }}
                 >
-                  Clear All
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={() => setDrawerOpen(false)}
-                  endIcon={<FilterIcon />}
-                  sx={{
-                    flex: 1,
-                    py: 1.5,
-                    fontWeight: 600,
-                    fontSize: "1rem",
-                    backgroundColor: "#1a1a1a",
-                    color: "white",
-                    borderRadius: "10px",
-                    "&:hover": {
-                      backgroundColor: "#2d2d2d",
-                    },
-                  }}
-                >
-                  Apply
-                </Button>
-              </Box>
+                  <MenuItem value="newest">Newest</MenuItem>
+                  <MenuItem value="price_asc">Price: Low to High</MenuItem>
+                  <MenuItem value="price_desc">Price: High to Low</MenuItem>
+                  <MenuItem value="popular">Most Popular</MenuItem>
+                </Select>
+              </FormControl>
             </Box>
           </Box>
         </Drawer>

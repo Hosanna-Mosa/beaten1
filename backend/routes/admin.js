@@ -7,8 +7,9 @@ const {
   updateProfile,
   changePassword,
   logout,
+  dashboardAnalytics,
 } = require("../controllers/adminController");
-const User = require('../models/User');
+const User = require("../models/User");
 const { protectAdmin } = require("../middleware/auth");
 const {
   adminRegisterValidation,
@@ -16,7 +17,7 @@ const {
   adminProfileUpdateValidation,
   adminPasswordChangeValidation,
 } = require("../middleware/validation");
-const { sendReturnStatusEmail } = require('../utils/emailService');
+const { sendReturnStatusEmail } = require("../utils/emailService");
 
 // Public routes
 router.post("/register", adminRegisterValidation, register);
@@ -38,19 +39,22 @@ router.put(
 );
 router.post("/logout", protectAdmin, logout);
 
+// Dashboard analytics endpoint
+router.get("/dashboard", dashboardAnalytics);
+
 // List all returns
-router.get('/returns', protectAdmin, async (req, res) => {
+router.get("/returns", protectAdmin, async (req, res) => {
   try {
     // Aggregate all returns from all users
-    const users = await User.find({}, 'email returns');
+    const users = await User.find({}, "email returns");
     const allReturns = [];
-    users.forEach(user => {
-      (user.returns || []).forEach(ret => {
+    users.forEach((user) => {
+      (user.returns || []).forEach((ret) => {
         allReturns.push({
           _id: ret._id,
           userId: user._id,
           user: { email: user.email },
-          ...ret.toObject()
+          ...ret.toObject(),
         });
       });
     });
@@ -61,22 +65,28 @@ router.get('/returns', protectAdmin, async (req, res) => {
 });
 
 // Update return status
-router.patch('/returns/:id/status', protectAdmin, async (req, res) => {
+router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
   try {
     const { status } = req.body;
-    if (!['pending', 'approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
+    if (!["pending", "approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
     }
     // Find the user and return by return _id
-    const user = await User.findOne({ 'returns._id': req.params.id });
-    if (!user) return res.status(404).json({ message: 'Return not found' });
+    const user = await User.findOne({ "returns._id": req.params.id });
+    if (!user) return res.status(404).json({ message: "Return not found" });
     const ret = user.returns.id(req.params.id);
-    if (!ret) return res.status(404).json({ message: 'Return not found' });
+    if (!ret) return res.status(404).json({ message: "Return not found" });
     ret.status = status;
     await user.save();
     // Send return status update email
-    sendReturnStatusEmail(user.email, user.name, ret.orderId, ret.productId, status).catch(console.error);
-    res.json({ success: true, message: 'Status updated' });
+    sendReturnStatusEmail(
+      user.email,
+      user.name,
+      ret.orderId,
+      ret.productId,
+      status
+    ).catch(console.error);
+    res.json({ success: true, message: "Status updated" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
