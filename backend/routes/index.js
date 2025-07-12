@@ -17,6 +17,7 @@ router.use("/products", productRoutes);
 router.use("/admin", adminRoutes);
 router.use("/upload", require("./upload"));
 router.use("/user", userRoutes);
+router.use(require('./coupons'));
 
 router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);

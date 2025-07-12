@@ -61,7 +61,8 @@ const userSchema = new mongoose.Schema(
         productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
         reason: { type: String, required: true },
         status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-        date: { type: Date, default: Date.now }
+        date: { type: Date, default: Date.now },
+        received: { type: Boolean, default: false }
       }
     ],
     resetPasswordToken: String,
