@@ -76,10 +76,12 @@ const userSchema = new mongoose.Schema(
         default: "",
       },
     },
-    addressBook: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Address"
-    }],
+    addressBook: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Address",
+      },
+    ],
 
     returns: [
       {
@@ -95,11 +97,14 @@ const userSchema = new mongoose.Schema(
         },
         reason: { type: String, required: true },
 
-        status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+        status: {
+          type: String,
+          enum: ["pending", "approved", "rejected"],
+          default: "pending",
+        },
         date: { type: Date, default: Date.now },
-        received: { type: Boolean, default: false }
-      }
-
+        received: { type: Boolean, default: false },
+      },
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
