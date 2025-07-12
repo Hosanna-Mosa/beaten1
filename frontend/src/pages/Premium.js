@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import {
   Container,
@@ -165,7 +166,7 @@ const Premium = ({ mode }) => {
           const token = localStorage.getItem("token");
           try {
             await axios.post(
-              `${BASE_URL}/api/premium/manual-subscribe`,
+              `${BASE_URL}/api/user/manual-subscribe`,
               {
                 plan: "year",
                 paymentId: response.razorpay_payment_id,
