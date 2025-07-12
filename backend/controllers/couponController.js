@@ -1,5 +1,5 @@
-const Coupon = require('../models/Coupon');
-const User = require('../models/User');
+const Coupon = require("../models/Coupon");
+const User = require("../models/User");
 
 // Create a new coupon
 exports.createCoupon = async (req, res) => {
@@ -12,15 +12,15 @@ exports.createCoupon = async (req, res) => {
   }
 };
 
-// Get/list/search coupons
+// Get/list/search coupons (Admin - sees all types)
 exports.getCoupons = async (req, res) => {
   try {
     const { search, type, status } = req.query;
     const filter = {};
-    if (search) filter.code = { $regex: search, $options: 'i' };
+    if (search) filter.code = { $regex: search, $options: "i" };
     if (type) filter.type = type;
     if (status) filter.status = status;
-    const coupons = await Coupon.find(filter).populate('recipient', 'email').sort({ createdAt: -1 });
+    const coupons = await Coupon.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, data: coupons });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -30,8 +30,13 @@ exports.getCoupons = async (req, res) => {
 // Update coupon
 exports.updateCoupon = async (req, res) => {
   try {
-    const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found' });
+    const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!coupon)
+      return res
+        .status(404)
+        .json({ success: false, message: "Coupon not found" });
     res.json({ success: true, data: coupon });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -42,8 +47,11 @@ exports.updateCoupon = async (req, res) => {
 exports.deleteCoupon = async (req, res) => {
   try {
     const coupon = await Coupon.findByIdAndDelete(req.params.id);
-    if (!coupon) return res.status(404).json({ success: false, message: 'Coupon not found' });
-    res.json({ success: true, message: 'Coupon deleted' });
+    if (!coupon)
+      return res
+        .status(404)
+        .json({ success: false, message: "Coupon not found" });
+    res.json({ success: true, message: "Coupon deleted" });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -52,25 +60,79 @@ exports.deleteCoupon = async (req, res) => {
 // Validate/apply coupon (user side)
 exports.applyCoupon = async (req, res) => {
   try {
-    const { code, userId, cartTotal } = req.body;
+    const { code, cartTotal } = req.body;
     const coupon = await Coupon.findOne({ code });
-    if (!coupon) return res.status(404).json({ success: false, message: 'Invalid coupon code' });
+    if (!coupon)
+      return res
+        .status(404)
+        .json({ success: false, message: "Invalid coupon code" });
+
+    // Only allow public coupons for users
+    if (coupon.type !== "public") {
+      return res.status(400).json({
+        success: false,
+        message: "This coupon is not available for public use",
+      });
+    }
+
     const now = new Date();
-    if (coupon.status !== 'active' || now < coupon.validFrom || now > coupon.validUntil) {
-      return res.status(400).json({ success: false, message: 'Coupon is not valid at this time' });
+    if (
+      coupon.status !== "active" ||
+      now < coupon.validFrom ||
+      now > coupon.validUntil
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Coupon is not valid at this time" });
     }
     if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
-      return res.status(400).json({ success: false, message: 'Coupon usage limit reached' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Coupon usage limit reached" });
     }
     if (cartTotal < coupon.minPurchase) {
-      return res.status(400).json({ success: false, message: `Minimum purchase is $${coupon.minPurchase}` });
+      return res.status(400).json({
+        success: false,
+        message: `Minimum purchase is $${coupon.minPurchase}`,
+      });
     }
-    if (coupon.type === 'personal' && (!coupon.recipient || coupon.recipient.toString() !== userId)) {
-      return res.status(400).json({ success: false, message: 'Coupon not valid for this user' });
-    }
-    // Optionally increment usedCount here if you want to lock usage immediately
+
     res.json({ success: true, data: coupon });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
-}; 
+};
+
+// Get available coupons for users (only public coupons)
+exports.getUserCoupons = async (req, res) => {
+  try {
+    const now = new Date();
+    console.log("camed to getUserCoupons");
+    // Only get public coupons for users
+    const coupons = await Coupon.find({
+      type: "public",
+      status: "active",
+      validFrom: { $lte: now },
+      validUntil: { $gte: now },
+    }).select(
+      "code description discount minPurchase validUntil usageLimit usedCount category type"
+    );
+
+    // Filter out coupons that have reached usage limit or are expired
+    const availableCoupons = coupons.filter((coupon) => {
+      const isNotExpired = new Date(coupon.validUntil) >= now;
+      return (
+        (coupon.usageLimit === 0 || coupon.usedCount < coupon.usageLimit) &&
+        isNotExpired
+      );
+    });
+
+    res.json({
+      success: true,
+      data: availableCoupons,
+      count: availableCoupons.length,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
