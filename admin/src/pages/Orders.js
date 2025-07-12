@@ -43,6 +43,7 @@ import {
   ListItemAvatar,
   DialogContentText,
   ListItemIcon,
+  CircularProgress,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -103,7 +104,6 @@ function Orders() {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
   const [userNames, setUserNames] = useState({});
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [toast, setToast] = useState({
@@ -111,6 +111,8 @@ function Orders() {
     message: "",
     severity: "success",
   });
+  const [updatingStatus, setUpdatingStatus] = useState({});
+  const [dialogUpdating, setDialogUpdating] = useState(false);
 
   // Define orderStatuses inside the component to access the imported icons
   const orderStatuses = [
@@ -163,13 +165,17 @@ function Orders() {
         );
         await Promise.all(userIds.map(fetchUserName));
         setOrders(res.data.data);
-        setFilteredOrders(res.data.data);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
     };
     fetchOrders();
   }, [fetchUserName]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm, selectedStatus, dateRange, totalRange, sortBy]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -182,17 +188,14 @@ function Orders() {
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-    setPage(0);
   };
 
   const handleStatusChange = (event) => {
     setSelectedStatus(event.target.value);
-    setPage(0);
   };
 
   const handleSortChange = (event) => {
     setSortBy(event.target.value);
-    setPage(0);
   };
 
   const handleOpenDialog = (order = null) => {
@@ -206,11 +209,20 @@ function Orders() {
   };
 
   const handleExport = () => {
-    const csvContent = filteredOrders
-      .map(
-        (order) =>
-          `${order.orderNumber},${order.customer.name},${order.date},${order.total},${order.status},${order.paymentMethod}`
-      )
+    const csvContent = getFilteredOrders()
+      .map((order) => {
+        const customerName = userNames[order.user]
+          ? typeof userNames[order.user] === "object"
+            ? userNames[order.user].name || ""
+            : userNames[order.user] || ""
+          : order.user || "";
+        const total =
+          order.orderItems?.reduce(
+            (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+            0
+          ) || 0;
+        return `${order._id},${customerName},${new Date(order.createdAt).toLocaleDateString()},${total},${order.status || "pending"}`;
+      })
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
@@ -243,9 +255,8 @@ function Orders() {
   const handleStatusUpdateConfirm = async () => {
     if (!selectedOrder || !newStatus) return;
 
+    setDialogUpdating(true);
     try {
-      // Show loading state
-
       // Make API call to update backend
       const updateRes = await axios.put(
         `${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/orders/${selectedOrder._id}`,
@@ -272,17 +283,26 @@ function Orders() {
       });
 
       setOrders(updatedOrders);
-      setFilteredOrders(updatedOrders); // Update filtered orders if needed
       setStatusDialogOpen(false);
       setSelectedOrder(null);
       setNewStatus("");
 
       // Show success notification
-      console.log("Status updated successfully:", updateRes.data);
+      setToast({
+        open: true,
+        message: "Order status updated successfully!",
+        severity: "success",
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
       // Show error notification to user
+      setToast({
+        open: true,
+        message: "Failed to update order status",
+        severity: "error",
+      });
     } finally {
+      setDialogUpdating(false);
     }
   };
 
@@ -292,50 +312,101 @@ function Orders() {
     setNewStatus("");
   };
 
-  const updateFilteredOrders = orders
-    .filter((order) => {
-      const orderNumber = order.orderNumber
-        ? order.orderNumber.toLowerCase()
-        : "";
-      const customerName =
-        order.customer && order.customer.name
-          ? order.customer.name.toLowerCase()
+  // Function to get filtered and sorted orders
+  const getFilteredOrders = useCallback(() => {
+    return orders
+      .filter((order) => {
+        // Search filter
+        const searchLower = searchTerm.toLowerCase();
+        const orderId = order._id ? order._id.toLowerCase() : "";
+        const customerName = userNames[order.user]
+          ? typeof userNames[order.user] === "object"
+            ? userNames[order.user].name || ""
+            : userNames[order.user] || ""
           : "";
-      const customerEmail =
-        order.customer && order.customer.email
-          ? order.customer.email.toLowerCase()
-          : "";
-      const matchesSearch =
-        orderNumber.includes(searchTerm.toLowerCase()) ||
-        customerName.includes(searchTerm.toLowerCase()) ||
-        customerEmail.includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        selectedStatus === "All" || order.status === selectedStatus;
-      const matchesDate =
-        (!dateRange.start ||
-          new Date(order.date) >= new Date(dateRange.start)) &&
-        (!dateRange.end || new Date(order.date) <= new Date(dateRange.end));
-      const matchesTotal =
-        (!totalRange.min || order.total >= parseFloat(totalRange.min)) &&
-        (!totalRange.max || order.total <= parseFloat(totalRange.max));
-      return matchesSearch && matchesStatus && matchesDate && matchesTotal;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "date_desc":
-          return new Date(b.date) - new Date(a.date);
-        case "date_asc":
-          return new Date(a.date) - new Date(b.date);
-        case "total_desc":
-          return b.total - a.total;
-        case "total_asc":
-          return a.total - b.total;
-        case "status":
-          return a.status.localeCompare(b.status);
-        default:
-          return 0;
-      }
-    });
+        const customerEmail =
+          userNames[order.user] && typeof userNames[order.user] === "object"
+            ? userNames[order.user].email || ""
+            : "";
+
+        const matchesSearch =
+          orderId.includes(searchLower) ||
+          customerName.toLowerCase().includes(searchLower) ||
+          customerEmail.toLowerCase().includes(searchLower);
+
+        // Status filter
+        const matchesStatus =
+          selectedStatus === "All" || order.status === selectedStatus;
+
+        // Date range filter
+        const orderDate = new Date(order.createdAt);
+        const startDate = dateRange.start ? new Date(dateRange.start) : null;
+        const endDate = dateRange.end ? new Date(dateRange.end) : null;
+
+        const matchesDate =
+          (!startDate || orderDate >= startDate) &&
+          (!endDate || orderDate <= endDate);
+
+        // Total amount filter
+        const orderTotal =
+          order.orderItems?.reduce(
+            (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+            0
+          ) || 0;
+        const minTotal = totalRange.min ? parseFloat(totalRange.min) : null;
+        const maxTotal = totalRange.max ? parseFloat(totalRange.max) : null;
+
+        const matchesTotal =
+          (!minTotal || orderTotal >= minTotal) &&
+          (!maxTotal || orderTotal <= maxTotal);
+
+        return matchesSearch && matchesStatus && matchesDate && matchesTotal;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "date_desc":
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          case "date_asc":
+            return new Date(a.createdAt) - new Date(b.createdAt);
+          case "total_desc":
+            const totalB =
+              b.orderItems?.reduce(
+                (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+                0
+              ) || 0;
+            const totalA =
+              a.orderItems?.reduce(
+                (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+                0
+              ) || 0;
+            return totalB - totalA;
+          case "total_asc":
+            const totalA2 =
+              a.orderItems?.reduce(
+                (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+                0
+              ) || 0;
+            const totalB2 =
+              b.orderItems?.reduce(
+                (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+                0
+              ) || 0;
+            return totalA2 - totalB2;
+          case "status":
+            return (a.status || "").localeCompare(b.status || "");
+          default:
+            return 0;
+        }
+      });
+  }, [
+    orders,
+    searchTerm,
+    selectedStatus,
+    dateRange,
+    totalRange,
+    sortBy,
+    userNames,
+  ]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -601,6 +672,7 @@ function Orders() {
     newStatus,
     onNewStatusChange,
     onConfirm,
+    loading = false,
   }) => {
     if (!order) return null;
 
@@ -712,10 +784,16 @@ function Orders() {
             onClick={onConfirm}
             variant="contained"
             color="primary"
-            disabled={!newStatus || newStatus === order.status}
-            startIcon={<EditStatusIcon />}
+            disabled={!newStatus || newStatus === order.status || loading}
+            startIcon={
+              loading ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <EditStatusIcon />
+              )
+            }
           >
-            Update Status
+            {loading ? "Updating..." : "Update Status"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -753,14 +831,14 @@ function Orders() {
           </Typography>
         </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
-          <Button
+          {/* <Button
             variant="outlined"
             startIcon={<FilterIcon />}
             onClick={() => setShowFilters(!showFilters)}
             sx={{ minWidth: 120 }}
           >
             {showFilters ? "Hide Filters" : "Show Filters"}
-          </Button>
+          </Button> */}
           <Button
             variant="contained"
             startIcon={<ExportIcon />}
@@ -818,9 +896,10 @@ function Orders() {
                   },
                 }}
               >
+                <MenuItem value="All">All Statuses</MenuItem>
                 {statuses.map((status) => (
                   <MenuItem key={status} value={status}>
-                    {status}
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
                   </MenuItem>
                 ))}
               </Select>
@@ -962,6 +1041,32 @@ function Orders() {
         )}
       </Paper>
 
+      {/* Results Summary */}
+      <Box
+        sx={{
+          mb: 2,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Showing {getFilteredOrders().length} of {orders.length} orders
+          {(searchTerm ||
+            selectedStatus !== "All" ||
+            dateRange.start ||
+            dateRange.end ||
+            totalRange.min ||
+            totalRange.max) && <span> (filtered)</span>}
+        </Typography>
+        {getFilteredOrders().length > 0 && (
+          <Typography variant="body2" color="text.secondary">
+            Page {page + 1} of{" "}
+            {Math.ceil(getFilteredOrders().length / rowsPerPage)}
+          </Typography>
+        )}
+      </Box>
+
       {/* Orders Table */}
       <Paper
         elevation={0}
@@ -986,7 +1091,7 @@ function Orders() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredOrders
+              {getFilteredOrders()
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((order) => (
                   <TableRow
@@ -1050,6 +1155,10 @@ function Orders() {
                           value={order.status ? order.status : "pending"}
                           onChange={async (e) => {
                             const newStatus = e.target.value;
+                            setUpdatingStatus((prev) => ({
+                              ...prev,
+                              [order._id]: true,
+                            }));
                             try {
                               const apiUrl =
                                 process.env.REACT_APP_API_URL ||
@@ -1069,13 +1178,6 @@ function Orders() {
                                     : o
                                 )
                               );
-                              setFilteredOrders((prev) =>
-                                prev.map((o) =>
-                                  o._id === order._id
-                                    ? { ...o, status: newStatus }
-                                    : o
-                                )
-                              );
                               setToast({
                                 open: true,
                                 message: "Order status updated successfully!",
@@ -1087,8 +1189,36 @@ function Orders() {
                                 message: "Failed to update order status",
                                 severity: "error",
                               });
+                            } finally {
+                              setUpdatingStatus((prev) => ({
+                                ...prev,
+                                [order._id]: false,
+                              }));
                             }
                           }}
+                          disabled={updatingStatus[order._id]}
+                          IconComponent={
+                            updatingStatus[order._id]
+                              ? () => <CircularProgress size={20} />
+                              : undefined
+                          }
+                          displayEmpty
+                          renderValue={(value) => (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              {updatingStatus[order._id] && (
+                                <CircularProgress size={16} />
+                              )}
+                              <Typography variant="body2">
+                                {value || "pending"}
+                              </Typography>
+                            </Box>
+                          )}
                         >
                           <MenuItem value="pending">Pending</MenuItem>
                           <MenuItem value="processing">Processing</MenuItem>
@@ -1108,7 +1238,7 @@ function Orders() {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredOrders.length}
+          count={getFilteredOrders().length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -1128,6 +1258,7 @@ function Orders() {
         newStatus={newStatus}
         onNewStatusChange={setNewStatus}
         onConfirm={handleStatusUpdateConfirm}
+        loading={dialogUpdating}
       />
 
       {/* Order Details Dialog */}
