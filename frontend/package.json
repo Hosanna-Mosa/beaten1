@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": "https://beatenfrontend.onrender.com",
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:8000",
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"

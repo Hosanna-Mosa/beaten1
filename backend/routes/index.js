@@ -10,6 +10,7 @@ const userRoutes = require("./user");
 const orderRoutes = require("./orders");
 const addressRoutes = require("./address");
 const forgotPasswordRoutes = require("./forgotPassword");
+const premiumRoutes = require("./premium");
 
 // Route definitions
 router.use("/auth", authRoutes);
@@ -22,6 +23,7 @@ router.use(require('./coupons'));
 router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
+router.use("/premium", premiumRoutes);
 
 // Health check route
 router.get("/health", (req, res) => {

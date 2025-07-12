@@ -173,7 +173,7 @@ const Cart = ({ mode }) => {
     if (!item.product || typeof item.product.price !== "number") return total;
     return total + item.product.price * item.quantity;
   }, 0);
-  const discount = user?.isPremium ? 250 : 0;
+  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
 

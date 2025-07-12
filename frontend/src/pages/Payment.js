@@ -70,7 +70,7 @@ const Payment = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = user?.isPremium ? 250 : 0;
+  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount - couponDiscount + shipping;
 
@@ -166,6 +166,7 @@ const Payment = ({ mode = "dark" }) => {
   //     rzp.open();
   //   };
   // };
+  
   const handleRazorpay = async () => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
