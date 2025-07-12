@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   Container,
   Grid,
@@ -15,6 +16,7 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  MenuItem,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -78,44 +80,55 @@ const Profile = ({ mode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState(false);
+  const [profileUser, setProfileUser] = useState(null);
+  const [editProfileDialog, setEditProfileDialog] = useState(false);
+  const [editAddressDialog, setEditAddressDialog] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState(null);
+  const [addressForm, setAddressForm] = useState({
+    address: '', city: '', state: '', country: '', postalCode: '', phone: '', isDefault: false
+  });
+  const [profileForm, setProfileForm] = useState({
+    name: '', gender: '', dob: '', phone: ''
+  });
+  const [isAddAddress, setIsAddAddress] = useState(false);
+  const [deleteAddressDialog, setDeleteAddressDialog] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
 
-  // Demo/mock data for not logged in
-  const demoUser = {
-    name: "John Doe",
-    gender: "Male",
-    dob: "1990-01-01",
-    phone: "1234567890",
-    email: "demo@example.com",
-    membership: {
-      isPremium: true,
-      daysLeft: 23,
-      amountSaved: 1200,
-    },
-    addresses: [
-      {
-        id: 1,
-        label: "Home",
-        address: "123 Demo Street, City, State, 123456",
-      },
-    ],
-    savedCards: [
-      { id: 1, brand: "Visa", last4: "1234", expiry: "12/26" },
-      { id: 2, brand: "Mastercard", last4: "5678", expiry: "09/25" },
-    ],
-  };
-  const demoCart = [
-    { id: 1, name: "Demo Product 1", price: 999, quantity: 1 },
-    { id: 2, name: "Demo Product 2", price: 499, quantity: 2 },
-  ];
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token");
+        const res = await axios.get("http://localhost:8000/api/user/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setProfileUser(res.data.data);
+      } catch (err) {
+        setError("Failed to load profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [user, navigate]);
 
-  const profileUser = user || demoUser;
-  const savedCart = user ? cart : demoCart;
-  const addresses = user?.addresses || demoUser.addresses;
-  const membership = user?.membership || demoUser.membership;
-  const savedCards = user?.savedCards || demoUser.savedCards;
+  useEffect(() => {
+    if (profileUser) {
+      setProfileForm({
+        name: profileUser.name || '',
+        gender: profileUser.gender || '',
+        dob: profileUser.dob || '',
+        phone: profileUser.phone || ''
+      });
+    }
+  }, [profileUser]);
 
   // Format date of birth for display
   const formatDateOfBirth = (dob) => {
@@ -134,13 +147,14 @@ const Profile = ({ mode }) => {
 
   const formik = useFormik({
     initialValues: {
-      name: user?.name || "",
-      phone: user?.phone || "",
-      address: user?.address || "",
-      city: user?.city || "",
-      state: user?.state || "",
-      pincode: user?.pincode || "",
+      name: profileUser?.name || "",
+      phone: profileUser?.phone || "",
+      address: profileUser?.address || "",
+      city: profileUser?.city || "",
+      state: profileUser?.state || "",
+      pincode: profileUser?.pincode || "",
     },
+    enableReinitialize: true,
     validationSchema,
     onSubmit: async (values) => {
       try {
@@ -158,10 +172,110 @@ const Profile = ({ mode }) => {
     },
   });
 
+  const handleEditProfile = () => {
+    setEditProfileDialog(true);
+  };
+  const handleProfileSave = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.patch('http://localhost:8000/api/user/profile', profileForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEditProfileDialog(false);
+      // Refresh profile
+      const res = await axios.get('http://localhost:8000/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfileUser(res.data.data);
+    } catch (err) {
+      setError('Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditAddress = (addr) => {
+    setAddressToEdit(addr);
+    setAddressForm({
+      address: addr.address.split(',')[0] || '',
+      city: addr.address.split(',')[1]?.trim() || '',
+      state: addr.address.split(',')[2]?.trim() || '',
+      country: addr.address.split(',')[3]?.trim() || '',
+      postalCode: addr.address.split(',')[4]?.trim() || '',
+      phone: addr.phone || '',
+      isDefault: addr.isDefault || false
+    });
+    setEditAddressDialog(true);
+  };
+  const handleAddAddress = () => {
+    setIsAddAddress(true);
+    setAddressToEdit(null);
+    setAddressForm({
+      address: '', city: '', state: '', country: '', postalCode: '', phone: '', isDefault: false
+    });
+    setEditAddressDialog(true);
+  };
+
+  const handleAddressSave = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      if (isAddAddress) {
+        await axios.post(`http://localhost:8000/api/user/addresses`, addressForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } else {
+        await axios.patch(`http://localhost:8000/api/user/addresses/${addressToEdit._id}`, addressForm, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+      setEditAddressDialog(false);
+      setIsAddAddress(false);
+      // Refresh profile
+      const res = await axios.get('http://localhost:8000/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfileUser(res.data.data);
+    } catch (err) {
+      setError('Failed to save address');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAddress = (addr) => {
+    setAddressToDelete(addr);
+    setDeleteAddressDialog(true);
+  };
+  const confirmDeleteAddress = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:8000/api/user/addresses/${addressToDelete._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDeleteAddressDialog(false);
+      setAddressToDelete(null);
+      // Refresh profile
+      const res = await axios.get('http://localhost:8000/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfileUser(res.data.data);
+    } catch (err) {
+      setError('Failed to delete address');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Sign out handler
   const handleSignOut = () => {
     logout && logout();
-    navigate("/");
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setProfileUser(null);
+    navigate('/login');
   };
 
   // Delete account handler (demo only)
@@ -172,22 +286,24 @@ const Profile = ({ mode }) => {
     navigate("/");
   };
 
+  if (loading) return <Box sx={{ py: 8, textAlign: "center" }}><CircularProgress /></Box>;
+  if (error) return <Alert severity="error">{error}</Alert>;
+  if (!profileUser) return null;
+
   return (
     <Box
       sx={{
         minHeight: "100vh",
         width: "100vw",
-      
         background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)",
         py: { xs: 0, md: 4 },
         px: 0,
-        margin : 0
+        margin: 0
       }}
     >
       <Container
-      //  maxWidth="lg"
         sx={{
-         py: { xs: 4, md: 8 },
+          py: { xs: 4, md: 8 },
           bgcolor: mode === "dark" ? "#181818" : "#fff",
           color: mode === "dark" ? "#fff" : "#181818",
           minHeight: "100vh",
@@ -213,224 +329,80 @@ const Profile = ({ mode }) => {
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
                 mb: 0.5,
-                color: mode == "dark" ? "#fff" : "#181818" ,
+                color: mode == "dark" ? "#fff" : "#181818",
               }}
             >
               {profileUser.name}
             </Typography>
             <Typography
               variant="subtitle1"
-              
-              sx={{ fontWeight: 400 ,
-                color: mode == "dark" ? "#fff" : "#181818" , }}
+              sx={{ fontWeight: 400, color: mode == "dark" ? "#fff" : "#181818" }}
             >
               Welcome back! Manage your account and preferences below.
             </Typography>
           </Box>
         </Box>
         <Divider sx={{ mb: 4 }} />
-        <Grid container spacing={3}>
-          {/* Personal Info */}
+        <Grid container spacing={4}>
+          {/* Left Column */}
           <Grid item xs={12} md={8}>
+            {/* Personal Information */}
             <Paper
-              elevation={2}
-              sx={{
-                p: { xs: 3, md: 4 },
-                mb: 4,
-                borderRadius: 3,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-              }}
+              elevation={3}
+              sx={{ p: 4, borderRadius: 4, boxShadow: "0 2px 12px rgba(0,0,0,0.06)", position: "relative", mb: 4 }}
             >
-              <Box
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<EditIcon />}
                 sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-end",
-                  mb: 2,
+                  position: "absolute",
+                  top: 24,
+                  right: 24,
+                  borderRadius: 8,
+                  textTransform: "none",
+                  fontWeight: 500,
+                  boxShadow: 2
                 }}
+                onClick={handleEditProfile}
               >
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}
-                  >
-                    Personal Information
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 3,
-                      bgcolor: "primary.main",
-                      borderRadius: 2,
-                      mt: 0.5,
-                    }}
-                  />
-                </Box>
-                <Button
-                  startIcon={<EditIcon />}
-                  onClick={() => setIsEditing(!isEditing)}
-                  variant="contained"
-                  color="primary"
-                  sx={{
-                    backgroundColor: matteColors[900],
-                    color: "white",
-                    py: { xs: 0.7, md: 1 },
-                    px: { xs: 2, md: 3 },
-                    fontSize: { xs: "0.92rem", md: "0.98rem" },
-                    borderRadius: 10,
-                    minWidth: 120,
-                    ml: 2,
-                    minHeight: { xs: 36, md: 42 },
-                    fontWeight: 500,
-                    "&:hover": {
-                      backgroundColor: matteColors[800],
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    },
-                    transition: "all 0.3s ease",
-                    textTransform: "none",
-                    alignSelf: "center",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {isEditing ? "Cancel" : "Edit Profile"}
-                </Button>
-              </Box>
-              {isEditing ? (
-                <form>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Name"
-                        value={profileUser.name}
-                        disabled
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Gender"
-                        value={profileUser.gender}
-                        disabled
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Date of Birth"
-                        value={formatDateOfBirth(profileUser.dob)}
-                        disabled
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Phone"
-                        value={profileUser.phone}
-                        disabled
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Email"
-                        value={profileUser.email}
-                        disabled
-                      />
-                    </Grid>
-                  </Grid>
-                </form>
-              ) : (
-                <Grid container spacing={0}>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: 110,
-                          color: "text.secondary",
-                        }}
-                      >
-                        Name:
-                      </Typography>
-                      <Typography
-                        sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
-                      >
-                        {profileUser.name}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: 110,
-                          color: "text.secondary",
-                        }}
-                      >
-                        Gender:
-                      </Typography>
-                      <Typography
-                        sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
-                      >
-                        {profileUser.gender}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: 110,
-                          color: "text.secondary",
-                        }}
-                      >
-                        Date of Birth:
-                      </Typography>
-                      <Typography
-                        sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
-                      >
-                        {formatDateOfBirth(profileUser.dob)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: 110,
-                          color: "text.secondary",
-                        }}
-                      >
-                        Phone:
-                      </Typography>
-                      <Typography
-                        sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
-                      >
-                        {profileUser.phone}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 500,
-                          minWidth: 110,
-                          color: "text.secondary",
-                        }}
-                      >
-                        Email:
-                      </Typography>
-                      <Typography
-                        sx={{ ml: 1, color: "text.primary", fontWeight: 400 }}
-                      >
-                        {profileUser.email}
-                      </Typography>
-                    </Box>
-                  </Grid>
+                Edit Profile
+              </Button>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
+                Personal Information
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Name:</Typography>
+                    <Typography sx={{ ml: 1 }}>{profileUser.name}</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <CakeIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Date of Birth:</Typography>
+                    <Typography sx={{ ml: 1 }}>{formatDateOfBirth(profileUser.dob)}</Typography>
+                  </Box>
                 </Grid>
-              )}
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <PhoneIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Phone:</Typography>
+                    <Typography sx={{ ml: 1 }}>{profileUser.phone}</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <EmailIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Email:</Typography>
+                    <Typography sx={{ ml: 1 }}>{profileUser.email}</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Gender:</Typography>
+                    <Typography sx={{ ml: 1 }}>{profileUser.gender}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
             </Paper>
-
             {/* Addresses */}
             <Paper
               elevation={2}
@@ -441,226 +413,49 @@ const Profile = ({ mode }) => {
                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
               }}
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-end",
-                  mb: 2,
-                }}
-              >
-                <Box sx={{ flex: 1 }}>
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}
-                  >
-                    Addresses
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 36,
-                      height: 3,
-                      bgcolor: "primary.main",
-                      borderRadius: 2,
-                      mt: 0.5,
-                    }}
-                  />
-                </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}>
+                  Addresses
+                </Typography>
                 <Button
-                  size="small"
                   variant="contained"
                   color="primary"
                   startIcon={<AddLocationIcon />}
-                  sx={{
-                    backgroundColor: matteColors[900],
-                    color: "white",
-                    py: { xs: 0.7, md: 1 },
-                    px: { xs: 2, md: 3 },
-                    fontSize: { xs: "0.92rem", md: "0.98rem" },
-                    borderRadius: 10,
-                    minWidth: 120,
-                    ml: 2,
-                    minHeight: { xs: 36, md: 42 },
-                    fontWeight: 500,
-                    "&:hover": {
-                      backgroundColor: matteColors[800],
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    },
-                    transition: "all 0.3s ease",
-                    textTransform: "none",
-                    alignSelf: "center",
-                    whiteSpace: "nowrap",
-                  }}
+                  sx={{ borderRadius: 8, textTransform: "none", fontWeight: 500 }}
+                  onClick={handleAddAddress}
                 >
                   Add Address
                 </Button>
               </Box>
-              <List sx={{ mt: 1 }}>
-                {addresses.map((addr) => (
-                  <ListItem
-                    key={addr.id}
-                    sx={{
-                      borderRadius: 2,
-                      mb: 2,
-                      boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
-                      border: "1px solid #f0f0f0",
-                      p: 2,
-                      alignItems: "center",
-                    }}
-                  >
-                    <ListItemText
-                      primary={addr.label}
-                      secondary={addr.address}
-                    />
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      sx={{
-                        borderColor: matteColors[900],
-                        color: matteColors[900],
-                        backgroundColor: "white",
-                        py: { xs: 0.7, md: 1 },
-                        px: { xs: 2, md: 3 },
-                        fontSize: { xs: "0.92rem", md: "0.98rem" },
-                        borderRadius: 10,
-                        ml: 2,
-                        minHeight: { xs: 36, md: 42 },
-                        fontWeight: 500,
-                        "&:hover": {
-                          backgroundColor: matteColors[100],
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                        },
-                        transition: "all 0.3s ease",
-                        textTransform: "none",
-                        alignSelf: "center",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-
-            {/* Saved Cards (Payment Methods) */}
-          </Grid>
-
-          {/* Account Actions & Membership */}
-          <Grid item xs={12} md={4}>
-            <Paper
-              elevation={2}
-              sx={{
-                p: { xs: 3, md: 4 },
-                mb: 4,
-                borderRadius: 3,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                textAlign: "center",
-              }}
-            >
-              <Box
-                sx={{
-                  mb: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}
-                >
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <PremiumIcon
-                      color={membership.isPremium ? "warning" : "disabled"}
-                      sx={{ fontSize: 22, verticalAlign: "middle" }}
-                    />{" "}
-                    Membership
-                  </Box>
-                </Typography>
-                <Box
-                  sx={{
-                    width: 36,
-                    height: 3,
-                    bgcolor: "primary.main",
-                    borderRadius: 2,
-                    mt: 0.5,
-                  }}
-                />
-              </Box>
-              {membership.isPremium ? (
-                <>
-                  <Typography
-                    color="warning.main"
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: "1.1rem",
-                      mb: 0.5,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <StarIcon
-                      sx={{
-                        color: "#FFD700",
-                        fontSize: 18,
-                        verticalAlign: "middle",
-                      }}
-                    />{" "}
-                    Premium Member
-                  </Typography>
-                  <Typography variant="body2">
-                    Days left: <b>{membership.daysLeft}</b>
-                  </Typography>
-                  <Typography variant="body2">
-                    Amount saved: <b>₹{membership.amountSaved}</b>
-                  </Typography>
-                </>
+              {profileUser.addresses && profileUser.addresses.length > 0 ? (
+                profileUser.addresses.map((addr, idx) => (
+                  <Paper key={addr._id || idx} sx={{ p: 2, mb: 2, borderRadius: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                        {addr.label || "Home"}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {addr.address}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button variant="outlined" size="small" sx={{ borderRadius: 8, textTransform: "none" }} onClick={() => handleEditAddress(addr)}>
+                        Edit
+                      </Button>
+                      <Button variant="outlined" color="error" size="small" sx={{ borderRadius: 8, textTransform: "none" }} onClick={() => handleDeleteAddress(addr)}>
+                        Delete
+                      </Button>
+                    </Box>
+                  </Paper>
+                ))
               ) : (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  onClick={() => navigate("/premium")}
-                  sx={{
-                    backgroundColor: matteColors[900],
-                    color: "white",
-                    py: { xs: 0.7, md: 1 },
-                    px: { xs: 2, md: 3 },
-                    fontSize: { xs: "0.92rem", md: "0.98rem" },
-                    borderRadius: 10,
-                    width: "auto",
-                    minWidth: 0,
-                    minHeight: { xs: 36, md: 42 },
-                    fontWeight: 600,
-                    mt: 2,
-                    "&:hover": {
-                      backgroundColor: matteColors[800],
-                      transform: "translateY(-2px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    },
-                    transition: "all 0.3s ease",
-                    textTransform: "none",
-                    alignSelf: "center",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Upgrade to Premium
-                </Button>
+                <Typography color="text.secondary">No addresses found.</Typography>
               )}
             </Paper>
-
+          </Grid>
+          {/* Right Column */}
+          <Grid item xs={12} md={4}>
+            {/* Membership */}
             <Paper
               elevation={2}
               sx={{
@@ -668,173 +463,88 @@ const Profile = ({ mode }) => {
                 mb: 4,
                 borderRadius: 3,
                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                textAlign: "center",
-                background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+                textAlign: "center"
               }}
             >
-              <Box
-                sx={{
-                  mb: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
-                  variant="h6"
-                  sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}
-                >
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 1,
-                    }}
-                  >
-                    <LockIcon
-                      color="action"
-                      sx={{ fontSize: 20, verticalAlign: "middle" }}
-                    />{" "}
-                    Account Actions
-                  </Box>
-                </Typography>
-                <Box
-                  sx={{
-                    width: 36,
-                    height: 3,
-                    bgcolor: "primary.main",
-                    borderRadius: 2,
-                    mt: 0.5,
-                  }}
-                />
-              </Box>
-              <Button
-                variant="outlined"
-                color="primary"
-                fullWidth
-                startIcon={<LogoutIcon />}
-                sx={{
-                  borderColor: matteColors[900],
-                  color: matteColors[900],
-                  backgroundColor: "white",
-                  py: { xs: 0.7, md: 1 },
-                  px: { xs: 2, md: 3 },
-                  fontSize: { xs: "0.92rem", md: "0.98rem" },
-                  borderRadius: 10,
-                  width: "auto",
-                  minWidth: 0,
-                  minHeight: { xs: 36, md: 42 },
-                  fontWeight: 600,
-                  mb: 2,
-                  transition: "all 0.3s ease",
-                  textTransform: "none",
-                  alignSelf: "center",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                  "&:hover": {
-                    backgroundColor: matteColors[100],
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                  },
-                }}
-                onClick={handleSignOut}
-              >
+              <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}>
+                Membership
+              </Typography>
+              {profileUser.membership ? (
+                <Box>
+                  <Typography sx={{ fontWeight: 600, color: "#ff9800", mb: 1 }}>
+                    <StarIcon sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }} />
+                    Premium Member
+                  </Typography>
+                  <Typography>Days left: <b>{profileUser.membership.daysLeft}</b></Typography>
+                  <Typography>Amount saved: <b>₹{profileUser.membership.amountSaved}</b></Typography>
+                </Box>
+              ) : (
+                <Typography color="text.secondary">No membership info.</Typography>
+              )}
+            </Paper>
+            {/* Account Actions */}
+            <Paper
+              elevation={2}
+              sx={{
+                p: { xs: 3, md: 4 },
+                mb: 4,
+                borderRadius: 3,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                textAlign: "center"
+              }}
+            >
+              <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}>
+                Account Actions
+              </Typography>
+              <Button variant="outlined" color="primary" onClick={handleSignOut} sx={{ mb: 2, borderRadius: 8, textTransform: "none", fontWeight: 500, width: "100%" }}>
                 Sign Out
-              </Button>
-              <Divider sx={{ my: 2, mx: "auto", width: "60%" }} />
-              <Button
-                variant="outlined"
-                color="error"
-                fullWidth
-                startIcon={<DeleteIcon />}
-                sx={{
-                  borderColor: "#ff1744",
-                  color: "#ff1744",
-                  backgroundColor: "white",
-                  py: { xs: 0.7, md: 1 },
-                  px: { xs: 2, md: 3 },
-                  fontSize: { xs: "0.92rem", md: "0.98rem" },
-                  borderRadius: 10,
-                  width: "auto",
-                  minWidth: 0,
-                  minHeight: { xs: 36, md: 42 },
-                  fontWeight: 600,
-                  transition: "all 0.3s ease",
-                  textTransform: "none",
-                  alignSelf: "center",
-                  whiteSpace: "nowrap",
-                  boxShadow: "0 2px 8px rgba(255,23,68,0.04)",
-                  "&:hover": {
-                    backgroundColor: matteColors[100],
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 4px 12px rgba(255,23,68,0.10)",
-                  },
-                }}
-                onClick={() => setDeleteDialog(true)}
-              >
-                Delete Account
               </Button>
             </Paper>
           </Grid>
         </Grid>
-
-        {/* Delete Account Dialog */}
-        <Dialog open={deleteDialog} onClose={() => setDeleteDialog(false)}>
-          <DialogTitle>Delete Account</DialogTitle>
+        {/* Edit Profile Dialog */}
+        <Dialog open={editProfileDialog} onClose={() => setEditProfileDialog(false)}>
+          <DialogTitle>Edit Profile</DialogTitle>
           <DialogContent>
-            <Typography>
-              Are you sure you want to delete your account? This action cannot
-              be undone.
-            </Typography>
+            <TextField label="Name" fullWidth margin="normal" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} />
+            <TextField label="Gender" select fullWidth margin="normal" value={profileForm.gender} onChange={e => setProfileForm({ ...profileForm, gender: e.target.value })}>
+              <MenuItem value="male">Male</MenuItem>
+              <MenuItem value="female">Female</MenuItem>
+              <MenuItem value="other">Other</MenuItem>
+            </TextField>
+            <TextField label="Date of Birth" type="date" fullWidth margin="normal" value={profileForm.dob} onChange={e => setProfileForm({ ...profileForm, dob: e.target.value })} InputLabelProps={{ shrink: true }} />
+            <TextField label="Phone" fullWidth margin="normal" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} />
           </DialogContent>
           <DialogActions>
-            <Button
-              onClick={() => setDeleteDialog(false)}
-              sx={{
-                py: { xs: 0.7, md: 1 },
-                px: { xs: 2, md: 3 },
-                fontSize: { xs: "0.92rem", md: "0.98rem" },
-                borderRadius: 10,
-                minHeight: { xs: 36, md: 42 },
-                fontWeight: 500,
-                textTransform: "none",
-                alignSelf: "center",
-                whiteSpace: "nowrap",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: matteColors[100],
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDeleteAccount}
-              color="error"
-              sx={{
-                py: { xs: 0.7, md: 1 },
-                px: { xs: 2, md: 3 },
-                fontSize: { xs: "0.92rem", md: "0.98rem" },
-                borderRadius: 10,
-                minHeight: { xs: 36, md: 42 },
-                fontWeight: 500,
-                textTransform: "none",
-                alignSelf: "center",
-                whiteSpace: "nowrap",
-                transition: "all 0.3s ease",
-                color: "#ff1744",
-                "&:hover": {
-                  backgroundColor: matteColors[100],
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                },
-              }}
-            >
-              Delete
-            </Button>
+            <Button onClick={() => setEditProfileDialog(false)}>Cancel</Button>
+            <Button onClick={handleProfileSave} variant="contained">Save</Button>
+          </DialogActions>
+        </Dialog>
+        {/* Edit Address Dialog */}
+        <Dialog open={editAddressDialog} onClose={() => { setEditAddressDialog(false); setIsAddAddress(false); }}>
+          <DialogTitle>{isAddAddress ? 'Add Address' : 'Edit Address'}</DialogTitle>
+          <DialogContent>
+            <TextField label="Address" fullWidth margin="normal" value={addressForm.address} onChange={e => setAddressForm({ ...addressForm, address: e.target.value })} />
+            <TextField label="City" fullWidth margin="normal" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} />
+            <TextField label="State" fullWidth margin="normal" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} />
+            <TextField label="Country" fullWidth margin="normal" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} />
+            <TextField label="Postal Code" fullWidth margin="normal" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} />
+            <TextField label="Phone" fullWidth margin="normal" value={addressForm.phone} onChange={e => setAddressForm({ ...addressForm, phone: e.target.value })} />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => { setEditAddressDialog(false); setIsAddAddress(false); }}>Cancel</Button>
+            <Button onClick={handleAddressSave} variant="contained">Save</Button>
+          </DialogActions>
+        </Dialog>
+        {/* Delete Address Dialog */}
+        <Dialog open={deleteAddressDialog} onClose={() => setDeleteAddressDialog(false)}>
+          <DialogTitle>Delete Address</DialogTitle>
+          <DialogContent>
+            <Typography>Are you sure you want to delete this address?</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteAddressDialog(false)}>Cancel</Button>
+            <Button onClick={confirmDeleteAddress} color="error" variant="contained">Delete</Button>
           </DialogActions>
         </Dialog>
       </Container>

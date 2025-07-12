@@ -36,7 +36,7 @@ app.use("*", (req, res) => {
 
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8000;
+const PORT = 8000;
 
 connectDB();
 

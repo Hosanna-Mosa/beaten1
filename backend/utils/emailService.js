@@ -338,6 +338,80 @@ const sendOrderConfirmedEmail = async (email, orderId, userName) => {
   }
 };
 
+// Send return placed email
+const sendReturnPlacedEmail = async (email, userName, orderId, productId, reason) => {
+  try {
+    const transporter = createTransporter();
+    const subject = `Return Request Placed for Order #${orderId}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9;">
+        <h2 style="color: #1a1a1a;">Hi ${userName || ""},</h2>
+        <p>We have received your return request for:</p>
+        <ul>
+          <li><b>Order ID:</b> ${orderId}</li>
+          <li><b>Product ID:</b> ${productId}</li>
+          <li><b>Reason:</b> ${reason}</li>
+        </ul>
+        <p>Our team will review your request and update you soon.</p>
+        <p>Thank you for shopping with BEATEN!</p>
+        <hr style="margin: 32px 0;" />
+        <p style="font-size: 13px; color: #888;">This is an automated email. Please do not reply.</p>
+      </div>
+    `;
+    const mailOptions = {
+      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      to: email,
+      subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Return placed email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending return placed email:", error);
+    return false;
+  }
+};
+
+// Send return status update email (approved/rejected)
+const sendReturnStatusEmail = async (email, userName, orderId, productId, status) => {
+  try {
+    const transporter = createTransporter();
+    const statusText = status === 'approved' ? 'Approved' : 'Rejected';
+    const statusMsg = status === 'approved'
+      ? 'Your return request has been approved. Please follow the instructions for returning your product.'
+      : 'Your return request has been rejected. If you have questions, please contact support.';
+    const subject = `Return Request ${statusText} for Order #${orderId}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9;">
+        <h2 style="color: #1a1a1a;">Hi ${userName || ""},</h2>
+        <p>Your return request for:</p>
+        <ul>
+          <li><b>Order ID:</b> ${orderId}</li>
+          <li><b>Product ID:</b> ${productId}</li>
+        </ul>
+        <p><b>Status:</b> ${statusText}</p>
+        <p>${statusMsg}</p>
+        <p>Thank you for shopping with BEATEN!</p>
+        <hr style="margin: 32px 0;" />
+        <p style="font-size: 13px; color: #888;">This is an automated email. Please do not reply.</p>
+      </div>
+    `;
+    const mailOptions = {
+      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      to: email,
+      subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Return status email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending return status email:", error);
+    return false;
+  }
+};
+
 module.exports = {
   generateOTP,
   generateResetToken,
@@ -345,4 +419,6 @@ module.exports = {
   sendPasswordResetSuccessEmail,
   sendOrderStatusEmail,
   sendOrderConfirmedEmail,
+  sendReturnPlacedEmail,
+  sendReturnStatusEmail,
 };

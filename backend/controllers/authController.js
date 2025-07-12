@@ -7,7 +7,7 @@ const { STATUS_CODES, MESSAGES } = require("../utils/constants");
 // @access  Public
 const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, gender, dob, phone } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -24,6 +24,9 @@ const register = async (req, res, next) => {
       name,
       email,
       password,
+      gender: gender || '',
+      dob: dob || '',
+      phone: phone || '',
     });
     console.log(user);
     if (user) {
@@ -34,6 +37,9 @@ const register = async (req, res, next) => {
           _id: user._id,
           name: user.name,
           email: user.email,
+          gender: user.gender,
+          dob: user.dob,
+          phone: user.phone,
           role: user.role,
           token: generateToken(user._id),
         },
@@ -82,11 +88,16 @@ const login = async (req, res) => {
       success: true,
       message: "User logged in successfully",
       data: {
-        _id: user._id,
-        user: user.name,
-        email: user.email,
-        role: user.role,
         token: generateToken(user._id),
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          gender: user.gender,
+          dob: user.dob,
+          phone: user.phone,
+        }
       },
     });
     

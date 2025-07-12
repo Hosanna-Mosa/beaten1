@@ -347,7 +347,7 @@ const sampleProducts = [
 const seedProducts = async () => {
   try {
     // Check if MONGODB_URI is defined
-    if (process.env.MONGODB_URI) {
+    if (!process.env.MONGODB_URI) {
       console.error("❌ Error: MONGODB_URI is not defined in your .env file.");
       console.error(
         "📝 Please create a .env file in the backend directory with the following content:"
@@ -382,8 +382,7 @@ const seedProducts = async () => {
     // );
 
     // Connect to MongoDB
-    await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/beatendb",
+    await mongoose.connect(process.env.MONGODB_URI,
       {
         useNewUrlParser: true,
         useUnifiedTopology: true,

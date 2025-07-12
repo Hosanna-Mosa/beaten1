@@ -23,6 +23,7 @@ import Products from "./pages/Products";
 import Orders from "./pages/Orders";
 // import Customers from './pages/Customers';
 import Promotions from "./pages/Promotions";
+import Returns from "./pages/Returns";
 
 // Create theme
 const theme = createTheme({
@@ -75,6 +76,7 @@ function App() {
             <Route path="orders" element={<Orders />} />
             {/* <Route path="customers" element={<Customers />} /> */}
             <Route path="promotions" element={<Promotions />} />
+            <Route path="returns" element={<Returns />} />
           </Route>
         </Routes>
 

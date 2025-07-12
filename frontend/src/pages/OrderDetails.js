@@ -28,6 +28,13 @@ import {
 } from "@mui/icons-material";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import TextField from '@mui/material/TextField';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -66,6 +73,12 @@ const OrderDetails = ({ mode }) => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
+  const [returnProductId, setReturnProductId] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -159,6 +172,32 @@ const OrderDetails = ({ mode }) => {
     );
   }
 
+  const handleReturnClick = (productId) => {
+    setReturnProductId(productId);
+    setReturnReason('');
+    setReturnDialogOpen(true);
+  };
+  const handleReturnSubmit = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:8000/api/user/return', {
+        orderId: order._id,
+        productId: returnProductId,
+        reason: returnReason
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReturnDialogOpen(false);
+      setSnackbarMsg('Submit successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setSnackbarMsg('Failed to submit return');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   return (
     <Container
       maxWidth="lg"
@@ -235,6 +274,17 @@ const OrderDetails = ({ mode }) => {
                     <Typography variant="subtitle1">
                       ₹{item.quantity * item.price}
                     </Typography>
+                    {/* Return button for delivered orders */}
+                    {order.status === 'delivered' && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        sx={{ ml: 2, minWidth: 100 }}
+                        onClick={() => handleReturnClick(item.product._id)}
+                      >
+                        Return
+                      </Button>
+                    )}
                   </ListItem>
                   <Divider variant="inset" component="li" />
                 </React.Fragment>
@@ -301,6 +351,31 @@ const OrderDetails = ({ mode }) => {
           </Paper>
         </Grid>
       </Grid>
+      {/* Return Reason Dialog */}
+      <Dialog open={returnDialogOpen} onClose={() => setReturnDialogOpen(false)}>
+        <DialogTitle>Return Product</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Reason for return"
+            fullWidth
+            multiline
+            minRows={2}
+            value={returnReason}
+            onChange={e => setReturnReason(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReturnDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleReturnSubmit} variant="contained" disabled={!returnReason.trim()}>Submit</Button>
+        </DialogActions>
+      </Dialog>
+      {/* Snackbar for toast message */}
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)}>
+        <MuiAlert elevation={6} variant="filled" onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMsg}
+        </MuiAlert>
+      </Snackbar>
     </Container>
   );
 };
