@@ -66,6 +66,7 @@ const Checkout = ({ mode = "dark" }) => {
   const [addressDialog, setAddressDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [publicCoupons, setPublicCoupons] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -81,6 +82,7 @@ const Checkout = ({ mode = "dark" }) => {
 
   useEffect(() => {
     fetchAddresses();
+    fetchPublicCoupons();
   }, []);
 
   // Replace fetchAddresses with real API call
@@ -100,6 +102,16 @@ const Checkout = ({ mode = "dark" }) => {
       }
     } catch (err) {
       setError("Failed to load addresses");
+    }
+  };
+
+  const fetchPublicCoupons = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/coupons`);
+      const coupons = response.data.data || [];
+      setPublicCoupons(coupons.filter(c => c.type === 'public'));
+    } catch (err) {
+      // Optionally handle error
     }
   };
 
@@ -218,14 +230,7 @@ const Checkout = ({ mode = "dark" }) => {
           color: item.color,
           price: item.product.price,
         })),
-        shippingAddress: {
-          address: selectedAddressObj.address,
-          city: selectedAddressObj.city,
-          state: selectedAddressObj.state,
-          country: selectedAddressObj.country,
-          postalCode: selectedAddressObj.postalCode,
-          phone: selectedAddressObj.phone,
-        },
+        shippingAddress: selectedAddressObj._id, // Send only the address ID
         paymentMethod,
         total: finalTotal,
         codCharge: paymentMethod === "cod" ? 50 : 0,

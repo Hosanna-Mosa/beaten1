@@ -73,7 +73,14 @@ const createOrder = async (req, res) => {
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .sort({ createdAt: -1 });
+      .populate('shippingAddress'); // Populate address details
+
+    // Debug: Log the populated shippingAddress for each order
+    orders.forEach(order => {
+      console.log('Order ID:', order._id);
+      console.log('Populated Shipping Address:', order.shippingAddress);
+    });
+
     // Add originalPrice and subscriptionDiscount to each order
     const ordersWithDiscountInfo = orders.map(order => {
       let originalPrice = order.totalPrice;
@@ -91,6 +98,7 @@ const getMyOrders = async (req, res) => {
         ...order._doc,
         originalPrice,
         subscriptionDiscount,
+        debugShippingAddress: order.shippingAddress, // Add for debugging
       };
     });
     res.status(STATUS_CODES.OK).json({

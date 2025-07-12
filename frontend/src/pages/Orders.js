@@ -286,163 +286,406 @@ const Orders = ({ mode }) => {
         </Alert>
       )}
       <Grid container spacing={3}>
-        {orders.map((order) => (
-          <Grid item xs={12} key={order._id}>
-            {isMobile ? (
-              // --- MOBILE: Compact, expandable/collapsible card with item-level Return/Exchange ---
-              <Paper
-                elevation={3}
-                sx={{
-                  p: { xs: 2, sm: 3 },
-                  borderRadius: 3,
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-                  mb: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  position: "relative",
-                }}
-              >
-                {/* Arrow at top right */}
-                <Button
-                  onClick={() => handleExpandToggle(order._id)}
-                  size="small"
+        {orders.map((order) => {
+          // Debug log for order and shippingAddress
+          console.log('Order:', order);
+          console.log('Shipping Address:', order.shippingAddress);
+          return (
+            <Grid item xs={12} key={order._id}>
+              {isMobile ? (
+                // --- MOBILE: Compact, expandable/collapsible card with item-level Return/Exchange ---
+                <Paper
+                  elevation={3}
                   sx={{
-                    position: "absolute",
-                    top: 8,
-                    right: 8,
-                    minWidth: 0,
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    color: matteColors[900],
-                    backgroundColor: matteColors[100],
-                    boxShadow: "none",
-                    zIndex: 2,
-                    "&:hover": {
-                      backgroundColor: matteColors[800],
-                      color: "white",
-                      boxShadow: "none",
-                    },
-                  }}
-                >
-                  {expandedOrders.includes(order._id) ? (
-                    <ExpandLessIcon />
-                  ) : (
-                    <ExpandMoreIcon />
-                  )}
-                </Button>
-                {/* Order Date at the top */}
-                <Typography
-                  variant="body2"
-                  sx={{ color: "text.secondary", fontWeight: 600, mb: 1 }}
-                >
-                  Placed on: {new Date(order.createdAt).toLocaleDateString()}
-                </Typography>
-                {/* Product Thumbnails (always visible) */}
-                <Box
-                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    borderRadius: 3,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                    mb: 2,
                     display: "flex",
                     flexDirection: "column",
                     gap: 2,
-                    flex: 1,
-                    mb: 2,
+                    position: "relative",
                   }}
                 >
-                  {(expandedOrders.includes(order._id)
-                    ? order.orderItems
-                    : order.orderItems.slice(0, 2)
-                  ).map((item, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                        width: "100%",
-                      }}
-                    >
-                      <Avatar
-                        src={
-                          item.image && item.image !== ""
-                            ? item.image
-                            : PLACEHOLDER_IMAGE
-                        }
-                        alt={item.name}
+                  {/* Arrow at top right */}
+                  <Button
+                    onClick={() => handleExpandToggle(order._id)}
+                    size="small"
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      right: 8,
+                      minWidth: 0,
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      color: matteColors[900],
+                      backgroundColor: matteColors[100],
+                      boxShadow: "none",
+                      zIndex: 2,
+                      "&:hover": {
+                        backgroundColor: matteColors[800],
+                        color: "white",
+                        boxShadow: "none",
+                      },
+                    }}
+                  >
+                    {expandedOrders.includes(order._id) ? (
+                      <ExpandLessIcon />
+                    ) : (
+                      <ExpandMoreIcon />
+                    )}
+                  </Button>
+                  {/* Order Date at the top */}
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "text.secondary", fontWeight: 600, mb: 1 }}
+                  >
+                    Placed on: {new Date(order.createdAt).toLocaleDateString()}
+                  </Typography>
+                  {/* Product Thumbnails (always visible) */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      flex: 1,
+                      mb: 2,
+                    }}
+                  >
+                    {(expandedOrders.includes(order._id)
+                      ? order.orderItems
+                      : order.orderItems.slice(0, 2)
+                    ).map((item, idx) => (
+                      <Box
+                        key={idx}
                         sx={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: 2,
-                          bgcolor: "#fafafa",
-                          border: "2px solid #e0e0e0",
-                          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                        }}
-                      />
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 500,
-                          color: "text.primary",
-                          flex: 1,
-                          minWidth: 0,
-                          pr: 1,
-                          overflowWrap: "break-word",
-                          whiteSpace: "normal",
-                          fontSize: "0.9rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 2,
+                          width: "100%",
                         }}
                       >
-                        {item.name}
-                      </Typography>
-                      {expandedOrders.includes(order._id) && (
-                        <Button
-                          size="small"
-                          variant="outlined"
+                        <Avatar
+                          src={
+                            item.image && item.image !== ""
+                              ? item.image
+                              : PLACEHOLDER_IMAGE
+                          }
+                          alt={item.name}
                           sx={{
-                            ml: 1,
-                            mr: 1,
-                            borderRadius: 8,
-                            fontSize: "0.82rem",
-                            px: 1.2,
-                            py: 0.4,
+                            width: 56,
+                            height: 56,
+                            borderRadius: 2,
+                            bgcolor: "#fafafa",
+                            border: "2px solid #e0e0e0",
+                            boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                          }}
+                        />
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 500,
+                            color: "text.primary",
+                            flex: 1,
                             minWidth: 0,
-                            minHeight: 32,
-                            color: matteColors[900],
+                            pr: 1,
+                            overflowWrap: "break-word",
+                            whiteSpace: "normal",
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
+                        {expandedOrders.includes(order._id) && (
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              ml: 1,
+                              mr: 1,
+                              borderRadius: 8,
+                              fontSize: "0.82rem",
+                              px: 1.2,
+                              py: 0.4,
+                              minWidth: 0,
+                              minHeight: 32,
+                              color: matteColors[900],
+                              borderColor: matteColors[900],
+                              backgroundColor: "white",
+                              textTransform: "none",
+                              boxShadow: "none",
+                              whiteSpace: "nowrap",
+                              "&:hover": {
+                                backgroundColor: matteColors[100],
+                                borderColor: matteColors[800],
+                                color: matteColors[800],
+                                boxShadow: "none",
+                              },
+                            }}
+                            onClick={() =>
+                              handleOpenReturnDialog(order._id, item, idx)
+                            }
+                          >
+                            Return/Exchange
+                          </Button>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                  {/* Expanded content: order info and buttons */}
+                  {expandedOrders.includes(order._id) && (
+                    <>
+                      {/* Order Info */}
+                      <Box sx={{ mb: 2, mt: 1 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: 700,
+                            color: "text.secondary",
+                            mb: 0.5,
+                          }}
+                        >
+                          Order #{order._id}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", mb: 0.5 }}
+                        >
+                          Total: <b>₹{order.totalPrice}</b>
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", mb: 0.5 }}
+                        >
+                          Payment Type:{" "}
+                          {order.paymentInfo?.method
+                            ? order.paymentInfo.method.toUpperCase()
+                            : "N/A"}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "text.secondary", mb: 0.5 }}
+                        >
+                          Delivery Address:{" "}
+                          {order.shippingAddress
+                            ? <>
+                                {order.shippingAddress.name && <>{order.shippingAddress.name}, </>}
+                                {order.shippingAddress.address && <>{order.shippingAddress.address}, </>}
+                                {order.shippingAddress.city && <>{order.shippingAddress.city}, </>}
+                                {order.shippingAddress.state && <>{order.shippingAddress.state}, </>}
+                                {order.shippingAddress.postalCode && <>{order.shippingAddress.postalCode}</>}
+                                {order.shippingAddress.phone && <> ({order.shippingAddress.phone})</>}
+                              </>
+                            : "N/A"}
+                        </Typography>
+                        {order.status === "pending" || !order.status ? (
+                          <Chip
+                            label={getDisplayStatus(order.status)}
+                            icon={statusStyles[order.status]?.icon}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              px: 2,
+                              py: 1,
+                              mt: 1,
+                              backgroundColor: statusStyles[order.status]?.bg,
+                              color: statusStyles[order.status]?.color,
+                              "& .MuiChip-icon": {
+                                color: statusStyles[order.status]?.color,
+                              },
+                            }}
+                          />
+                        ) : order.status === "confirmed" ? (
+                          <Chip
+                            label={getDisplayStatus(order.status)}
+                            icon={statusStyles[order.status]?.icon}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              px: 2,
+                              py: 1,
+                              mt: 1,
+                              backgroundColor: statusStyles[order.status]?.bg,
+                              color: statusStyles[order.status]?.color,
+                              "& .MuiChip-icon": {
+                                color: statusStyles[order.status]?.color,
+                              },
+                            }}
+                          />
+                        ) : order.status === "shipped" ? (
+                          <Chip
+                            label={getDisplayStatus(order.status)}
+                            icon={statusStyles[order.status]?.icon}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              px: 2,
+                              py: 1,
+                              mt: 1,
+                              backgroundColor: statusStyles[order.status]?.bg,
+                              color: statusStyles[order.status]?.color,
+                              "& .MuiChip-icon": {
+                                color: statusStyles[order.status]?.color,
+                              },
+                            }}
+                          />
+                        ) : (
+                          <Chip
+                            label={getDisplayStatus(order.status)}
+                            color={getStatusColor(order.status)}
+                            icon={getStatusIcon(order.status)}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: "1rem",
+                              px: 2,
+                              py: 1,
+                              mt: 1,
+                            }}
+                          />
+                        )}
+                      </Box>
+                      {/* Action Buttons */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1.5,
+                          flexWrap: "wrap",
+                          mt: 1,
+                        }}
+                      >
+                        <Button
+                          variant="outlined"
+                          startIcon={<ViewIcon />}
+                          sx={{
+                            fontWeight: 600,
+                            minWidth: 120,
                             borderColor: matteColors[900],
+                            color: matteColors[900],
                             backgroundColor: "white",
+                            py: { xs: 0.7, md: 1 },
+                            px: { xs: 2, md: 3 },
+                            fontSize: { xs: "0.92rem", md: "0.98rem" },
+                            borderRadius: 10,
+                            minHeight: { xs: 36, md: 42 },
                             textTransform: "none",
-                            boxShadow: "none",
+                            alignSelf: { xs: "stretch", md: "center" },
                             whiteSpace: "nowrap",
+                            transition: "all 0.3s ease",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                             "&:hover": {
                               backgroundColor: matteColors[100],
                               borderColor: matteColors[800],
                               color: matteColors[800],
-                              boxShadow: "none",
+                              transform: "translateY(-2px)",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
                             },
                           }}
-                          onClick={() =>
-                            handleOpenReturnDialog(order._id, item, idx)
-                          }
+                          onClick={() => handleViewDetails(order)}
+                          fullWidth={isMobile}
                         >
-                          Return/Exchange
+                          View Details
                         </Button>
-                      )}
-                    </Box>
-                  ))}
-                </Box>
-                {/* Expanded content: order info and buttons */}
-                {expandedOrders.includes(order._id) && (
-                  <>
-                    {/* Order Info */}
-                    <Box sx={{ mb: 2, mt: 1 }}>
+                        <Button
+                          variant="contained"
+                          startIcon={<ShippingIcon />}
+                          sx={{
+                            backgroundColor: matteColors[900],
+                            color: "white",
+                            fontWeight: 600,
+                            minWidth: 120,
+                            py: { xs: 0.7, md: 1 },
+                            px: { xs: 2, md: 3 },
+                            fontSize: { xs: "0.92rem", md: "0.98rem" },
+                            borderRadius: 10,
+                            minHeight: { xs: 36, md: 42 },
+                            textTransform: "none",
+                            alignSelf: { xs: "stretch", md: "center" },
+                            whiteSpace: "nowrap",
+                            transition: "all 0.3s ease",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                            "&:hover": {
+                              backgroundColor: matteColors[800],
+                              transform: "translateY(-2px)",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            },
+                          }}
+                          onClick={() => handleTrackOrder(order)}
+                          fullWidth={isMobile}
+                        >
+                          Track Order
+                        </Button>
+                        <Button
+                          variant="contained"
+                          startIcon={<ExchangeIcon />}
+                          sx={{
+                            backgroundColor: matteColors[900],
+                            color: "white",
+                            fontWeight: 600,
+                            minWidth: 170,
+                            py: { xs: 0.7, md: 1 },
+                            px: { xs: 2, md: 3 },
+                            fontSize: { xs: "0.92rem", md: "0.98rem" },
+                            borderRadius: 10,
+                            minHeight: { xs: 36, md: 42 },
+                            textTransform: "none",
+                            alignSelf: { xs: "stretch", md: "center" },
+                            whiteSpace: "nowrap",
+                            transition: "all 0.3s ease",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                            "&:hover": {
+                              backgroundColor: matteColors[800],
+                              transform: "translateY(-2px)",
+                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                            },
+                          }}
+                          onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
+                          fullWidth={isMobile}
+                        >
+                          Return
+                        </Button>
+                      </Box>
+                    </>
+                  )}
+                </Paper>
+              ) : (
+                // --- DESKTOP: Original always-expanded card, no expand/collapse, no item-level Return/Exchange ---
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: { xs: 2.5, sm: 4 },
+                    borderRadius: 3,
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                    mb: 2,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2.5,
+                  }}
+                >
+                  {/* Order Summary */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      alignItems: { sm: "center" },
+                      justifyContent: "space-between",
+                      mb: 1,
+                    }}
+                  >
+                    <Box>
                       <Typography
                         variant="subtitle2"
-                        sx={{
-                          fontWeight: 700,
-                          color: "text.secondary",
-                          mb: 0.5,
-                        }}
+                        sx={{ fontWeight: 700, color: "text.secondary", mb: 0.5 }}
                       >
                         Order #{order._id}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ color: "text.secondary", mb: 0.5 }}
+                      >
+                        Placed on:{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </Typography>
                       <Typography
                         variant="body2"
@@ -464,475 +707,221 @@ const Orders = ({ mode }) => {
                         sx={{ color: "text.secondary", mb: 0.5 }}
                       >
                         Delivery Address:{" "}
-                        {order.shippingAddress &&
-                        (order.shippingAddress.address ||
-                          order.shippingAddress.city ||
-                          order.shippingAddress.state ||
-                          order.shippingAddress.pincode) ? (
-                          <>
-                            {order.shippingAddress.address &&
-                              `${order.shippingAddress.address}, `}
-                            {order.shippingAddress.city &&
-                              `${order.shippingAddress.city}, `}
-                            {order.shippingAddress.state &&
-                              `${order.shippingAddress.state}, `}
-                            {order.shippingAddress.pincode &&
-                              `${order.shippingAddress.pincode}`}
-                          </>
-                        ) : (
-                          order.address || "N/A"
-                        )}
+                        {order.shippingAddress
+                          ? <>
+                              {order.shippingAddress.name && <>{order.shippingAddress.name}, </>}
+                              {order.shippingAddress.address && <>{order.shippingAddress.address}, </>}
+                              {order.shippingAddress.city && <>{order.shippingAddress.city}, </>}
+                              {order.shippingAddress.state && <>{order.shippingAddress.state}, </>}
+                              {order.shippingAddress.postalCode && <>{order.shippingAddress.postalCode}</>}
+                              {order.shippingAddress.phone && <> ({order.shippingAddress.phone})</>}
+                            </>
+                          : "N/A"}
                       </Typography>
-                      {order.status === "pending" || !order.status ? (
-                        <Chip
-                          label={getDisplayStatus(order.status)}
-                          icon={statusStyles[order.status]?.icon}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: "1rem",
-                            px: 2,
-                            py: 1,
-                            mt: 1,
-                            backgroundColor: statusStyles[order.status]?.bg,
-                            color: statusStyles[order.status]?.color,
-                            "& .MuiChip-icon": {
-                              color: statusStyles[order.status]?.color,
-                            },
-                          }}
-                        />
-                      ) : order.status === "confirmed" ? (
-                        <Chip
-                          label={getDisplayStatus(order.status)}
-                          icon={statusStyles[order.status]?.icon}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: "1rem",
-                            px: 2,
-                            py: 1,
-                            mt: 1,
-                            backgroundColor: statusStyles[order.status]?.bg,
-                            color: statusStyles[order.status]?.color,
-                            "& .MuiChip-icon": {
-                              color: statusStyles[order.status]?.color,
-                            },
-                          }}
-                        />
-                      ) : order.status === "shipped" ? (
-                        <Chip
-                          label={getDisplayStatus(order.status)}
-                          icon={statusStyles[order.status]?.icon}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: "1rem",
-                            px: 2,
-                            py: 1,
-                            mt: 1,
-                            backgroundColor: statusStyles[order.status]?.bg,
-                            color: statusStyles[order.status]?.color,
-                            "& .MuiChip-icon": {
-                              color: statusStyles[order.status]?.color,
-                            },
-                          }}
-                        />
-                      ) : (
-                        <Chip
-                          label={getDisplayStatus(order.status)}
-                          color={getStatusColor(order.status)}
-                          icon={getStatusIcon(order.status)}
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: "1rem",
-                            px: 2,
-                            py: 1,
-                            mt: 1,
-                          }}
-                        />
-                      )}
                     </Box>
-                    {/* Action Buttons */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 1.5,
-                        flexWrap: "wrap",
-                        mt: 1,
-                      }}
-                    >
-                      <Button
-                        variant="outlined"
-                        startIcon={<ViewIcon />}
+                    {order.status === "pending" || !order.status ? (
+                      <Chip
+                        label={getDisplayStatus(order.status)}
+                        icon={statusStyles[order.status]?.icon}
                         sx={{
                           fontWeight: 600,
-                          minWidth: 120,
-                          borderColor: matteColors[900],
-                          color: matteColors[900],
-                          backgroundColor: "white",
-                          py: { xs: 0.7, md: 1 },
-                          px: { xs: 2, md: 3 },
-                          fontSize: { xs: "0.92rem", md: "0.98rem" },
-                          borderRadius: 10,
-                          minHeight: { xs: 36, md: 42 },
-                          textTransform: "none",
-                          alignSelf: { xs: "stretch", md: "center" },
-                          whiteSpace: "nowrap",
-                          transition: "all 0.3s ease",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                          "&:hover": {
-                            backgroundColor: matteColors[100],
-                            borderColor: matteColors[800],
-                            color: matteColors[800],
-                            transform: "translateY(-2px)",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                          },
-                        }}
-                        onClick={() => handleViewDetails(order)}
-                        fullWidth={isMobile}
-                      >
-                        View Details
-                      </Button>
-                      <Button
-                        variant="contained"
-                        startIcon={<ShippingIcon />}
-                        sx={{
-                          backgroundColor: matteColors[900],
-                          color: "white",
-                          fontWeight: 600,
-                          minWidth: 120,
-                          py: { xs: 0.7, md: 1 },
-                          px: { xs: 2, md: 3 },
-                          fontSize: { xs: "0.92rem", md: "0.98rem" },
-                          borderRadius: 10,
-                          minHeight: { xs: 36, md: 42 },
-                          textTransform: "none",
-                          alignSelf: { xs: "stretch", md: "center" },
-                          whiteSpace: "nowrap",
-                          transition: "all 0.3s ease",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                          "&:hover": {
-                            backgroundColor: matteColors[800],
-                            transform: "translateY(-2px)",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                          },
-                        }}
-                        onClick={() => handleTrackOrder(order)}
-                        fullWidth={isMobile}
-                      >
-                        Track Order
-                      </Button>
-                      <Button
-                        variant="contained"
-                        startIcon={<ExchangeIcon />}
-                        sx={{
-                          backgroundColor: matteColors[900],
-                          color: "white",
-                          fontWeight: 600,
-                          minWidth: 170,
-                          py: { xs: 0.7, md: 1 },
-                          px: { xs: 2, md: 3 },
-                          fontSize: { xs: "0.92rem", md: "0.98rem" },
-                          borderRadius: 10,
-                          minHeight: { xs: 36, md: 42 },
-                          textTransform: "none",
-                          alignSelf: { xs: "stretch", md: "center" },
-                          whiteSpace: "nowrap",
-                          transition: "all 0.3s ease",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                          "&:hover": {
-                            backgroundColor: matteColors[800],
-                            transform: "translateY(-2px)",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                          },
-                        }}
-                        onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
-                        fullWidth={isMobile}
-                      >
-                        Return
-                      </Button>
-                    </Box>
-                  </>
-                )}
-              </Paper>
-            ) : (
-              // --- DESKTOP: Original always-expanded card, no expand/collapse, no item-level Return/Exchange ---
-              <Paper
-                elevation={3}
-                sx={{
-                  p: { xs: 2.5, sm: 4 },
-                  borderRadius: 3,
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-                  mb: 2,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2.5,
-                }}
-              >
-                {/* Order Summary */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    alignItems: { sm: "center" },
-                    justifyContent: "space-between",
-                    mb: 1,
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="subtitle2"
-                      sx={{ fontWeight: 700, color: "text.secondary", mb: 0.5 }}
-                    >
-                      Order #{order._id}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 0.5 }}
-                    >
-                      Placed on:{" "}
-                      {new Date(order.createdAt).toLocaleDateString()}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 0.5 }}
-                    >
-                      Total: <b>₹{order.totalPrice}</b>
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 0.5 }}
-                    >
-                      Payment Type:{" "}
-                      {order.paymentInfo?.method
-                        ? order.paymentInfo.method.toUpperCase()
-                        : "N/A"}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 0.5 }}
-                    >
-                      Delivery Address:{" "}
-                      {order.shippingAddress &&
-                      (order.shippingAddress.address ||
-                        order.shippingAddress.city ||
-                        order.shippingAddress.state ||
-                        order.shippingAddress.pincode) ? (
-                        <>
-                          {order.shippingAddress.address &&
-                            `${order.shippingAddress.address}, `}
-                          {order.shippingAddress.city &&
-                            `${order.shippingAddress.city}, `}
-                          {order.shippingAddress.state &&
-                            `${order.shippingAddress.state}, `}
-                          {order.shippingAddress.pincode &&
-                            `${order.shippingAddress.pincode}`}
-                        </>
-                      ) : (
-                        order.address || "N/A"
-                      )}
-                    </Typography>
-                  </Box>
-                  {order.status === "pending" || !order.status ? (
-                    <Chip
-                      label={getDisplayStatus(order.status)}
-                      icon={statusStyles[order.status]?.icon}
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        px: 2,
-                        py: 1,
-                        mt: { xs: 2, sm: 0 },
-                        backgroundColor: statusStyles[order.status]?.bg,
-                        color: statusStyles[order.status]?.color,
-                        "& .MuiChip-icon": {
+                          fontSize: "1rem",
+                          px: 2,
+                          py: 1,
+                          mt: { xs: 2, sm: 0 },
+                          backgroundColor: statusStyles[order.status]?.bg,
                           color: statusStyles[order.status]?.color,
-                        },
-                      }}
-                    />
-                  ) : order.status === "confirmed" ? (
-                    <Chip
-                      label={getDisplayStatus(order.status)}
-                      icon={statusStyles[order.status]?.icon}
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        px: 2,
-                        py: 1,
-                        mt: { xs: 2, sm: 0 },
-                        backgroundColor: statusStyles[order.status]?.bg,
-                        color: statusStyles[order.status]?.color,
-                        "& .MuiChip-icon": {
-                          color: statusStyles[order.status]?.color,
-                        },
-                      }}
-                    />
-                  ) : order.status === "shipped" ? (
-                    <Chip
-                      label={getDisplayStatus(order.status)}
-                      icon={statusStyles[order.status]?.icon}
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        px: 2,
-                        py: 1,
-                        mt: { xs: 2, sm: 0 },
-                        backgroundColor: statusStyles[order.status]?.bg,
-                        color: statusStyles[order.status]?.color,
-                        "& .MuiChip-icon": {
-                          color: statusStyles[order.status]?.color,
-                        },
-                      }}
-                    />
-                  ) : (
-                    <Chip
-                      label={getDisplayStatus(order.status)}
-                      color={getStatusColor(order.status)}
-                      icon={getStatusIcon(order.status)}
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: "1rem",
-                        px: 2,
-                        py: 1,
-                        mt: { xs: 2, sm: 0 },
-                      }}
-                    />
-                  )}
-                </Box>
-                {/* Product Thumbnails (all items) */}
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 2,
-                    flexWrap: "wrap",
-                    mb: 1,
-                  }}
-                >
-                  {order.orderItems.map((item, idx) => (
-                    <Box
-                      key={idx}
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
-                      <Avatar
-                        src={item.image || PLACEHOLDER_IMAGE}
-                        alt={item.name}
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          bgcolor: "#fafafa",
-                          border: "1px solid #eee",
+                          "& .MuiChip-icon": {
+                            color: statusStyles[order.status]?.color,
+                          },
                         }}
                       />
-                      <Typography
-                        variant="body2"
+                    ) : order.status === "confirmed" ? (
+                      <Chip
+                        label={getDisplayStatus(order.status)}
+                        icon={statusStyles[order.status]?.icon}
                         sx={{
-                          fontWeight: 500,
-                          color: "text.primary",
-                          maxWidth: 100,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          px: 2,
+                          py: 1,
+                          mt: { xs: 2, sm: 0 },
+                          backgroundColor: statusStyles[order.status]?.bg,
+                          color: statusStyles[order.status]?.color,
+                          "& .MuiChip-icon": {
+                            color: statusStyles[order.status]?.color,
+                          },
                         }}
+                      />
+                    ) : order.status === "shipped" ? (
+                      <Chip
+                        label={getDisplayStatus(order.status)}
+                        icon={statusStyles[order.status]?.icon}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          px: 2,
+                          py: 1,
+                          mt: { xs: 2, sm: 0 },
+                          backgroundColor: statusStyles[order.status]?.bg,
+                          color: statusStyles[order.status]?.color,
+                          "& .MuiChip-icon": {
+                            color: statusStyles[order.status]?.color,
+                          },
+                        }}
+                      />
+                    ) : (
+                      <Chip
+                        label={getDisplayStatus(order.status)}
+                        color={getStatusColor(order.status)}
+                        icon={getStatusIcon(order.status)}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          px: 2,
+                          py: 1,
+                          mt: { xs: 2, sm: 0 },
+                        }}
+                      />
+                    )}
+                  </Box>
+                  {/* Product Thumbnails (all items) */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 2,
+                      flexWrap: "wrap",
+                      mb: 1,
+                    }}
+                  >
+                    {order.orderItems.map((item, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        {item.name}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-                {/* Action Buttons */}
-                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 1 }}>
-                  <Button
-                    variant="outlined"
-                    startIcon={<ViewIcon />}
-                    sx={{
-                      fontWeight: 600,
-                      minWidth: 120,
-                      borderColor: matteColors[900],
-                      color: matteColors[900],
-                      backgroundColor: "white",
-                      py: { xs: 0.7, md: 1 },
-                      px: { xs: 2, md: 3 },
-                      fontSize: { xs: "0.92rem", md: "0.98rem" },
-                      borderRadius: 10,
-                      minHeight: { xs: 36, md: 42 },
-                      textTransform: "none",
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                      "&:hover": {
-                        backgroundColor: matteColors[100],
-                        borderColor: matteColors[800],
-                        color: matteColors[800],
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
-                      },
-                    }}
-                    onClick={() => handleViewDetails(order)}
-                  >
-                    View Details
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<ShippingIcon />}
-                    sx={{
-                      backgroundColor: matteColors[900],
-                      color: "white",
-                      fontWeight: 600,
-                      minWidth: 120,
-                      py: { xs: 0.7, md: 1 },
-                      px: { xs: 2, md: 3 },
-                      fontSize: { xs: "0.92rem", md: "0.98rem" },
-                      borderRadius: 10,
-                      minHeight: { xs: 36, md: 42 },
-                      textTransform: "none",
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                      "&:hover": {
-                        backgroundColor: matteColors[800],
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                      },
-                    }}
-                    onClick={() => handleTrackOrder(order)}
-                  >
-                    Track Order
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<ExchangeIcon />}
-                    sx={{
-                      backgroundColor: matteColors[900],
-                      color: "white",
-                      fontWeight: 600,
-                      minWidth: 170,
-                      py: { xs: 0.7, md: 1 },
-                      px: { xs: 2, md: 3 },
-                      fontSize: { xs: "0.92rem", md: "0.98rem" },
-                      borderRadius: 10,
-                      minHeight: { xs: 36, md: 42 },
-                      textTransform: "none",
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                      "&:hover": {
-                        backgroundColor: matteColors[800],
-                        transform: "translateY(-2px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                      },
-                    }}
-                    onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
-                  >
-                    Return
-                  </Button>
-                </Box>
-              </Paper>
-            )}
-          </Grid>
-        ))}
+                        <Avatar
+                          src={item.image || PLACEHOLDER_IMAGE}
+                          alt={item.name}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 2,
+                            bgcolor: "#fafafa",
+                            border: "1px solid #eee",
+                          }}
+                        />
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 500,
+                            color: "text.primary",
+                            maxWidth: 100,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.name}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                  {/* Action Buttons */}
+                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 1 }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<ViewIcon />}
+                      sx={{
+                        fontWeight: 600,
+                        minWidth: 120,
+                        borderColor: matteColors[900],
+                        color: matteColors[900],
+                        backgroundColor: "white",
+                        py: { xs: 0.7, md: 1 },
+                        px: { xs: 2, md: 3 },
+                        fontSize: { xs: "0.92rem", md: "0.98rem" },
+                        borderRadius: 10,
+                        minHeight: { xs: 36, md: 42 },
+                        textTransform: "none",
+                        alignSelf: "center",
+                        whiteSpace: "nowrap",
+                        transition: "all 0.3s ease",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                        "&:hover": {
+                          backgroundColor: matteColors[100],
+                          borderColor: matteColors[800],
+                          color: matteColors[800],
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
+                        },
+                      }}
+                      onClick={() => handleViewDetails(order)}
+                    >
+                      View Details
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<ShippingIcon />}
+                      sx={{
+                        backgroundColor: matteColors[900],
+                        color: "white",
+                        fontWeight: 600,
+                        minWidth: 120,
+                        py: { xs: 0.7, md: 1 },
+                        px: { xs: 2, md: 3 },
+                        fontSize: { xs: "0.92rem", md: "0.98rem" },
+                        borderRadius: 10,
+                        minHeight: { xs: 36, md: 42 },
+                        textTransform: "none",
+                        alignSelf: "center",
+                        whiteSpace: "nowrap",
+                        transition: "all 0.3s ease",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                        "&:hover": {
+                          backgroundColor: matteColors[800],
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        },
+                      }}
+                      onClick={() => handleTrackOrder(order)}
+                    >
+                      Track Order
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<ExchangeIcon />}
+                      sx={{
+                        backgroundColor: matteColors[900],
+                        color: "white",
+                        fontWeight: 600,
+                        minWidth: 170,
+                        py: { xs: 0.7, md: 1 },
+                        px: { xs: 2, md: 3 },
+                        fontSize: { xs: "0.92rem", md: "0.98rem" },
+                        borderRadius: 10,
+                        minHeight: { xs: 36, md: 42 },
+                        textTransform: "none",
+                        alignSelf: "center",
+                        whiteSpace: "nowrap",
+                        transition: "all 0.3s ease",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                        "&:hover": {
+                          backgroundColor: matteColors[800],
+                          transform: "translateY(-2px)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        },
+                      }}
+                      onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
+                    >
+                      Return
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
+            </Grid>
+          );
+        })}
       </Grid>
 
       {/* View Details Dialog */}
@@ -950,24 +939,16 @@ const Orders = ({ mode }) => {
               </Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 Delivery Address:{" "}
-                {selectedOrder.shippingAddress &&
-                (selectedOrder.shippingAddress.address ||
-                  selectedOrder.shippingAddress.city ||
-                  selectedOrder.shippingAddress.state ||
-                  selectedOrder.shippingAddress.pincode) ? (
-                  <>
-                    {selectedOrder.shippingAddress.address &&
-                      `${selectedOrder.shippingAddress.address}, `}
-                    {selectedOrder.shippingAddress.city &&
-                      `${selectedOrder.shippingAddress.city}, `}
-                    {selectedOrder.shippingAddress.state &&
-                      `${selectedOrder.shippingAddress.state}, `}
-                    {selectedOrder.shippingAddress.pincode &&
-                      `${selectedOrder.shippingAddress.pincode}`}
-                  </>
-                ) : (
-                  selectedOrder.address || "N/A"
-                )}
+                {selectedOrder.shippingAddress
+                  ? <>
+                      {selectedOrder.shippingAddress.name && <>{selectedOrder.shippingAddress.name}, </>}
+                      {selectedOrder.shippingAddress.address && <>{selectedOrder.shippingAddress.address}, </>}
+                      {selectedOrder.shippingAddress.city && <>{selectedOrder.shippingAddress.city}, </>}
+                      {selectedOrder.shippingAddress.state && <>{selectedOrder.shippingAddress.state}, </>}
+                      {selectedOrder.shippingAddress.postalCode && <>{selectedOrder.shippingAddress.postalCode}</>}
+                      {selectedOrder.shippingAddress.phone && <> ({selectedOrder.shippingAddress.phone})</>}
+                    </>
+                  : "N/A"}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
