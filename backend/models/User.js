@@ -65,7 +65,7 @@ const userSchema = new mongoose.Schema(
         },
         reason: { type: String, required: true },
         
-        date: { type: Date, default: Date.now },
+        
       },
     ],
     resetPasswordToken: String,
