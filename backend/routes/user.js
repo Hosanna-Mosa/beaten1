@@ -21,7 +21,7 @@ router.get('/profile', protect, async (req, res) => {
       phone: addr.phone,
       isDefault: addr.isDefault
     }));
-    // Optionally, add membership info here if you have it
+    // Include subscription info in the response
     res.json({ data: {
       _id: user._id,
       name: user.name,
@@ -30,7 +30,7 @@ router.get('/profile', protect, async (req, res) => {
       phone: user.phone || '',
       email: user.email,
       addresses,
-      membership: user.membership || null // or calculate if needed
+      subscription: user.subscription || null
     }});
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

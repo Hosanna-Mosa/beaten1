@@ -51,6 +51,36 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    // Premium subscription fields
+    subscription: {
+      isSubscribed: {
+        type: Boolean,
+        default: false,
+      },
+      subscriptionCost: {
+        type: Number,
+        default: 0,
+      },
+      subscriptionDate: {
+        type: Date,
+        default: null,
+      },
+      subscriptionExpiry: {
+        type: Date,
+        default: null,
+      },
+      subscriptionType: {
+        type: String,
+        enum: ["yearly", "monthly", ""],
+        default: "",
+      },
+    },
+    addressBook: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address"
+    }],
+
     returns: [
       {
         orderId: {
@@ -64,8 +94,12 @@ const userSchema = new mongoose.Schema(
           required: true,
         },
         reason: { type: String, required: true },
-        
-      
+
+        status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+        date: { type: Date, default: Date.now },
+        received: { type: Boolean, default: false }
+      }
+
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,

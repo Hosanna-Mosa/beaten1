@@ -25,7 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
-import { mockCoupons, validateCoupon } from "../data/mockData";
+// Remove: import { mockCoupons, validateCoupon } from "../data/mockData";
 
 // Dynamically load Razorpay script
 const loadRazorpayScript = () => {
@@ -58,11 +58,18 @@ const Payment = ({ mode = "dark" }) => {
   const [showOffers, setShowOffers] = useState(false);
 
   useEffect(() => {
-    // Filter only public coupons
-    const publicCoupons = mockCoupons.filter(
-      (c) => c.category === "public" || c.isPersonal === false
-    );
-    setAvailableCoupons(publicCoupons);
+    // Fetch public coupons from backend
+    const fetchCoupons = async () => {
+      try {
+        const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const response = await axios.get(`${BASE_URL}/api/coupons`);
+        const coupons = response.data.data || [];
+        setAvailableCoupons(coupons.filter(c => c.type === 'public'));
+      } catch (err) {
+        setAvailableCoupons([]);
+      }
+    };
+    fetchCoupons();
   }, []);
 
   // Calculate totals
@@ -70,7 +77,7 @@ const Payment = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = user?.isPremium ? 250 : 0;
+  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount - couponDiscount + shipping;
 
@@ -86,25 +93,35 @@ const Payment = ({ mode = "dark" }) => {
     setCouponError("");
 
     try {
-      const response = validateCoupon(coupon.trim(), subtotal);
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const response = await axios.post(`${apiUrl}/api/coupons/apply`, {
+        code: coupon.trim(),
+        userId: user?._id,
+        cartTotal: subtotal,
+      });
 
-      if (response.valid) {
-        setCouponDiscount(response.discountAmount);
+      if (response.data.success) {
+        // Calculate discount (assuming percent)
+        const discountAmount = Math.round(
+          (subtotal * response.data.data.discount) / 100
+        );
+        setCouponDiscount(discountAmount);
         setCouponApplied(true);
         setAppliedCoupon({
           code: coupon.trim(),
-          discountAmount: response.discountAmount,
+          discountAmount,
         });
         setCouponError("");
       } else {
-        setCouponError(response.message || "Invalid coupon code");
+        setCouponError(response.data.message || "Invalid coupon code");
         setCouponDiscount(0);
         setCouponApplied(false);
         setAppliedCoupon(null);
       }
     } catch (err) {
-      const errorMessage = "Invalid coupon code";
-      setCouponError(errorMessage);
+      setCouponError(
+        err?.response?.data?.message || "Invalid coupon code"
+      );
       setCouponDiscount(0);
       setCouponApplied(false);
       setAppliedCoupon(null);
@@ -156,6 +173,7 @@ const Payment = ({ mode = "dark" }) => {
   //     rzp.open();
   //   };
   // };
+  
   const handleRazorpay = async () => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";

@@ -66,6 +66,7 @@ const Checkout = ({ mode = "dark" }) => {
   const [addressDialog, setAddressDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [publicCoupons, setPublicCoupons] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -74,13 +75,14 @@ const Checkout = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = user?.isPremium ? 250 : 0;
+  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
   const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetchAddresses();
+    fetchPublicCoupons();
   }, []);
 
   // Replace fetchAddresses with real API call
@@ -103,6 +105,16 @@ const Checkout = ({ mode = "dark" }) => {
     }
   };
 
+  const fetchPublicCoupons = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/coupons`);
+      const coupons = response.data.data || [];
+      setPublicCoupons(coupons.filter(c => c.type === 'public'));
+    } catch (err) {
+      // Optionally handle error
+    }
+  };
+
   // Replace handleAddressSubmit with real API call
   const handleAddressSubmit = async () => {
     try {
@@ -113,7 +125,6 @@ const Checkout = ({ mode = "dark" }) => {
         return;
       }
       if (
-        !newAddress.name ||
         !newAddress.phone ||
         !newAddress.street ||
         !newAddress.city ||
@@ -135,6 +146,7 @@ const Checkout = ({ mode = "dark" }) => {
       }
       const token = localStorage.getItem("token");
       const addressData = {
+        name: newAddress.name.trim(),
         address: newAddress.street.trim(),
         city: newAddress.city.trim(),
         state: newAddress.state.trim(),
@@ -147,7 +159,7 @@ const Checkout = ({ mode = "dark" }) => {
 
       if (newAddress._id) {
         // Edit address
-        await axios.put(
+        await axios.patch(
           `${BASE_URL}/api/user/addresses/${newAddress._id}`,
           addressData,
           {
@@ -218,14 +230,7 @@ const Checkout = ({ mode = "dark" }) => {
           color: item.color,
           price: item.product.price,
         })),
-        shippingAddress: {
-          address: selectedAddressObj.address,
-          city: selectedAddressObj.city,
-          state: selectedAddressObj.state,
-          country: selectedAddressObj.country,
-          postalCode: selectedAddressObj.postalCode,
-          phone: selectedAddressObj.phone,
-        },
+        shippingAddress: selectedAddressObj._id, // Send only the address ID
         paymentMethod,
         total: finalTotal,
         codCharge: paymentMethod === "cod" ? 50 : 0,
@@ -386,15 +391,13 @@ const Checkout = ({ mode = "dark" }) => {
                       label={
                         <Box>
                           <Typography variant="subtitle1">
-                            {address.fullName}
+                            {address.name}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {address.addressLine1}
-                            {address.addressLine2 &&
-                              `, ${address.addressLine2}`}
+                            {address.address}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {address.city}, {address.state} - {address.pincode}
+                            {address.city}, {address.state} - {address.postalCode}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Phone: {address.phone}
@@ -420,13 +423,13 @@ const Checkout = ({ mode = "dark" }) => {
                         size="small"
                         onClick={() => {
                           setNewAddress({
-                            name: address.fullName,
-                            phone: address.phone,
-                            street: address.addressLine1,
-                            city: address.city,
-                            state: address.state,
-                            pincode: address.pincode,
-                            isDefault: address.isDefault,
+                            name: address.name || "",
+                            phone: address.phone || "",
+                            street: address.address || "",
+                            city: address.city || "",
+                            state: address.state || "",
+                            pincode: address.postalCode || "",
+                            isDefault: address.isDefault || false,
                             _id: address._id,
                           });
                           setAddressDialog(true);
@@ -559,11 +562,9 @@ const Checkout = ({ mode = "dark" }) => {
           <Box sx={{ pt: 2 }}>
             <TextField
               fullWidth
-              label="Full Name"
+              label="Name"
               value={newAddress.name}
-              onChange={(e) =>
-                setNewAddress({ ...newAddress, name: e.target.value })
-              }
+              onChange={e => setNewAddress({ ...newAddress, name: e.target.value })}
               sx={{ mb: 2 }}
             />
             <TextField

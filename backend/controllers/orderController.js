@@ -25,21 +25,33 @@ const createOrder = async (req, res) => {
         message: "Shipping address required",
       });
     }
+    // Fetch user to check subscription
+    const user = await require("../models/User").findById(req.user._id);
+    let finalPrice = totalPrice;
+    if (
+      user &&
+      user.subscription &&
+      user.subscription.isSubscribed &&
+      user.subscription.subscriptionExpiry > new Date()
+    ) {
+      // Reduce price by subscription cost, but not below zero
+      finalPrice = Math.max(0, totalPrice - (user.subscription.subscriptionCost || 0));
+    }
     const order = new Order({
       user: req.user._id,
       orderItems,
       shippingAddress,
       paymentInfo,
-      totalPrice,
+      totalPrice: finalPrice,
     });
     const createdOrder = await order.save();
     // Send order confirmation email
-    const user = await order.populate("user", "name email");
-    if (user.user && user.user.email) {
+    const populatedOrder = await order.populate("user", "name email");
+    if (populatedOrder.user && populatedOrder.user.email) {
       await sendOrderConfirmedEmail(
-        user.user.email,
+        populatedOrder.user.email,
         order._id,
-        user.user.name
+        populatedOrder.user.name
       );
     }
     res.status(STATUS_CODES.CREATED).json({
@@ -61,11 +73,37 @@ const createOrder = async (req, res) => {
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .populate("shippingAddress")
-      .sort({ createdAt: -1 });
+      .populate('shippingAddress'); // Populate address details
+
+    // Debug: Log the populated shippingAddress for each order
+    orders.forEach(order => {
+      console.log('Order ID:', order._id);
+      console.log('Populated Shipping Address:', order.shippingAddress);
+    });
+
+    // Add originalPrice and subscriptionDiscount to each order
+    const ordersWithDiscountInfo = orders.map(order => {
+      let originalPrice = order.totalPrice;
+      let subscriptionDiscount = 0;
+      if (order.paymentInfo && order.paymentInfo.originalPrice) {
+        // If already stored, use it
+        originalPrice = order.paymentInfo.originalPrice;
+        subscriptionDiscount = originalPrice - order.totalPrice;
+      } else if (order._doc && order._doc.originalPrice) {
+        // If stored in doc
+        originalPrice = order._doc.originalPrice;
+        subscriptionDiscount = originalPrice - order.totalPrice;
+      }
+      return {
+        ...order._doc,
+        originalPrice,
+        subscriptionDiscount,
+        debugShippingAddress: order.shippingAddress, // Add for debugging
+      };
+    });
     res.status(STATUS_CODES.OK).json({
       success: true,
-      data: orders,
+      data: ordersWithDiscountInfo,
     });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({

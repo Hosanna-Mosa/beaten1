@@ -21,6 +21,10 @@ import {
   AccordionDetails,
   useTheme,
   useMediaQuery,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   LocalShipping as ShippingIcon,
@@ -34,11 +38,14 @@ import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
 
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+
 const Premium = ({ mode }) => {
-  const { user } = useAuth();
+  const { user, updateProfile, login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -122,51 +129,71 @@ const Premium = ({ mode }) => {
     },
   ];
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = () => {
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSubscribe = async () => {
+    setConfirmOpen(false);
     setLoading(true);
     setError(null);
-    try {
-      const response = await axios.post("/api/premium/subscribe", {
-        plan: "year",
-      });
 
-      // Initialize Razorpay
+    // Dynamically load Razorpay script (if not already loaded)
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
       const options = {
-        key: process.env.REACT_APP_RAZORPAY_KEY_ID,
-        amount: response.data.amount,
+        key: "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
+        amount: 24900, // ₹249 in paise
         currency: "INR",
         name: "BEATEN Premium",
         description: "Yearly Premium Membership",
-        order_id: response.data.orderId,
-        handler: async (response) => {
+        handler: async function (response) {
+          setSuccess("Premium membership activated successfully! (Test Payment)");
+          const now = new Date();
+          const expiry = new Date(now);
+          expiry.setFullYear(expiry.getFullYear() + 1); // 1 year plan
+          updateProfile && updateProfile({
+            isPremium: true,
+            premiumSubscribedAt: now.toISOString(),
+            premiumExpiry: expiry.toISOString(),
+          });
+          // Send subscription info to backend
+          const token = localStorage.getItem("token");
           try {
-            await axios.post("/api/premium/verify", {
-              orderId: response.data.orderId,
-              paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-            });
-            setSuccess("Premium membership activated successfully!");
+            await axios.post(
+              `${BASE_URL}/api/premium/manual-subscribe`,
+              {
+                plan: "year",
+                paymentId: response.razorpay_payment_id,
+                subscribedAt: now.toISOString(),
+                expiry: expiry.toISOString(),
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
           } catch (err) {
-            setError("Failed to verify payment");
+            // Optionally handle backend error
           }
         },
         prefill: {
-          name: user.name,
-          email: user.email,
-          contact: user.phone,
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
         },
-        theme: {
-          color: "#1976d2",
-        },
+        theme: { color: "#1976d2" },
       };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (err) {
-      setError("Failed to initiate subscription");
-    } finally {
+      const rzp = new window.Razorpay(options);
+      rzp.open();
       setLoading(false);
-    }
+    };
+
+    script.onerror = () => {
+      setError("Failed to load Razorpay script");
+      setLoading(false);
+    };
   };
 
   return (
@@ -589,6 +616,16 @@ const Premium = ({ mode }) => {
           </Grid>
         </Box>
       </Container>
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>Confirm Subscription</DialogTitle>
+        <DialogContent>
+          Are you sure you want to buy this Premium?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleConfirmSubscribe} color="primary" autoFocus>Yes, Buy Premium</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

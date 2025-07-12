@@ -30,25 +30,19 @@ import { useNavigate } from "react-router-dom";
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
 
-// Helper function to construct image URL
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
-  
-  // If it's already a full URL, return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  
-  // If it's a blob URL, return as is
   if (imagePath.startsWith('blob:')) {
     return imagePath;
   }
-  
-  // If it's just a filename, construct the full URL
   if (imagePath && !imagePath.includes('/')) {
-    return `http://localhost:5000/uploads/${imagePath}`;
+    return `${BASE_URL}/uploads/${imagePath}`;
   }
-  
   return imagePath;
 };
 

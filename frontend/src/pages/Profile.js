@@ -469,17 +469,20 @@ const Profile = ({ mode }) => {
               <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}>
                 Membership
               </Typography>
-              {profileUser.membership ? (
+              {profileUser?.subscription && profileUser.subscription.isSubscribed && new Date(profileUser.subscription.subscriptionExpiry) > new Date() ? (
                 <Box>
                   <Typography sx={{ fontWeight: 600, color: "#ff9800", mb: 1 }}>
-                    <StarIcon sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }} />
+                    <PremiumIcon sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }} />
                     Premium Member
                   </Typography>
-                  <Typography>Days left: <b>{profileUser.membership.daysLeft}</b></Typography>
-                  <Typography>Amount saved: <b>₹{profileUser.membership.amountSaved}</b></Typography>
+                  <Typography>
+                    Days left: <b>
+                      {Math.ceil((new Date(profileUser.subscription.subscriptionExpiry) - new Date()) / (1000 * 60 * 60 * 24))}
+                    </b>
+                  </Typography>
                 </Box>
               ) : (
-                <Typography color="text.secondary">No membership info.</Typography>
+                <Typography color="text.secondary">No membership.</Typography>
               )}
             </Paper>
             {/* Account Actions */}
