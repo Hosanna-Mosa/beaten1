@@ -64,11 +64,7 @@ const userSchema = new mongoose.Schema(
           required: true,
         },
         reason: { type: String, required: true },
-        status: {
-          type: String,
-          enum: ["pending", "approved", "rejected"],
-          default: "pending",
-        },
+        
         date: { type: Date, default: Date.now },
       },
     ],
