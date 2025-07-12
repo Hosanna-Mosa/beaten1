@@ -55,3 +55,30 @@ export const resetPassword = async (email, resetToken, newPassword) => {
     throw error;
   }
 };
+
+// Send OTP for login (email or phone)
+export const sendOtpLogin = async ({ email, phone }) => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/auth/send-otp-login`, {
+      email,
+      phone,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Verify OTP for login (email or phone)
+export const verifyOtpLogin = async ({ email, phone, otp }) => {
+  try {
+    const response = await api.post(`${API_BASE_URL}/auth/verify-otp-login`, {
+      email,
+      phone,
+      otp,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

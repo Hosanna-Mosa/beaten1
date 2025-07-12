@@ -23,14 +23,23 @@ const generateResetToken = () => {
 };
 
 // Send OTP email
-const sendOTPEmail = async (email, otp, userType = "user") => {
+// purpose: 'login' or 'reset' (default 'reset')
+const sendOTPEmail = async (email, otp, userType = "user", purpose = "reset") => {
   try {
     const transporter = createTransporter();
 
-    const subject =
-      userType === "admin"
+    let subject, heading, message;
+    if (purpose === "login") {
+      subject = "Your BEATEN Login OTP";
+      heading = "Login OTP";
+      message = "Use the following OTP to log in to your account.";
+    } else {
+      subject = userType === "admin"
         ? "Admin Password Reset OTP - BEATEN"
         : "Password Reset OTP - BEATEN";
+      heading = "Password Reset OTP";
+      message = `We received a request to reset your password for your ${userType === "admin" ? "admin" : ""} account. Use the following OTP to complete the password reset process:`;
+    }
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -38,7 +47,7 @@ const sendOTPEmail = async (email, otp, userType = "user") => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Password Reset OTP</title>
+        <title>${heading}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -109,12 +118,12 @@ const sendOTPEmail = async (email, otp, userType = "user") => {
         <div class="container">
           <div class="header">
             <div class="logo">BEATEN</div>
-            <h2>Password Reset OTP</h2>
+            <h2>${heading}</h2>
           </div>
           
           <p>Hello,</p>
           
-          <p>We received a request to reset your password for your ${userType === "admin" ? "admin" : ""} account. Use the following OTP to complete the password reset process:</p>
+          <p>${message}</p>
           
           <div class="otp-container">
             <div class="otp-code">${otp}</div>

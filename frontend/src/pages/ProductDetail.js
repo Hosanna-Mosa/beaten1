@@ -37,7 +37,6 @@ import { useWishlist } from "../context/WishlistContext";
 
 import { getProductById, mockReviews } from "../data/mockData";
 
-
 const matteColors = {
   900: "#1a1a1a",
   800: "#2d2d2d",
@@ -157,15 +156,16 @@ const ProductDetail = ({ mode }) => {
 
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}/api/products/${productId}`);
-        
-        
+        const response = await fetch(
+          `${process.env.REACT_APP_BACKEND_URL || "http://localhost:8000"}/api/products/${productId}`
+        );
+
         // if (!response.ok) {
         //   throw new Error(`HTTP error! status: ${response.status}`);
         // }
         const data = await response.json();
         console.log(data.data);
-        
+
         setProduct(data.data);
         setLoading(false);
       } catch (error) {
@@ -226,17 +226,26 @@ const ProductDetail = ({ mode }) => {
         <Grid container spacing={{ xs: 2, md: 6 }}>
           {/* Image Gallery (Left) */}
           <Grid item xs={12} md={7}>
-            <Box sx={{ position: "sticky", top: 100, ml: 0, p: 0, m: 0 }}>
+            <Box
+              sx={{
+                display: { xs: "block", md: "flex" },
+                flexDirection: { xs: "column", md: "row" },
+                alignItems: { xs: "stretch", md: "flex-start" },
+                gap: { xs: 1, md: 2 },
+              }}
+            >
+              {/* Main Image in its own bordered box */}
               <Box
                 sx={{
                   position: "relative",
-                  mb: 2,
-                  ml: 0,
-                  p: 0,
-                  m: 0,
+                  mb: { xs: 2, md: 0 },
                   border: "1px solid #eee",
                   borderRadius: { xs: 0, md: 2 },
                   overflow: "hidden",
+                  maxWidth: { xs: "100%", md: "600px" },
+                  width: { xs: "100vw", md: "600px" },
+                  height: { xs: "auto", md: "600px" },
+                  background: "#fff",
                 }}
               >
                 {/* Left Arrow */}
@@ -264,25 +273,19 @@ const ProductDetail = ({ mode }) => {
                     </span>
                   </IconButton>
                 )}
-                {/* Main Image */}
                 <Box
                   component="img"
                   src={mainImage}
                   alt={product.name}
                   sx={{
-                    width: { xs: "100vw", md: "100%" },
-                    maxWidth: { xs: "100vw", md: "100%" },
-                    height: "auto",
-                    aspectRatio: { xs: "1/1", md: "0.8/1" },
+                    width: "100%",
+                    height: "100%",
                     objectFit: "cover",
                     display: "block",
                     transition: "transform 0.5s ease",
                     "&:hover": {
                       transform: "scale(1.1)",
                     },
-                    padding: { xs: 0, md: 0 },
-                    marginLeft: { xs: 0, md: "auto" },
-                    marginRight: { xs: 0, md: "auto" },
                   }}
                 />
                 {/* Right Arrow */}
@@ -309,37 +312,54 @@ const ProductDetail = ({ mode }) => {
                   </IconButton>
                 )}
               </Box>
-              <Grid container spacing={1}>
+              {/* Thumbnails - vertical column, outside main image box */}
+              <Box
+                sx={{
+                  display: { xs: "flex", md: "flex" },
+                  flexDirection: { xs: "row", md: "column" },
+                  gap: 1,
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                  width: { xs: "100%", md: "auto" },
+                  maxWidth: { xs: "100%", md: "120px" },
+                  alignSelf: { xs: "auto", md: "flex-start" },
+                  mt: { xs: 1, md: 0 },
+                  ml: { xs: 0, md: 2 }, // Add left margin in desktop to separate from main image
+                  background: "transparent",
+                }}
+              >
                 {images.map((img, index) => (
-                  <Grid item xs={3} key={index}>
+                  <Box
+                    key={index}
+                    onClick={() => setMainImageIndex(index)}
+                    sx={{
+                      cursor: "pointer",
+                      border:
+                        mainImageIndex === index
+                          ? `2px solid ${matteColors[900]}`
+                          : "2px solid transparent",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      transition: "border-color 0.3s ease",
+                      width: { xs: "70px", md: "90px" },
+                      height: { xs: "70px", md: "90px" },
+                      flexShrink: 0,
+                      background: "#fff",
+                    }}
+                  >
                     <Box
-                      onClick={() => setMainImageIndex(index)}
+                      component="img"
+                      src={getImageUrl(img)}
+                      alt={`Thumbnail ${index + 1}`}
                       sx={{
-                        cursor: "pointer",
-                        border:
-                          mainImageIndex === index
-                            ? `2px solid ${matteColors[900]}`
-                            : "2px solid transparent",
-                        borderRadius: 2,
-                        overflow: "hidden",
-                        transition: "border-color 0.3s ease",
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
                       }}
-                    >
-                      <Box
-                        component="img"
-                        src={getImageUrl(img)}
-                        alt={`Thumbnail ${index + 1}`}
-                        sx={{
-                          width: "100%",
-                          height: 60,
-                          objectFit: "cover",
-                          display: "block",
-                        }}
-                      />
-                    </Box>
-                  </Grid>
+                    />
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             </Box>
           </Grid>
 
