@@ -46,13 +46,19 @@ router.get("/dashboard", dashboardAnalytics);
 router.get("/returns", protectAdmin, async (req, res) => {
   try {
 
+    // Aggregate all returns from all users
+    const users = await User.find({}, 'email phone returns');
+
     const allReturns = [];
     users.forEach((user) => {
       (user.returns || []).forEach((ret) => {
         allReturns.push({
           _id: ret._id,
           userId: user._id,
-         
+
+          user: { email: user.email, phone: user.phone },
+          ...ret.toObject()
+
         });
       });
     });
@@ -85,6 +91,22 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
       status
     ).catch(console.error);
     res.json({ success: true, message: "Status updated" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Mark return as received
+router.patch('/returns/:id/received', protectAdmin, async (req, res) => {
+  try {
+    // Find the user and return by return _id
+    const user = await User.findOne({ 'returns._id': req.params.id });
+    if (!user) return res.status(404).json({ message: 'Return not found' });
+    const ret = user.returns.id(req.params.id);
+    if (!ret) return res.status(404).json({ message: 'Return not found' });
+    ret.received = true;
+    await user.save();
+    res.json({ success: true, message: 'Return marked as received' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
