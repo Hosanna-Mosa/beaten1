@@ -52,8 +52,7 @@ router.get("/returns", protectAdmin, async (req, res) => {
         allReturns.push({
           _id: ret._id,
           userId: user._id,
-          user: { email: user.email },
-          ...ret.toObject(),
+         
         });
       });
     });
