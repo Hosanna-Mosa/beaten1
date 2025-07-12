@@ -27,10 +27,20 @@ import {
   CheckCircle as ApprovedIcon,
   Pending as PendingIcon,
   Cancel as RejectedIcon,
+  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { useTheme, useMediaQuery } from "@mui/material";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import InfoIcon from '@mui/icons-material/Info';
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/80x80?text=Product";
 
@@ -68,6 +78,23 @@ const getStatusIcon = (status) => {
       return <PendingIcon />;
   }
 };
+
+const statusColors = {
+  pending: '#fffbe6', // light yellow
+  approved: '#e3f2fd', // light blue
+  completed: '#e8f5e9', // light green
+};
+const statusChipColors = {
+  pending: 'warning',
+  approved: 'info',
+  completed: 'success',
+};
+const statusLabels = {
+  pending: 'Requested',
+  approved: 'Approved',
+  completed: 'Completed',
+};
+const steps = ['Requested', 'Approved', 'Completed'];
 
 const Returns = ({ mode }) => {
   const { user } = useAuth();
@@ -177,180 +204,125 @@ const Returns = ({ mode }) => {
 
   return (
     <Container
+      maxWidth="lg"
       sx={{
         py: { xs: 4, md: 8 },
-        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        bgcolor: mode === "dark" ? "#181818" : "#f7f9fa",
         color: mode === "dark" ? "#fff" : "#181818",
         minHeight: "100vh",
         transition: "background 0.3s, color 0.3s",
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button 
-          variant="outlined" 
+      <Typography
+        variant="h3"
+        sx={{ fontWeight: 900, mb: 4, textAlign: "center", letterSpacing: 1 }}
+      >
+        My Returns
+      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
+        <Button
+          variant="outlined"
           onClick={fetchReturns}
           startIcon={<RefreshIcon />}
+          sx={{ borderRadius: 3, fontWeight: 600, px: 3 }}
         >
           Refresh Returns
         </Button>
       </Box>
-      <Typography
-        variant="h4"
-        sx={{ fontWeight: 800, mb: 3, textAlign: "center" }}
-      >
-        My Returns
-      </Typography>
-      <Divider sx={{ mb: 4 }} />
-      
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
       {sortedReturns.length === 0 ? (
-        <Paper
-          elevation={3}
-          sx={{
-            p: 4,
-            borderRadius: 3,
-            textAlign: "center",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-          }}
-        >
-          <ReturnIcon sx={{ fontSize: 64, color: "text.secondary", mb: 2 }} />
-          <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+        <Box sx={{ textAlign: "center", mt: 8 }}>
+          <ReturnIcon sx={{ fontSize: 60, color: "#bdbdbd", mb: 2 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
             No Returns Found
           </Typography>
           <Typography variant="body1" sx={{ color: "text.secondary" }}>
-            You haven't submitted any return requests yet.
+            You have not requested any returns yet.
           </Typography>
-        </Paper>
+        </Box>
       ) : (
-        <Grid container spacing={3}>
-          {sortedReturns.map((returnItem, index) => (
-            <Grid item xs={12} key={index}>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: { xs: 2, sm: 3 },
-                  borderRadius: 3,
-                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  cursor: "pointer",
-                  transition: "box-shadow 0.2s",
-                  '&:hover': { boxShadow: '0 4px 24px rgba(0,0,0,0.13)' },
-                }}
-                onClick={() => handleReturnCardClick(returnItem.orderId)}
-              >
-                <Box
+        <Grid container spacing={4}>
+          {sortedReturns.map((ret) => {
+            // Determine status for stepper and color
+            let stepIndex = 0;
+            let cardBg = statusColors.pending;
+            let chipColor = statusChipColors.pending;
+            let chipLabel = statusLabels.pending;
+            if (ret.status === 'approved') {
+              stepIndex = 1;
+              cardBg = statusColors.approved;
+              chipColor = statusChipColors.approved;
+              chipLabel = statusLabels.approved;
+            }
+            if (ret.received) {
+              stepIndex = 2;
+              cardBg = statusColors.completed;
+              chipColor = statusChipColors.completed;
+              chipLabel = statusLabels.completed;
+            }
+            return (
+              <Grid item xs={12} sm={12} md={10} lg={8} key={ret._id} sx={{ mx: 'auto' }}>
+                <Paper
+                  elevation={2}
                   sx={{
-                    display: "flex",
-                    flexDirection: isMobile ? "column" : "row",
-                    alignItems: isMobile ? "flex-start" : "center",
-                    gap: 2,
+                    borderRadius: 4,
+                    p: 3,
+                    bgcolor: cardBg,
+                    boxShadow: '0 2px 12px rgba(60,60,60,0.07)',
+                    minHeight: 220,
                     mb: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
                   }}
                 >
-                  <Avatar
-                    src={PLACEHOLDER_IMAGE}
-                    alt="Product"
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 2,
-                      bgcolor: "#fafafa",
-                      border: "2px solid #e0e0e0",
-                    }}
-                  />
-                  
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 600,
-                        mb: 1,
-                        overflowWrap: "break-word",
-                      }}
-                    >
-                      Product Return Request
-                    </Typography>
-                    
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 1 }}
-                    >
-                      Order ID: {returnItem.orderId}
-                    </Typography>
-                    
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 1 }}
-                    >
-                      Product ID: {returnItem.productId}
-                    </Typography>
-                    
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "text.secondary", mb: 1 }}
-                    >
-                      Submitted: {new Date(returnItem.createdAt || Date.now()).toLocaleDateString()}
-                    </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar sx={{ width: 56, height: 56, bgcolor: '#f5f5f5', border: '2px solid #e0e0e0' }}>
+                        <Inventory2OutlinedIcon fontSize="large" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                          {ret.productName || 'Product Name'}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Order: <b>{ret.orderId}</b>
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Return ID: <b>{ret._id}</b>
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Chip
+                      label={chipLabel}
+                      color={chipColor}
+                      icon={stepIndex === 2 ? <CheckCircleIcon /> : (stepIndex === 1 ? <InfoIcon /> : <PendingIcon />)}
+                      sx={{ fontWeight: 600, fontSize: 15, borderRadius: 2, px: 1.5, py: 0.5 }}
+                    />
                   </Box>
-                  
-                  <Chip
-                    icon={getStatusIcon(returnItem.status || "pending")}
-                    label={returnItem.status || "Pending"}
-                    color={getStatusColor(returnItem.status || "pending")}
-                    sx={{
-                      fontWeight: 600,
-                      minWidth: 100,
-                    }}
-                  />
-                </Box>
-                
-                <Divider sx={{ my: 2 }} />
-                
-                <Box>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ fontWeight: 600, mb: 1 }}
-                  >
-                    Return Reason:
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CalendarTodayIcon fontSize="small" />
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        Requested: {ret.date ? new Date(ret.date).toLocaleDateString() : ''}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.5 }}>
+                    Reason: <span style={{ fontWeight: 700 }}>{ret.reason}</span>
                   </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      p: 2,
-                      bgcolor: "grey.50",
-                      borderRadius: 2,
-                      border: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    {returnItem.reason}
-                  </Typography>
-                </Box>
-                
-                {returnItem.status === "approved" && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert severity="success">
-                      Your return request has been approved. Please follow the return instructions provided.
-                    </Alert>
+                  <Box sx={{ mt: 3 }}>
+                    <Stepper activeStep={stepIndex} alternativeLabel>
+                      {steps.map((label) => (
+                        <Step key={label}>
+                          <StepLabel>{label}</StepLabel>
+                        </Step>
+                      ))}
+                    </Stepper>
                   </Box>
-                )}
-                
-                {returnItem.status === "rejected" && (
-                  <Box sx={{ mt: 2 }}>
-                    <Alert severity="error">
-                      Your return request has been rejected. Please contact customer support for more information.
-                    </Alert>
-                  </Box>
-                )}
-              </Paper>
-            </Grid>
-          ))}
+                </Paper>
+              </Grid>
+            );
+          })}
         </Grid>
       )}
 

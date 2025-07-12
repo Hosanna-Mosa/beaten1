@@ -26,7 +26,7 @@ const menuItems = [
   { text: 'Products', icon: <ProductsIcon />, path: '/products' },
   { text: 'Orders', icon: <OrdersIcon />, path: '/orders' },
   // { text: 'Customers', icon: <CustomersIcon />, path: '/customers' },
-  { text: 'Promotions', icon: <PromotionsIcon />, path: '/promotions' },
+  { text: 'Coupons', icon: <PromotionsIcon />, path: '/promotions' },
   {
     text: 'Returns',
     icon: <AssignmentReturnIcon />,

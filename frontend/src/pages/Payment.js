@@ -86,25 +86,35 @@ const Payment = ({ mode = "dark" }) => {
     setCouponError("");
 
     try {
-      const response = validateCoupon(coupon.trim(), subtotal);
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const response = await axios.post(`${apiUrl}/api/coupons/apply`, {
+        code: coupon.trim(),
+        userId: user?._id,
+        cartTotal: subtotal,
+      });
 
-      if (response.valid) {
-        setCouponDiscount(response.discountAmount);
+      if (response.data.success) {
+        // Calculate discount (assuming percent)
+        const discountAmount = Math.round(
+          (subtotal * response.data.data.discount) / 100
+        );
+        setCouponDiscount(discountAmount);
         setCouponApplied(true);
         setAppliedCoupon({
           code: coupon.trim(),
-          discountAmount: response.discountAmount,
+          discountAmount,
         });
         setCouponError("");
       } else {
-        setCouponError(response.message || "Invalid coupon code");
+        setCouponError(response.data.message || "Invalid coupon code");
         setCouponDiscount(0);
         setCouponApplied(false);
         setAppliedCoupon(null);
       }
     } catch (err) {
-      const errorMessage = "Invalid coupon code";
-      setCouponError(errorMessage);
+      setCouponError(
+        err?.response?.data?.message || "Invalid coupon code"
+      );
       setCouponDiscount(0);
       setCouponApplied(false);
       setAppliedCoupon(null);
