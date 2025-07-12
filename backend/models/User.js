@@ -51,6 +51,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
     // Premium subscription fields
     subscription: {
       isSubscribed: {
@@ -79,15 +80,26 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address"
     }],
+
     returns: [
       {
-        orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', required: true },
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+        orderId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Order",
+          required: true,
+        },
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
         reason: { type: String, required: true },
+
         status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
         date: { type: Date, default: Date.now },
         received: { type: Boolean, default: false }
       }
+
     ],
     resetPasswordToken: String,
     resetPasswordExpire: Date,

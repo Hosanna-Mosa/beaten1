@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
       const { token, user } = response.data.data;
       console.log(response.data.data);
-      
+
       console.log(user);
       console.log(token);
 
@@ -181,6 +181,7 @@ export const AuthProvider = ({ children }) => {
     changePassword,
     sendOTP,
     verifyOTP,
+    setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

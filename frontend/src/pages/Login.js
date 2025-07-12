@@ -18,6 +18,8 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  Grid,
+  ButtonGroup,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
@@ -32,10 +34,12 @@ import {
   sendForgotPasswordOTP,
   verifyForgotPasswordOTP,
   resetPassword,
+  sendOtpLogin,
+  verifyOtpLogin,
 } from "../api/forgotPasswordAPI";
 
 const Login = () => {
-  const { login, error, loading } = useAuth();
+  const { login, error, loading, setUser } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [localError, setLocalError] = useState("");
   const navigate = useNavigate();
@@ -55,6 +59,19 @@ const Login = () => {
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState("");
   // Store resetToken after OTP verification
   const [resetToken, setResetToken] = useState("");
+
+  // Remove tab logic
+  // const [tab, setTab] = useState(0);
+  // const handleTabChange = ...
+
+  const [otpInput, setOtpInput] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpVerify, setOtpVerify] = useState("");
+  const [otpVerifyLoading, setOtpVerifyLoading] = useState(false);
+  const [otpVerifyError, setOtpVerifyError] = useState("");
+  const [loginMode, setLoginMode] = useState("email"); // "email" or "otp"
 
   const from = location.state?.from?.pathname || "/";
 
@@ -221,63 +238,354 @@ const Login = () => {
     }
   };
 
+  // Send OTP for login
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    setOtpError("");
+    setOtpLoading(true);
+    toast.info("Sending OTP...");
+    if (!otpInput) {
+      setOtpError("Please enter your email or phone number.");
+      setOtpLoading(false);
+      toast.error("Please enter your email or phone number.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10,15}$/;
+    let payload = {};
+    if (emailRegex.test(otpInput)) {
+      payload.email = otpInput;
+    } else if (phoneRegex.test(otpInput)) {
+      payload.phone = otpInput;
+    } else {
+      setOtpError("Enter a valid email or phone number.");
+      setOtpLoading(false);
+      toast.error("Enter a valid email or phone number.");
+      return;
+    }
+    try {
+      const response = await sendOtpLogin(payload);
+      toast.success(response.message || "OTP sent successfully!");
+      setOtpSent(true);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || "Failed to send OTP. Please try again.";
+      setOtpError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // Verify OTP for login
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setOtpVerifyError("");
+    setOtpVerifyLoading(true);
+    toast.info("Verifying OTP...");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\d{10,15}$/;
+    let payload = {};
+    if (emailRegex.test(otpInput)) {
+      payload.email = otpInput;
+    } else if (phoneRegex.test(otpInput)) {
+      payload.phone = otpInput;
+    }
+    payload.otp = otpVerify;
+    if (!otpVerify || otpVerify.length !== 6) {
+      setOtpVerifyError("Please enter the 6-digit OTP.");
+      setOtpVerifyLoading(false);
+      toast.error("Please enter the 6-digit OTP.");
+      return;
+    }
+    try {
+      const response = await verifyOtpLogin(payload);
+      toast.success(response.message || "OTP verified. Login successful.");
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("user", JSON.stringify(response.user));
+      setUser(response.user);
+      navigate("/");
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Failed to verify OTP. Please try again.";
+      setOtpVerifyError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setOtpVerifyLoading(false);
+    }
+  };
+
+  // Add toasts for switching login modes and form resets
+  const handleSwitchLoginMode = (mode) => {
+    setLoginMode(mode);
+    setOtpInput("");
+    setOtpError("");
+    setOtpSent(false);
+    setOtpVerify("");
+    setOtpVerifyError("");
+    setOtpLoading(false);
+    setOtpVerifyLoading(false);
+    toast.info(
+      mode === "email" ? "Switched to Email Login" : "Switched to OTP Login"
+    );
+  };
+
   return (
     <Container maxWidth="sm">
-      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 8 }}>
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      <Box sx={{ mt: 8 }}>
         <Typography variant="h5" align="center" sx={{ mb: 3, fontWeight: 700 }}>
-          Login
+          Welcome Back
         </Typography>
-        <TextField
-          label="Email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Password"
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          fullWidth
-          margin="normal"
-        />
-        {(localError || error) && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {localError || error}
-          </Alert>
-        )}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 2 }}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={24} /> : "Login"}
-        </Button>
-        <Box sx={{ textAlign: "right", mb: 2 }}>
-          <Link
-            component="button"
-            variant="body2"
-            onClick={handleForgotPasswordOpen}
-            sx={{ cursor: "pointer" }}
-          >
-            Forgot password?
-          </Link>
+        <Typography align="center" color="text.secondary" sx={{ mb: 3 }}>
+          Enter your email or phone to continue
+        </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+          <ButtonGroup variant="text" sx={{ boxShadow: "none" }}>
+            <Button
+              onClick={() => handleSwitchLoginMode("email")}
+              sx={{
+                fontWeight: 600,
+                fontSize: 16,
+                borderBottom:
+                  loginMode === "email"
+                    ? "3px solid #1a1a1a"
+                    : "3px solid transparent",
+                borderRadius: 0,
+                color: loginMode === "email" ? "#1a1a1a" : "#888",
+                background: "none",
+                boxShadow: "none",
+                px: 4,
+              }}
+              disableRipple
+            >
+              Email Login
+            </Button>
+            <Button
+              onClick={() => handleSwitchLoginMode("otp")}
+              sx={{
+                fontWeight: 600,
+                fontSize: 16,
+                borderBottom:
+                  loginMode === "otp"
+                    ? "3px solid #1a1a1a"
+                    : "3px solid transparent",
+                borderRadius: 0,
+                color: loginMode === "otp" ? "#1a1a1a" : "#888",
+                background: "none",
+                boxShadow: "none",
+                px: 4,
+              }}
+              disableRipple
+            >
+              OTP Login
+            </Button>
+          </ButtonGroup>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          Don't have an account?{" "}
-          <Link component={RouterLink} to="/register">
-            Register here
-          </Link>
-        </Typography>
+        {loginMode === "email" && (
+          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Email Login
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                label="Email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+                InputProps={{
+                  startAdornment: (
+                    <EmailIcon sx={{ color: "action.active", mr: 1 }} />
+                  ),
+                }}
+              />
+              <TextField
+                label="Password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                fullWidth
+                margin="normal"
+                InputProps={{
+                  startAdornment: (
+                    <LockIcon sx={{ color: "action.active", mr: 1 }} />
+                  ),
+                }}
+              />
+              {(localError || error) && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {localError || error}
+                </Alert>
+              )}
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{
+                  mt: 2,
+                  borderRadius: 5,
+                  fontWeight: 700,
+                  fontSize: 18,
+                  py: 1.5,
+                }}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : "Login"}
+              </Button>
+              <Box sx={{ textAlign: "right", mb: 2 }}>
+                <Link
+                  component="button"
+                  variant="body2"
+                  onClick={handleForgotPasswordOpen}
+                  sx={{ cursor: "pointer" }}
+                >
+                  Forgot password?
+                </Link>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{" "}
+                <Link component={RouterLink} to="/register">
+                  Register here
+                </Link>
+              </Typography>
+            </Box>
+          </Paper>
+        )}
+        {loginMode === "otp" && (
+          <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              OTP Login
+            </Typography>
+            {!otpSent ? (
+              <Box component="form" onSubmit={handleSendOtp}>
+                <TextField
+                  label="Email or Phone"
+                  value={otpInput}
+                  onChange={(e) => setOtpInput(e.target.value)}
+                  fullWidth
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <PhoneIphoneIcon sx={{ color: "action.active", mr: 1 }} />
+                    ),
+                    sx: { borderRadius: 3, fontSize: 18 },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                      fontSize: 18,
+                    },
+                  }}
+                />
+                {otpError && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    {otpError}
+                  </Alert>
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{
+                    mt: 2,
+                    borderRadius: 5,
+                    fontWeight: 700,
+                    fontSize: 18,
+                    py: 1.5,
+                  }}
+                  disabled={otpLoading}
+                >
+                  {otpLoading ? <CircularProgress size={24} /> : "Send OTP"}
+                </Button>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  align="center"
+                  sx={{ mt: 3 }}
+                >
+                  Don't have an account?{" "}
+                  <Link component={RouterLink} to="/register">
+                    Register here
+                  </Link>
+                </Typography>
+              </Box>
+            ) : (
+              <Box component="form" onSubmit={handleVerifyOtp}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mb: 3 }}
+                >
+                  Enter the 6-digit OTP sent to your{" "}
+                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(otpInput)
+                    ? "email"
+                    : "phone"}
+                  .
+                </Typography>
+                <TextField
+                  label="Enter OTP"
+                  value={otpVerify}
+                  onChange={(e) => setOtpVerify(e.target.value)}
+                  inputProps={{ maxLength: 6 }}
+                  fullWidth
+                  margin="normal"
+                  InputProps={{
+                    startAdornment: (
+                      <LockIcon sx={{ color: "action.active", mr: 1 }} />
+                    ),
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: 3,
+                    },
+                  }}
+                />
+                {otpVerifyError && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    {otpVerifyError}
+                  </Alert>
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{
+                    mt: 2,
+                    borderRadius: 5,
+                    fontWeight: 700,
+                    fontSize: 18,
+                    py: 1.5,
+                  }}
+                  disabled={otpVerifyLoading}
+                >
+                  {otpVerifyLoading ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    "Verify OTP & Login"
+                  )}
+                </Button>
+              </Box>
+            )}
+          </Paper>
+        )}
       </Box>
-
-      {/* Forgot Password Dialog */}
+      {/* Forgot Password Dialog (unchanged) */}
       <Dialog
         open={forgotPasswordOpen}
         onClose={handleForgotPasswordClose}

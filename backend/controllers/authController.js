@@ -1,6 +1,16 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const { STATUS_CODES, MESSAGES } = require("../utils/constants");
+const { generateOTP, sendOTPEmail } = require("../utils/emailService");
+const jwt = require("jsonwebtoken");
+
+// In-memory OTP storage for login (reuse pattern)
+const otpLoginStorage = new Map();
+const storeOtpLogin = (key, otp) => {
+  const expiresAt = Date.now() + 10 * 60 * 1000;
+  otpLoginStorage.set(key, { otp, expiresAt });
+  setTimeout(() => otpLoginStorage.delete(key), 10 * 60 * 1000);
+};
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -24,9 +34,9 @@ const register = async (req, res, next) => {
       name,
       email,
       password,
-      gender: gender || '',
-      dob: dob || '',
-      phone: phone || '',
+      gender: gender || "",
+      dob: dob || "",
+      phone: phone || "",
     });
     console.log(user);
     if (user) {
@@ -60,18 +70,22 @@ const login = async (req, res) => {
   try {
     // Find user by email
     console.log(email, password);
-    
+
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password" });
     }
     // Check password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid email or password" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password" });
     }
     console.log("Last");
-    
+
     // // Success
     //  res.json({
     //   success: true,
@@ -97,12 +111,110 @@ const login = async (req, res) => {
           gender: user.gender,
           dob: user.dob,
           phone: user.phone,
-        }
+        },
       },
     });
-    
   } catch (err) {
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const sendOtpLogin = async (req, res) => {
+  try {
+    const { email, phone } = req.body;
+    if (!email && !phone) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email or phone is required" });
+    }
+    let user = null;
+    let key = null;
+    if (email) {
+      user = await User.findOne({ email: email.toLowerCase() });
+      key = `email_${email.toLowerCase()}`;
+    } else if (phone) {
+      user = await User.findOne({ phone });
+      key = `phone_${phone}`;
+    }
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Invalid details. User not found." });
+    }
+    const otp = generateOTP();
+    storeOtpLogin(key, otp);
+    if (email) {
+      await sendOTPEmail(email, otp, "user", "login");
+      return res
+        .status(200)
+        .json({ success: true, message: "OTP sent to your email." });
+    } else if (phone) {
+      // TODO: Integrate with Firebase for phone OTP
+      return res.status(200).json({
+        success: true,
+        message: "OTP sent to your phone (not implemented).",
+      });
+    }
+  } catch (error) {
+    console.error("Error in sendOtpLogin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to send OTP. Please try again.",
+    });
+  }
+};
+
+const verifyOtpLogin = async (req, res) => {
+  try {
+    const { email, phone, otp } = req.body;
+    if ((!email && !phone) || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone and OTP are required",
+      });
+    }
+    let user = null;
+    let key = null;
+    if (email) {
+      user = await User.findOne({ email: email.toLowerCase() });
+      key = `email_${email.toLowerCase()}`;
+    } else if (phone) {
+      user = await User.findOne({ phone });
+      key = `phone_${phone}`;
+    }
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Invalid details. User not found." });
+    }
+    const stored = otpLoginStorage.get(key);
+    if (!stored || stored.otp !== otp || Date.now() > stored.expiresAt) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired OTP" });
+    }
+    // OTP is valid, remove it
+    otpLoginStorage.delete(key);
+    // Generate JWT token (reuse generateToken)
+    const token = generateToken(user._id);
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified. Login successful.",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error in verifyOtpLogin:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to verify OTP. Please try again.",
+    });
   }
 };
 
@@ -207,3 +319,5 @@ module.exports = {
   updateProfile,
   logout,
 };
+module.exports.sendOtpLogin = sendOtpLogin;
+module.exports.verifyOtpLogin = verifyOtpLogin;

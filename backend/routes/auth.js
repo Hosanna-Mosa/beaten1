@@ -6,6 +6,8 @@ const {
   getProfile,
   updateProfile,
   logout,
+  sendOtpLogin,
+  verifyOtpLogin,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
 const {
@@ -17,6 +19,10 @@ const {
 // Public routes
 router.post("/register", registerValidation, register);
 router.post("/login", loginValidation, login);
+
+// Add OTP login route
+router.post("/send-otp-login", sendOtpLogin);
+router.post("/verify-otp-login", verifyOtpLogin);
 
 // Protected routes
 router.get("/profile", protect, getProfile);
