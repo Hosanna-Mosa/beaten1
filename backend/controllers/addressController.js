@@ -4,10 +4,11 @@ const User = require("../models/User");
 // Add a new address to user's address book
 exports.addAddress = async (req, res) => {
   try {
-    const { address, city, state, country, postalCode, phone, isDefault } = req.body;
+    const { name, address, city, state, country, postalCode, phone, isDefault } = req.body;
     const userId = req.user._id;
     const newAddress = await Address.create({
       user: userId,
+      name: name || '', // Save name
       address,
       city,
       state,
@@ -45,6 +46,7 @@ exports.updateAddress = async (req, res) => {
     if (!address) {
       return res.status(404).json({ success: false, message: "Address not found" });
     }
+    if (req.body.name !== undefined) address.name = req.body.name; // Update name
     Object.assign(address, req.body);
     await address.save();
     res.json({ success: true, data: address });

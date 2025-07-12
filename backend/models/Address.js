@@ -30,6 +30,10 @@ const addressSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  name: {
+    type: String,
+    required: false, // Set to true if you want to enforce name
+  },
   isDefault: {
     type: Boolean,
     default: false,

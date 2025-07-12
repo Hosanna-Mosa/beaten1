@@ -25,7 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
-import { mockCoupons, validateCoupon } from "../data/mockData";
+// Remove: import { mockCoupons, validateCoupon } from "../data/mockData";
 
 // Dynamically load Razorpay script
 const loadRazorpayScript = () => {
@@ -58,11 +58,18 @@ const Payment = ({ mode = "dark" }) => {
   const [showOffers, setShowOffers] = useState(false);
 
   useEffect(() => {
-    // Filter only public coupons
-    const publicCoupons = mockCoupons.filter(
-      (c) => c.category === "public" || c.isPersonal === false
-    );
-    setAvailableCoupons(publicCoupons);
+    // Fetch public coupons from backend
+    const fetchCoupons = async () => {
+      try {
+        const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const response = await axios.get(`${BASE_URL}/api/coupons`);
+        const coupons = response.data.data || [];
+        setAvailableCoupons(coupons.filter(c => c.type === 'public'));
+      } catch (err) {
+        setAvailableCoupons([]);
+      }
+    };
+    fetchCoupons();
   }, []);
 
   // Calculate totals
@@ -70,7 +77,7 @@ const Payment = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = user?.isPremium ? 250 : 0;
+  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount - couponDiscount + shipping;
 
@@ -166,6 +173,7 @@ const Payment = ({ mode = "dark" }) => {
   //     rzp.open();
   //   };
   // };
+  
   const handleRazorpay = async () => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
