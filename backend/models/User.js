@@ -51,12 +51,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    addressBook: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Address",
-      },
-    ],
     returns: [
       {
         orderId: {
