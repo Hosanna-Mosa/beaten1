@@ -61,10 +61,14 @@ const Payment = ({ mode = "dark" }) => {
     // Fetch public coupons from backend
     const fetchCoupons = async () => {
       try {
-        const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const BASE_URL =
+          process.env.REACT_APP_API_URL || "http://localhost:8000";
         const response = await axios.get(`${BASE_URL}/api/coupons`);
+        console.log("response", response.data.data);
         const coupons = response.data.data || [];
-        setAvailableCoupons(coupons.filter(c => c.type === 'public'));
+        const filtered = coupons.filter((c) => c.type === "public");
+        console.log("filteredCoupons", filtered);
+        setAvailableCoupons(filtered);
       } catch (err) {
         setAvailableCoupons([]);
       }
@@ -77,7 +81,8 @@ const Payment = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
+  const discount =
+    user?.isPremium && new Date(user.premiumExpiry) > new Date() ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount - couponDiscount + shipping;
 
@@ -119,9 +124,7 @@ const Payment = ({ mode = "dark" }) => {
         setAppliedCoupon(null);
       }
     } catch (err) {
-      setCouponError(
-        err?.response?.data?.message || "Invalid coupon code"
-      );
+      setCouponError(err?.response?.data?.message || "Invalid coupon code");
       setCouponDiscount(0);
       setCouponApplied(false);
       setAppliedCoupon(null);
@@ -136,6 +139,26 @@ const Payment = ({ mode = "dark" }) => {
     setCouponDiscount(0);
     setCouponError("");
     setAppliedCoupon(null);
+  };
+
+  const handleViewOffers = async () => {
+    setShowOffers((prev) => !prev);
+    if (!showOffers) {
+      // Fetch fresh coupons when opening offers
+      try {
+        const BASE_URL =
+          process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const response = await axios.get(`${BASE_URL}/api/coupons`);
+        console.log("response", response.data.data);
+        const coupons = response.data.data || [];
+        const filtered = coupons.filter((c) => c.type === "public");
+        console.log("filteredCoupons", filtered);
+        setAvailableCoupons(filtered);
+      } catch (err) {
+        console.error("Error fetching coupons:", err);
+        setAvailableCoupons([]);
+      }
+    }
   };
 
   // Razorpay handler (new approach)
@@ -173,7 +196,7 @@ const Payment = ({ mode = "dark" }) => {
   //     rzp.open();
   //   };
   // };
-  
+
   const handleRazorpay = async () => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -181,7 +204,7 @@ const Payment = ({ mode = "dark" }) => {
     document.body.appendChild(script);
     script.onload = async () => {
       const options = {
-        key: "rzp_test_ftcTPKoHNzJjbG",// Razorpay test key
+        key: "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
         amount: Math.round(total * 100),
         currency: "INR",
         name: "PK Trends",
@@ -211,7 +234,6 @@ const Payment = ({ mode = "dark" }) => {
   // Helper to place order in backend
   const createOrder = async (paymentType) => {
     try {
-      
       const finalTotal = paymentMethod === "cod" ? total + 50 : total;
       const orderData = {
         orderItems: cart.map((item) => ({
@@ -403,7 +425,7 @@ const Payment = ({ mode = "dark" }) => {
               <IconButton
                 color="primary"
                 sx={{ mr: 1 }}
-                onClick={() => setShowOffers((prev) => !prev)}
+                onClick={handleViewOffers}
               >
                 <RemoveRedEyeIcon />
               </IconButton>
@@ -411,7 +433,7 @@ const Payment = ({ mode = "dark" }) => {
                 variant="text"
                 color="primary"
                 sx={{ textTransform: "none", fontWeight: 600 }}
-                onClick={() => setShowOffers((prev) => !prev)}
+                onClick={handleViewOffers}
               >
                 View Available Offers
               </Button>
@@ -430,9 +452,7 @@ const Payment = ({ mode = "dark" }) => {
                       {coupon.code} - {coupon.discount}% off
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Min Purchase: ₹{coupon.minPurchase} | Valid:{" "}
-                      {new Date(coupon.validFrom).toLocaleDateString()} -{" "}
-                      {new Date(coupon.validUntil).toLocaleDateString()}
+                      Min Purchase: ₹{coupon.minPurchase}
                     </Typography>
                   </Paper>
                 ))}
