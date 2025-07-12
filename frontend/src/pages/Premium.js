@@ -138,68 +138,62 @@ const Premium = ({ mode }) => {
     setLoading(true);
     setError(null);
 
-    try {
-      // 1. Create order on backend
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${BASE_URL}/api/premium/subscribe`,
-        { plan: "year" },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      const { orderId, amount } = response.data.data;
+    // Dynamically load Razorpay script (if not already loaded)
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
 
-      // 2. Load Razorpay script
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        const options = {
-          key: process.env.REACT_APP_RAZORPAY_KEY_ID || "rzp_test_ftcTPKoHNzJjbG",
-          amount: amount,
-          currency: "INR",
-          name: "BEATEN Premium",
-          description: "Yearly Premium Membership",
-          order_id: orderId,
-          handler: async function (rzpResponse) {
-            try {
-              // 3. Verify payment with backend
-              await axios.post(
-                `${BASE_URL}/api/premium/verify`,
-                {
-                  orderId: orderId,
-                  paymentId: rzpResponse.razorpay_payment_id,
-                  signature: rzpResponse.razorpay_signature,
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              setSuccess("Premium membership activated successfully!");
-              // 4. Optionally, refresh user info from backend here
-            } catch (err) {
-              setError("Failed to verify payment");
-            }
-          },
-          prefill: {
-            name: user?.name || "",
-            email: user?.email || "",
-            contact: user?.phone || "",
-          },
-          theme: { color: "#1976d2" },
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-        setLoading(false);
+    script.onload = () => {
+      const options = {
+        key: "rzp_test_ftcTPKoHNzJjbG", // Razorpay test key
+        amount: 24900, // ₹249 in paise
+        currency: "INR",
+        name: "BEATEN Premium",
+        description: "Yearly Premium Membership",
+        handler: async function (response) {
+          setSuccess("Premium membership activated successfully! (Test Payment)");
+          const now = new Date();
+          const expiry = new Date(now);
+          expiry.setFullYear(expiry.getFullYear() + 1); // 1 year plan
+          updateProfile && updateProfile({
+            isPremium: true,
+            premiumSubscribedAt: now.toISOString(),
+            premiumExpiry: expiry.toISOString(),
+          });
+          // Send subscription info to backend
+          const token = localStorage.getItem("token");
+          try {
+            await axios.post(
+              `${BASE_URL}/api/premium/manual-subscribe`,
+              {
+                plan: "year",
+                paymentId: response.razorpay_payment_id,
+                subscribedAt: now.toISOString(),
+                expiry: expiry.toISOString(),
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          } catch (err) {
+            // Optionally handle backend error
+          }
+        },
+        prefill: {
+          name: user?.name || "",
+          email: user?.email || "",
+          contact: user?.phone || "",
+        },
+        theme: { color: "#1976d2" },
       };
-
-      script.onerror = () => {
-        setError("Failed to load Razorpay script");
-        setLoading(false);
-      };
-    } catch (err) {
-      setError("Failed to initiate subscription");
+      const rzp = new window.Razorpay(options);
+      rzp.open();
       setLoading(false);
-    }
+    };
+
+    script.onerror = () => {
+      setError("Failed to load Razorpay script");
+      setLoading(false);
+    };
   };
 
   return (

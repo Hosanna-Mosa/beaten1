@@ -113,7 +113,6 @@ const Checkout = ({ mode = "dark" }) => {
         return;
       }
       if (
-        !newAddress.name ||
         !newAddress.phone ||
         !newAddress.street ||
         !newAddress.city ||
@@ -135,6 +134,7 @@ const Checkout = ({ mode = "dark" }) => {
       }
       const token = localStorage.getItem("token");
       const addressData = {
+        name: newAddress.name.trim(),
         address: newAddress.street.trim(),
         city: newAddress.city.trim(),
         state: newAddress.state.trim(),
@@ -147,7 +147,7 @@ const Checkout = ({ mode = "dark" }) => {
 
       if (newAddress._id) {
         // Edit address
-        await axios.put(
+        await axios.patch(
           `${BASE_URL}/api/user/addresses/${newAddress._id}`,
           addressData,
           {
@@ -386,15 +386,13 @@ const Checkout = ({ mode = "dark" }) => {
                       label={
                         <Box>
                           <Typography variant="subtitle1">
-                            {address.fullName}
+                            {address.name}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {address.addressLine1}
-                            {address.addressLine2 &&
-                              `, ${address.addressLine2}`}
+                            {address.address}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {address.city}, {address.state} - {address.pincode}
+                            {address.city}, {address.state} - {address.postalCode}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Phone: {address.phone}
@@ -420,13 +418,13 @@ const Checkout = ({ mode = "dark" }) => {
                         size="small"
                         onClick={() => {
                           setNewAddress({
-                            name: address.fullName,
-                            phone: address.phone,
-                            street: address.addressLine1,
-                            city: address.city,
-                            state: address.state,
-                            pincode: address.pincode,
-                            isDefault: address.isDefault,
+                            name: address.name || "",
+                            phone: address.phone || "",
+                            street: address.address || "",
+                            city: address.city || "",
+                            state: address.state || "",
+                            pincode: address.postalCode || "",
+                            isDefault: address.isDefault || false,
                             _id: address._id,
                           });
                           setAddressDialog(true);
@@ -559,11 +557,9 @@ const Checkout = ({ mode = "dark" }) => {
           <Box sx={{ pt: 2 }}>
             <TextField
               fullWidth
-              label="Full Name"
+              label="Name"
               value={newAddress.name}
-              onChange={(e) =>
-                setNewAddress({ ...newAddress, name: e.target.value })
-              }
+              onChange={e => setNewAddress({ ...newAddress, name: e.target.value })}
               sx={{ mb: 2 }}
             />
             <TextField

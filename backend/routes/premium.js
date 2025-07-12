@@ -5,6 +5,7 @@ const {
   verifyPayment,
   getSubscriptionStatus,
   cancelSubscription,
+  manualSubscribe,
 } = require("../controllers/premiumController");
 const { protect } = require("../middleware/auth");
 
@@ -22,5 +23,8 @@ router.get("/status", getSubscriptionStatus);
 
 // Cancel subscription
 router.post("/cancel", cancelSubscription);
+
+// Manual subscription saving
+router.post("/manual-subscribe", manualSubscribe);
 
 module.exports = router; 

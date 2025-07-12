@@ -7,13 +7,11 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
-
 // Create subscription order
 const createSubscription = async (req, res) => {
   try {
     const { plan } = req.body;
     const userId = req.user.id;
-
     // Check if user already has an active subscription
     const user = await User.findById(userId);
     if (!user) {
@@ -222,9 +220,48 @@ const cancelSubscription = async (req, res) => {
   }
 };
 
+// Manual subscription endpoint for frontend-only Razorpay test/demo
+const manualSubscribe = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { plan, paymentId, subscribedAt, expiry } = req.body;
+    // Update user subscription fields
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        "subscription.isSubscribed": true,
+        "subscription.subscriptionCost": plan === "year" ? 249 : 24.90,
+        "subscription.subscriptionDate": subscribedAt,
+        "subscription.subscriptionExpiry": expiry,
+        "subscription.subscriptionType": plan === "year" ? "yearly" : "monthly",
+        "subscription.paymentId": paymentId,
+      },
+      { new: true }
+    );
+    res.status(200).json({
+      success: true,
+      message: "Subscription saved to database.",
+      data: {
+        user: {
+          id: updatedUser._id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          subscription: updatedUser.subscription,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to save subscription.",
+    });
+  }
+};
+
 module.exports = {
   createSubscription,
   verifyPayment,
   getSubscriptionStatus,
   cancelSubscription,
+  manualSubscribe,
 }; 
