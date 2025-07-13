@@ -3,7 +3,10 @@ const router = express.Router();
 const { protect } = require("../middleware/auth");
 const User = require("../models/User");
 const Address = require("../models/Address");
-const { sendReturnPlacedEmail } = require("../utils/emailService");
+const {
+  sendReturnPlacedEmail,
+  sendAdminReturnNotification,
+} = require("../utils/emailService");
 const { manualSubscribe } = require("../controllers/userController");
 
 // GET /api/user/profile
@@ -83,7 +86,8 @@ router.post("/return", protect, async (req, res) => {
     }
     user.returns.push({ orderId, productId, reason });
     await user.save();
-    // Send return placed email
+
+    // Send return placed email to user
     sendReturnPlacedEmail(
       user.email,
       user.name,
@@ -91,6 +95,16 @@ router.post("/return", protect, async (req, res) => {
       productId,
       reason
     ).catch(console.error);
+
+    // Send admin notification for return request
+    sendAdminReturnNotification({
+      orderId,
+      productId,
+      userName: user.name,
+      userEmail: user.email,
+      reason,
+    }).catch(console.error);
+
     res.json({ success: true, message: "Return request submitted" });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

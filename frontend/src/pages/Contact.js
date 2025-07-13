@@ -12,6 +12,7 @@ import {
   Snackbar,
   Alert,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -20,6 +21,7 @@ import {
   AccessTime as TimeIcon,
   Send as SendIcon,
 } from "@mui/icons-material";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 
 const Contact = ({ mode }) => {
   const theme = useTheme();
@@ -35,6 +37,7 @@ const Contact = ({ mode }) => {
     message: "",
     severity: "success",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Define matte black colors
   const matteColors = {
@@ -74,43 +77,46 @@ const Contact = ({ mode }) => {
     });
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-    const response = await fetch(process.env.REACT_APP_API_URL || "http://localhost:8000/api/email/send-email", {
+    try {
+      const response = await fetch(buildApiUrl(API_ENDPOINTS.EMAIL_SEND), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+      const result = await response.json();
 
-    const result = await response.json();
-
-    if (response.ok) {
+      if (response.ok) {
+        setSnackbar({
+          open: true,
+          message: result.message || "Thank you! We've received your message.",
+          severity: "success",
+        });
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          message: "",
+        });
+      } else {
+        throw new Error(result.message || "Failed to send message.");
+      }
+    } catch (error) {
+      const errorInfo = handleApiError(error);
       setSnackbar({
         open: true,
-        message: "Thank you! We've received your message.",
-        severity: "success",
+        message:
+          errorInfo.message || "Failed to send message. Please try again.",
+        severity: "error",
       });
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
-    } else {
-      throw new Error(result.message || "Failed to send message.");
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (error) {
-    setSnackbar({
-      open: true,
-      message: error.message,
-      severity: "error",
-    });
-  }
-};
-
+  };
 
   const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
@@ -473,7 +479,14 @@ const Contact = ({ mode }) => {
                           type="submit"
                           variant="contained"
                           size={isMobile ? "large" : "medium"}
-                          startIcon={<SendIcon />}
+                          startIcon={
+                            isSubmitting ? (
+                              <CircularProgress size={20} color="inherit" />
+                            ) : (
+                              <SendIcon />
+                            )
+                          }
+                          disabled={isSubmitting}
                           sx={{
                             backgroundColor: matteColors[900],
                             color: "white",
@@ -488,12 +501,17 @@ const Contact = ({ mode }) => {
                               transform: "translateY(-2px)",
                               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                             },
+                            "&:disabled": {
+                              backgroundColor: matteColors[600],
+                              transform: "none",
+                              boxShadow: "none",
+                            },
                             transition: "all 0.3s ease",
                             alignSelf: "center",
                             whiteSpace: "nowrap",
                           }}
                         >
-                          SEND
+                          {isSubmitting ? "SENDING..." : "SEND"}
                         </Button>
                       </Box>
                     </Grid>

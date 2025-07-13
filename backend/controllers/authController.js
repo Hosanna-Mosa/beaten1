@@ -1,7 +1,11 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const { STATUS_CODES, MESSAGES } = require("../utils/constants");
-const { generateOTP, sendOTPEmail } = require("../utils/emailService");
+const {
+  generateOTP,
+  sendOTPEmail,
+  sendAdminRegistrationNotification,
+} = require("../utils/emailService");
 const jwt = require("jsonwebtoken");
 
 // In-memory OTP storage for login (reuse pattern)
@@ -40,6 +44,15 @@ const register = async (req, res, next) => {
     });
     console.log(user);
     if (user) {
+      // Send admin notification for new registration
+      await sendAdminRegistrationNotification({
+        userName: user.name,
+        userEmail: user.email,
+        userPhone: user.phone,
+        userGender: user.gender,
+        userDob: user.dob,
+      });
+
       res.status(STATUS_CODES.CREATED).json({
         success: true,
         message: MESSAGES.USER_REGISTERED,
@@ -312,8 +325,6 @@ const logout = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 module.exports = {
   register,
