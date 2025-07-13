@@ -185,20 +185,16 @@ function Dashboard() {
 
   const ProductProgress = ({ product }) => (
     <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-        <Typography variant="body2">{product.name}</Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
+        <Typography variant="body2" fontWeight="bold">{product.name}</Typography>
         <Typography variant="body2" color="text.secondary">
-          {product.sales}/{product.target} units
+          {product.soldCount} units sold
         </Typography>
       </Box>
-      <LinearProgress
-        variant="determinate"
-        value={(product.sales / product.target) * 100}
-        sx={{ height: 8, borderRadius: 4 }}
-      />
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        ₹{product.revenue.toFixed(2)} revenue
+      <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
+        ₹{product.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} revenue
       </Typography>
+      <Divider sx={{ my: 1 }} />
     </Box>
   );
 
@@ -228,9 +224,8 @@ function Dashboard() {
         .map((product) => ({
           id: product._id,
           name: product.name,
-          sales: product.soldCount || 0,
+          soldCount: product.soldCount || 0,
           revenue: (product.soldCount || 0) * (product.price || 0),
-          target: 100,
         }));
     }
     return [];

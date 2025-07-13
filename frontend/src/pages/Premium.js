@@ -199,6 +199,11 @@ const Premium = ({ mode }) => {
     };
   };
 
+  // Unify premium status check
+  const isPremium =
+    (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ||
+    (user?.subscription?.isSubscribed && new Date(user.subscription.subscriptionExpiry) > new Date());
+
   return (
     <Box
       sx={{
@@ -459,37 +464,66 @@ const Premium = ({ mode }) => {
                 </List>
               </CardContent>
               <CardActions sx={{ p: 4, pt: 0 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  onClick={handleSubscribe}
-                  disabled={loading}
-                  sx={{
-                    py: isMobile ? 1.2 : 1,
-                    px: isMobile ? 3 : 4,
-                    borderRadius: 10,
-                    fontSize: { xs: "1.04rem", md: "0.9rem" },
-                    fontWeight: 700,
-                    textTransform: "none",
-                    background: goldColors.gradient,
-                    color: "#fff",
-                    boxShadow: `0 4px 12px ${goldColors.light}40`,
-                    border: `1.5px solid ${goldColors.primary}`,
-                    width: "auto",
-                    minWidth: 0,
-                    alignSelf: "center",
-                    whiteSpace: "nowrap",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      background: goldColors.hover,
-                      boxShadow: `0 6px 16px ${goldColors.light}60`,
-                      transform: "translateY(-2px)",
-                    },
-                  }}
-                >
-                  {loading ? "Processing..." : "Subscribe Now"}
-                </Button>
+                {isPremium ? (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    disabled
+                    sx={{
+                      py: isMobile ? 1.2 : 1,
+                      px: isMobile ? 3 : 4,
+                      borderRadius: 10,
+                      fontSize: { xs: "1.04rem", md: "0.9rem" },
+                      fontWeight: 700,
+                      textTransform: "none",
+                      background: goldColors.gradient,
+                      color: "#fff",
+                      boxShadow: `0 4px 12px ${goldColors.light}40`,
+                      border: `1.5px solid ${goldColors.primary}`,
+                      width: "auto",
+                      minWidth: 0,
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      transition: "all 0.3s ease",
+                      opacity: 0.7,
+                    }}
+                  >
+                    Subscribed
+                  </Button>
+                ) : (
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    onClick={handleSubscribe}
+                    disabled={loading}
+                    sx={{
+                      py: isMobile ? 1.2 : 1,
+                      px: isMobile ? 3 : 4,
+                      borderRadius: 10,
+                      fontSize: { xs: "1.04rem", md: "0.9rem" },
+                      fontWeight: 700,
+                      textTransform: "none",
+                      background: goldColors.gradient,
+                      color: "#fff",
+                      boxShadow: `0 4px 12px ${goldColors.light}40`,
+                      border: `1.5px solid ${goldColors.primary}`,
+                      width: "auto",
+                      minWidth: 0,
+                      alignSelf: "center",
+                      whiteSpace: "nowrap",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
+                        background: goldColors.hover,
+                        boxShadow: `0 6px 16px ${goldColors.light}60`,
+                        transform: "translateY(-2px)",
+                      },
+                    }}
+                  >
+                    {loading ? "Processing..." : "Subscribe Now"}
+                  </Button>
+                )}
               </CardActions>
             </Card>
           </Grid>
