@@ -37,6 +37,7 @@ import {
 } from "../data/mockData";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -46,8 +47,7 @@ const matteColors = {
   100: "#f5f5f5", // Off-white
 };
 
-const BACKEND_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+// Removed BACKEND_URL as it's now handled by the centralized API
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();
@@ -136,7 +136,7 @@ const Home = ({ mode }) => {
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/auth/profile`, {
+        const response = await axios.get(buildApiUrl(API_ENDPOINTS.PROFILE), {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -153,7 +153,6 @@ const Home = ({ mode }) => {
             subscriptionType: "",
           };
           setUserProfile({ ...profile, subscription });
-          
 
           // Check if user is subscribed and subscription is not expired
           const isCurrentlySubscribed =
@@ -184,7 +183,7 @@ const Home = ({ mode }) => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(`${BACKEND_URL}/products`);
+        const response = await axios.get(buildApiUrl(API_ENDPOINTS.PRODUCTS));
 
         if (response.data && response.data.data) {
           console.log("response.data.data", response.data.data);
@@ -193,8 +192,9 @@ const Home = ({ mode }) => {
           setAllProducts([]);
         }
       } catch (err) {
-        console.error("Error fetching products:", err);
-        setError("Failed to load products");
+        const error = handleApiError(err);
+        console.error("Error fetching products:", error);
+        setError(error.message || "Failed to load products");
         setAllProducts([]);
       } finally {
         setLoading(false);
@@ -616,7 +616,7 @@ const Home = ({ mode }) => {
                           product.image
                             ? product.image.startsWith("http")
                               ? product.image
-                              : `${BACKEND_URL}/uploads/${product.image}`
+                              : `${buildApiUrl("")}/uploads/${product.image}`
                             : "/images/placeholder.png"
                         }
                         alt={product.name}
@@ -787,7 +787,7 @@ const Home = ({ mode }) => {
                           product.image
                             ? product.image.startsWith("http")
                               ? product.image
-                              : `${BACKEND_URL}/uploads/${product.image}`
+                              : `${buildApiUrl("")}/uploads/${product.image}`
                             : "/images/placeholder.png"
                         }
                         alt={product.name}
@@ -868,19 +868,19 @@ const Home = ({ mode }) => {
         {
           name: "BOTTOM WEAR",
           key: "bottom-wear",
-          image: "/images/bottom wear.png",
+          image: "/images/bottom-wear.png",
         },
         {
           name: "CARGO PANTS",
           key: "cargo-pants",
-          image: "/images/cargo pants.png",
+          image: "/images/cargo-pants.png",
         },
         { name: "JACKETS", key: "jackets", image: "/images/jackets.png" },
         { name: "HOODIES", key: "hoodies", image: "/images/hoodies.png" },
         {
           name: "CO-ORD SETS",
           key: "co-ord-sets",
-          image: "/images/co-ord sets.png",
+          image: "/images/co-ord-sets.png",
         },
       ].map((section, idx) => (
         <Box
@@ -1353,120 +1353,161 @@ const Home = ({ mode }) => {
                 scrollbarWidth: "none",
               }}
             >
-              {[1, 2, 3, 4, 5].map((i) => {
-                // Sample colors for demo
-                const colors = [
-                  ["#000", "#fff", "#c00"],
-                  ["#1976d2", "#ffeb3b", "#43a047"],
-                  ["#f44336", "#e91e63", "#9c27b0"],
-                  ["#ff9800", "#795548", "#607d8b"],
-                  ["#212121", "#bdbdbd", "#ffd600"],
-                ][(i - 1) % 5];
-                return (
-                  <Box
-                    key={i}
-                    sx={{
-                      flex: { xs: "0 0 50%", md: "unset" },
-                      minWidth: { xs: "50%", md: "unset" },
-                      maxWidth: { xs: "50%", md: "unset" },
-                      p: 0,
-                      display: "flex",
-                    }}
-                  >
-                    <Card
-                      elevation={0}
-                      sx={{
-                        borderRadius: 0,
-                        overflow: "hidden",
-                        cursor: "pointer",
-                        transition: "all 0.3s ease",
-                        minHeight: { xs: 240, md: 300 },
-                        width: "100%",
-                        "&:hover": {
-                          boxShadow: 4,
-                          transform: "translateY(-8px) scale(1.04)",
-                        },
-                      }}
-                      onClick={() => handleProductClick(i)}
+              {(() => {
+                let categoryProducts = [];
+                switch (section.key) {
+                  case "t-shirts":
+                    categoryProducts = tShirts;
+                    break;
+                  case "shirts":
+                    categoryProducts = shirts;
+                    break;
+                  case "oversized-t-shirts":
+                    categoryProducts = oversizedTShirts;
+                    break;
+                  case "bottom-wear":
+                    categoryProducts = bottomWear;
+                    break;
+                  case "cargo-pants":
+                    categoryProducts = cargoPants;
+                    break;
+                  case "jackets":
+                    categoryProducts = jackets;
+                    break;
+                  case "hoodies":
+                    categoryProducts = hoodies;
+                    break;
+                  case "co-ord-sets":
+                    categoryProducts = coOrdSets;
+                    break;
+                  default:
+                    categoryProducts = [];
+                }
+
+                if (loading) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{ textAlign: "center", width: "100%" }}
                     >
-                      <Box
+                      Loading {section.name.toLowerCase()}...
+                    </Typography>
+                  );
+                }
+
+                if (categoryProducts.length === 0) {
+                  return (
+                    <Typography
+                      variant="body1"
+                      sx={{ textAlign: "center", width: "100%" }}
+                    >
+                      No {section.name.toLowerCase()} available yet.
+                    </Typography>
+                  );
+                }
+
+                return categoryProducts.slice(0, 5).map((product, index) => {
+                  console.log(product.image, product.name);
+
+                  return (
+                    <Box
+                      key={product._id || index}
+                      sx={{
+                        flex: { xs: "0 0 50%", md: "unset" },
+                        minWidth: { xs: "50%", md: "unset" },
+                        maxWidth: { xs: "50%", md: "unset" },
+                        p: 0,
+                        display: "flex",
+                      }}
+                    >
+                      <Card
+                        elevation={0}
                         sx={{
-                          position: "relative",
-                          width: "100%",
-                          pt: "160%",
+                          borderRadius: 0,
                           overflow: "hidden",
+                          cursor: "pointer",
+                          transition: "all 0.3s ease",
+                          minHeight: { xs: 240, md: 300 },
+                          width: "100%",
+                          "&:hover": {
+                            boxShadow: 4,
+                            transform: "translateY(-8px) scale(1.04)",
+                          },
                         }}
+                        onClick={() => handleProductClick(product._id)}
                       >
-                        <CardMedia
-                          component="img"
-                          image={
-                            [
-                              "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=600&q=80",
-                              "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
-                              "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80",
-                              "https://images.unsplash.com/photo-1469398715555-76331a6c7c9b?auto=format&fit=crop&w=600&q=80",
-                              "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80",
-                            ][(i - 1) % 5]
-                          }
-                          alt={`Product ${i}`}
-                          sx={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                            transition: "transform 0.3s ease-in-out",
-                          }}
-                        />
-                      </Box>
-                      <CardContent sx={{ textAlign: "center", p: 1 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 600 }}
-                        >
-                          {section.name} {i}
-                        </Typography>
                         <Box
                           sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: 0.7,
-                            my: 1,
+                            position: "relative",
+                            width: "100%",
+                            pt: "160%",
+                            overflow: "hidden",
                           }}
                         >
-                          {colors.map((color, idx) => (
-                            <Box
-                              key={idx}
-                              sx={{
-                                width: 18,
-                                height: 18,
-                                borderRadius: "50%",
-                                background: color,
-                                border: "1.5px solid #eee",
-                                boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
-                              }}
-                            />
-                          ))}
+                          <CardMedia
+                            component="img"
+                            image={product.image}
+                            alt={product.name}
+                            sx={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              transition: "transform 0.3s ease-in-out",
+                            }}
+                          />
                         </Box>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            fontSize: {
-                              xs: "0.82rem",
-                              sm: "0.92rem",
-                              md: "1rem",
-                            },
-                          }}
-                        >
-                          ₹{1999 + i * 100}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Box>
-                );
-              })}
+                        <CardContent sx={{ textAlign: "center", p: 1 }}>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{ fontWeight: 600 }}
+                          >
+                            {product.name}
+                          </Typography>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              gap: 0.7,
+                              my: 1,
+                            }}
+                          >
+                            {product.colors &&
+                              product.colors.slice(0, 3).map((color, idx) => (
+                                <Box
+                                  key={idx}
+                                  sx={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: "50%",
+                                    background: color,
+                                    border: "1.5px solid #eee",
+                                    boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
+                                  }}
+                                />
+                              ))}
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              fontSize: {
+                                xs: "0.82rem",
+                                sm: "0.92rem",
+                                md: "1rem",
+                              },
+                            }}
+                          >
+                            ₹{product.price}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Box>
+                  );
+                });
+              })()}
             </Box>
             <Box
               sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 4 }}

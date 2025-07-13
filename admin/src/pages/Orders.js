@@ -129,17 +129,19 @@ function Orders() {
       if (!userId || userNames[userId]) return;
       setLoadingUsers(true);
       try {
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const apiUrl =
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
         const token = localStorage.getItem("token");
         const res = await axios.get(`${apiUrl}/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        // Store the full user object (name, email, etc.)
         setUserNames((prev) => ({
           ...prev,
-          [userId]: res.data.data?.name || userId,
+          [userId]: res.data.data || { name: userId },
         }));
       } catch (err) {
-        setUserNames((prev) => ({ ...prev, [userId]: userId }));
+        setUserNames((prev) => ({ ...prev, [userId]: { name: userId } }));
       } finally {
         setLoadingUsers(false);
       }
@@ -150,7 +152,8 @@ function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+        const apiUrl =
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
         const token = localStorage.getItem("token");
         const res = await axios.get(`${apiUrl}/orders`, {
           headers: {
@@ -211,11 +214,7 @@ function Orders() {
   const handleExport = () => {
     const csvContent = getFilteredOrders()
       .map((order) => {
-        const customerName = userNames[order.user]
-          ? typeof userNames[order.user] === "object"
-            ? userNames[order.user].name || ""
-            : userNames[order.user] || ""
-          : order.user || "";
+        const customerName = userNames[order.user]?.name || order.user || "";
         const total =
           order.orderItems?.reduce(
             (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
@@ -319,15 +318,8 @@ function Orders() {
         // Search filter
         const searchLower = searchTerm.toLowerCase();
         const orderId = order._id ? order._id.toLowerCase() : "";
-        const customerName = userNames[order.user]
-          ? typeof userNames[order.user] === "object"
-            ? userNames[order.user].name || ""
-            : userNames[order.user] || ""
-          : "";
-        const customerEmail =
-          userNames[order.user] && typeof userNames[order.user] === "object"
-            ? userNames[order.user].email || ""
-            : "";
+        const customerName = userNames[order.user]?.name || "";
+        const customerEmail = userNames[order.user]?.email || "";
 
         const matchesSearch =
           orderId.includes(searchLower) ||
@@ -442,155 +434,158 @@ function Orders() {
     }, // fallback for legacy
   };
 
-  const OrderDetails = ({ order }) => (
-    <Box>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Customer Information
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar>
-                      <CustomerIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      order.customer && order.customer.name
-                        ? order.customer.name
-                        : "-"
-                    }
-                    secondary={
-                      order.customer && order.customer.email
-                        ? order.customer.email
-                        : "-"
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Phone"
-                    secondary={
-                      order.customer && order.customer.phone
-                        ? order.customer.phone
-                        : "-"
-                    }
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Shipping Address"
-                    secondary={order.shippingAddress}
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Order Information
-              </Typography>
-              <List>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar>
-                      <ReceiptIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary="Order Number"
-                    secondary={order.orderNumber}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Date"
-                    secondary={new Date(order.date).toLocaleDateString()}
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Status"
-                    secondary={
-                      <Chip
-                        label={order.status}
-                        color={getStatusColor(order.status)}
-                        size="small"
-                      />
-                    }
-                  />
-                </ListItem>
-                {order.trackingNumber && (
+  const OrderDetails = ({ order }) => {
+    console.log("OrderDetails order:", order);
+    return (
+      <Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Customer Information
+                </Typography>
+                <List>
                   <ListItem>
-                    <ListItemText
-                      primary="Tracking Number"
-                      secondary={order.trackingNumber}
-                    />
-                  </ListItem>
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Order Items
-              </Typography>
-              <List>
-                {order.items.map((item, index) => (
-                  <ListItem key={index}>
                     <ListItemAvatar>
-                      <Avatar src={item.image} variant="rounded" />
+                      <Avatar>
+                        <CustomerIcon />
+                      </Avatar>
                     </ListItemAvatar>
                     <ListItemText
-                      primary={item.product}
-                      secondary={`Quantity: ${
-                        item.quantity
-                      } × ${formatPrice(item.price)}`}
+                      primary={String(
+                        order.customer && order.customer.name
+                          ? order.customer.name
+                          : userNames[order.user]?.name || "-"
+                      )}
+                      secondary={String(
+                        order.customer && order.customer.email
+                          ? order.customer.email
+                          : userNames[order.user]?.email || "-"
+                      )}
                     />
-                    <Typography variant="subtitle1">
-                      {formatPrice(item.quantity * item.price)}
-                    </Typography>
                   </ListItem>
-                ))}
-                <Divider />
-                <ListItem>
-                  <ListItemText
-                    primary="Total"
-                    primaryTypographyProps={{ variant: "h6" }}
-                  />
-                  <Typography variant="h6" color="primary">
-                    {formatPrice(order.total)}
-                  </Typography>
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-        {order.notes && (
+                  <ListItem>
+                    <ListItemText
+                      primary="Phone"
+                      secondary={
+                        order.customer && order.customer.phone
+                          ? order.customer.phone
+                          : "-"
+                      }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Shipping Address"
+                      secondary={order.shippingAddress}
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Order Information
+                </Typography>
+                <List>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <ReceiptIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary="Order Number"
+                      secondary={order.orderNumber}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Date"
+                      secondary={new Date(order.date).toLocaleDateString()}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Status"
+                      secondary={
+                        <Chip
+                          label={order.status}
+                          color={getStatusColor(order.status)}
+                          size="small"
+                        />
+                      }
+                    />
+                  </ListItem>
+                  {order.trackingNumber && (
+                    <ListItem>
+                      <ListItemText
+                        primary="Tracking Number"
+                        secondary={order.trackingNumber}
+                      />
+                    </ListItem>
+                  )}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Notes
+                  Order Items
                 </Typography>
-                <Typography variant="body1">{order.notes}</Typography>
+                <List>
+                  {order.items.map((item, index) => (
+                    <ListItem key={index}>
+                      <ListItemAvatar>
+                        <Avatar src={item.image} variant="rounded" />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={item.product}
+                        secondary={`Quantity: ${
+                          item.quantity
+                        } × ${formatPrice(item.price)}`}
+                      />
+                      <Typography variant="subtitle1">
+                        {formatPrice(item.quantity * item.price)}
+                      </Typography>
+                    </ListItem>
+                  ))}
+                  <Divider />
+                  <ListItem>
+                    <ListItemText
+                      primary="Total"
+                      primaryTypographyProps={{ variant: "h6" }}
+                    />
+                    <Typography variant="h6" color="primary">
+                      {formatPrice(order.total)}
+                    </Typography>
+                  </ListItem>
+                </List>
               </CardContent>
             </Card>
           </Grid>
-        )}
-      </Grid>
-    </Box>
-  );
+          {order.notes && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Notes
+                  </Typography>
+                  <Typography variant="body1">{order.notes}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
+    );
+  };
 
   const ViewOrderDialog = ({ open, onClose, order }) => {
     if (!order) return null;
@@ -807,6 +802,10 @@ function Orders() {
     "cancelled",
     "returned",
   ];
+
+  // Add debug log in Orders main render (before return)
+  console.log("userNames:", userNames);
+  console.log("orders:", orders);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -1107,19 +1106,10 @@ function Orders() {
                     <TableCell>
                       <Box>
                         <Typography variant="body2" fontWeight={500}>
-                          {userNames[order.user]
-                            ? typeof userNames[order.user] === "object" &&
-                              userNames[order.user].name
-                              ? userNames[order.user].name
-                              : userNames[order.user]
-                            : order.user || "-"}
+                          {order.user.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {userNames[order.user] &&
-                          typeof userNames[order.user] === "object" &&
-                          userNames[order.user].email
-                            ? userNames[order.user].email
-                            : ""}
+                        {order.user.email}
                         </Typography>
                       </Box>
                     </TableCell>

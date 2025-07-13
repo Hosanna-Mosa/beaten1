@@ -49,6 +49,7 @@ import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
 import { useWishlist } from "../context/WishlistContext";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
@@ -1062,7 +1063,8 @@ const Products = ({ mode }) => {
                 gender: chip.filterKey === "gender" ? [chip.value] : [],
                 category: [],
                 subCategory: [],
-                collectionName: chip.filterKey === "collectionName" ? [chip.value] : [],
+                collectionName:
+                  chip.filterKey === "collectionName" ? [chip.value] : [],
                 priceRange: [0, 10000],
                 sort: "newest",
                 size: [],
@@ -1107,10 +1109,11 @@ const Products = ({ mode }) => {
   const fetchProducts = async () => {
     setShowLoading(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/products`||"http://localhost:8000/api/products");
+      const response = await axios.get(buildApiUrl(API_ENDPOINTS.PRODUCTS));
       setProducts(response.data.data || []);
     } catch (err) {
-      setError("Failed to load products");
+      const error = handleApiError(err);
+      setError(error.message || "Failed to load products");
     } finally {
       setShowLoading(false);
     }
@@ -1181,11 +1184,11 @@ const Products = ({ mode }) => {
       {/* Edge-to-edge Search Bar */}
       <Box
         sx={{
-          width: '100vw',
-          position: 'relative',
-          left: '50%',
-          right: '50%',
-          transform: 'translateX(-50%)',
+          width: "100vw",
+          position: "relative",
+          left: "50%",
+          right: "50%",
+          transform: "translateX(-50%)",
           bgcolor: mode === "dark" ? "#181818" : "#fff",
           zIndex: 10,
           mb: 2,
@@ -1211,7 +1214,7 @@ const Products = ({ mode }) => {
             ),
           }}
           sx={{
-            width: '100%',
+            width: "100%",
             "& .MuiOutlinedInput-root": {
               borderRadius: "8px",
             },

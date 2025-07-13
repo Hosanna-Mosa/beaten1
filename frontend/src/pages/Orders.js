@@ -39,7 +39,8 @@ import { useEffect } from "react";
 import axios from "axios";
 import PendingTimeIcon from "@mui/icons-material/AccessTime";
 import ProcessingInventoryIcon from "@mui/icons-material/Inventory";
-import MuiAlert from '@mui/material/Alert';
+import MuiAlert from "@mui/material/Alert";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -112,8 +113,8 @@ const Orders = ({ mode }) => {
   const [returnReason, setReturnReason] = useState("");
   const [returnComment, setReturnComment] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMsg, setSnackbarMsg] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -125,20 +126,19 @@ const Orders = ({ mode }) => {
     setLoading(true);
     setError("");
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${apiUrl}/orders/my-orders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        buildApiUrl(API_ENDPOINTS.ORDERS_MY_ORDERS),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setOrders(response.data.data || []);
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to fetch orders."
-      );
+      const error = handleApiError(err);
+      setError(error.message || "Failed to fetch orders.");
     } finally {
       setLoading(false);
     }
@@ -189,28 +189,32 @@ const Orders = ({ mode }) => {
   const handleSubmitReturn = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-        await axios.post(`${process.env.REACT_APP_API_URL}/user/return` || 'http://localhost:8000/api/user/return', {
-        orderId: returnItem.orderId,
-        productId: returnItem.item.product || returnItem.item._id,
-        reason: returnReason
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSnackbarMsg('Return request submitted!');
-      setSnackbarSeverity('success');
+      const token = localStorage.getItem("token");
+      await axios.post(
+        buildApiUrl(API_ENDPOINTS.USER_RETURN_SUBMIT),
+        {
+          orderId: returnItem.orderId,
+          productId: returnItem.item.product || returnItem.item._id,
+          reason: returnReason,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setSnackbarMsg("Return request submitted!");
+      setSnackbarSeverity("success");
     } catch (err) {
-      let msg = 'Failed to submit return request.';
+      let msg = "Failed to submit return request.";
       if (err.response && err.response.data && err.response.data.message) {
         msg = err.response.data.message;
       }
       setSnackbarMsg(msg);
-      setSnackbarSeverity('error');
+      setSnackbarSeverity("error");
     } finally {
       setReturnDialogOpen(false);
       setSnackbarOpen(true);
       setReturnItem(null);
-      console.log('Snackbar should open now');
+      console.log("Snackbar should open now");
     }
   };
 
@@ -259,13 +263,13 @@ const Orders = ({ mode }) => {
         <Button variant="outlined" onClick={fetchOrders}>
           Refresh Orders
         </Button>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate('/returns')}
+        <Button
+          variant="contained"
+          onClick={() => navigate("/returns")}
           sx={{
             bgcolor: matteColors[900],
-            color: 'white',
-            '&:hover': {
+            color: "white",
+            "&:hover": {
               bgcolor: matteColors[800],
             },
           }}
@@ -288,8 +292,8 @@ const Orders = ({ mode }) => {
       <Grid container spacing={3}>
         {orders.map((order) => {
           // Debug log for order and shippingAddress
-          console.log('Order:', order);
-          console.log('Shipping Address:', order.shippingAddress);
+          console.log("Order:", order);
+          console.log("Shipping Address:", order.shippingAddress);
           return (
             <Grid item xs={12} key={order._id}>
               {isMobile ? (
@@ -468,16 +472,30 @@ const Orders = ({ mode }) => {
                           sx={{ color: "text.secondary", mb: 0.5 }}
                         >
                           Delivery Address:{" "}
-                          {order.shippingAddress
-                            ? <>
-                                {order.shippingAddress.name && <>{order.shippingAddress.name}, </>}
-                                {order.shippingAddress.address && <>{order.shippingAddress.address}, </>}
-                                {order.shippingAddress.city && <>{order.shippingAddress.city}, </>}
-                                {order.shippingAddress.state && <>{order.shippingAddress.state}, </>}
-                                {order.shippingAddress.postalCode && <>{order.shippingAddress.postalCode}</>}
-                                {order.shippingAddress.phone && <> ({order.shippingAddress.phone})</>}
-                              </>
-                            : "N/A"}
+                          {order.shippingAddress ? (
+                            <>
+                              {order.shippingAddress.name && (
+                                <>{order.shippingAddress.name}, </>
+                              )}
+                              {order.shippingAddress.address && (
+                                <>{order.shippingAddress.address}, </>
+                              )}
+                              {order.shippingAddress.city && (
+                                <>{order.shippingAddress.city}, </>
+                              )}
+                              {order.shippingAddress.state && (
+                                <>{order.shippingAddress.state}, </>
+                              )}
+                              {order.shippingAddress.postalCode && (
+                                <>{order.shippingAddress.postalCode}</>
+                              )}
+                              {order.shippingAddress.phone && (
+                                <> ({order.shippingAddress.phone})</>
+                              )}
+                            </>
+                          ) : (
+                            "N/A"
+                          )}
                         </Typography>
                         {order.status === "pending" || !order.status ? (
                           <Chip
@@ -640,7 +658,13 @@ const Orders = ({ mode }) => {
                               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                             },
                           }}
-                          onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
+                          onClick={() =>
+                            handleOpenReturnDialog(
+                              order._id,
+                              order.orderItems[0],
+                              0
+                            )
+                          }
                           fullWidth={isMobile}
                         >
                           Return
@@ -676,7 +700,11 @@ const Orders = ({ mode }) => {
                     <Box>
                       <Typography
                         variant="subtitle2"
-                        sx={{ fontWeight: 700, color: "text.secondary", mb: 0.5 }}
+                        sx={{
+                          fontWeight: 700,
+                          color: "text.secondary",
+                          mb: 0.5,
+                        }}
                       >
                         Order #{order._id}
                       </Typography>
@@ -707,16 +735,30 @@ const Orders = ({ mode }) => {
                         sx={{ color: "text.secondary", mb: 0.5 }}
                       >
                         Delivery Address:{" "}
-                        {order.shippingAddress
-                          ? <>
-                              {order.shippingAddress.name && <>{order.shippingAddress.name}, </>}
-                              {order.shippingAddress.address && <>{order.shippingAddress.address}, </>}
-                              {order.shippingAddress.city && <>{order.shippingAddress.city}, </>}
-                              {order.shippingAddress.state && <>{order.shippingAddress.state}, </>}
-                              {order.shippingAddress.postalCode && <>{order.shippingAddress.postalCode}</>}
-                              {order.shippingAddress.phone && <> ({order.shippingAddress.phone})</>}
-                            </>
-                          : "N/A"}
+                        {order.shippingAddress ? (
+                          <>
+                            {order.shippingAddress.name && (
+                              <>{order.shippingAddress.name}, </>
+                            )}
+                            {order.shippingAddress.address && (
+                              <>{order.shippingAddress.address}, </>
+                            )}
+                            {order.shippingAddress.city && (
+                              <>{order.shippingAddress.city}, </>
+                            )}
+                            {order.shippingAddress.state && (
+                              <>{order.shippingAddress.state}, </>
+                            )}
+                            {order.shippingAddress.postalCode && (
+                              <>{order.shippingAddress.postalCode}</>
+                            )}
+                            {order.shippingAddress.phone && (
+                              <> ({order.shippingAddress.phone})</>
+                            )}
+                          </>
+                        ) : (
+                          "N/A"
+                        )}
                       </Typography>
                     </Box>
                     {order.status === "pending" || !order.status ? (
@@ -828,7 +870,9 @@ const Orders = ({ mode }) => {
                     ))}
                   </Box>
                   {/* Action Buttons */}
-                  <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 1 }}>
+                  <Box
+                    sx={{ display: "flex", gap: 2, flexWrap: "wrap", mt: 1 }}
+                  >
                     <Button
                       variant="outlined"
                       startIcon={<ViewIcon />}
@@ -912,7 +956,13 @@ const Orders = ({ mode }) => {
                           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         },
                       }}
-                      onClick={() => handleOpenReturnDialog(order._id, order.orderItems[0], 0)}
+                      onClick={() =>
+                        handleOpenReturnDialog(
+                          order._id,
+                          order.orderItems[0],
+                          0
+                        )
+                      }
                     >
                       Return
                     </Button>
@@ -939,16 +989,30 @@ const Orders = ({ mode }) => {
               </Typography>
               <Typography variant="body2" sx={{ mb: 1 }}>
                 Delivery Address:{" "}
-                {selectedOrder.shippingAddress
-                  ? <>
-                      {selectedOrder.shippingAddress.name && <>{selectedOrder.shippingAddress.name}, </>}
-                      {selectedOrder.shippingAddress.address && <>{selectedOrder.shippingAddress.address}, </>}
-                      {selectedOrder.shippingAddress.city && <>{selectedOrder.shippingAddress.city}, </>}
-                      {selectedOrder.shippingAddress.state && <>{selectedOrder.shippingAddress.state}, </>}
-                      {selectedOrder.shippingAddress.postalCode && <>{selectedOrder.shippingAddress.postalCode}</>}
-                      {selectedOrder.shippingAddress.phone && <> ({selectedOrder.shippingAddress.phone})</>}
-                    </>
-                  : "N/A"}
+                {selectedOrder.shippingAddress ? (
+                  <>
+                    {selectedOrder.shippingAddress.name && (
+                      <>{selectedOrder.shippingAddress.name}, </>
+                    )}
+                    {selectedOrder.shippingAddress.address && (
+                      <>{selectedOrder.shippingAddress.address}, </>
+                    )}
+                    {selectedOrder.shippingAddress.city && (
+                      <>{selectedOrder.shippingAddress.city}, </>
+                    )}
+                    {selectedOrder.shippingAddress.state && (
+                      <>{selectedOrder.shippingAddress.state}, </>
+                    )}
+                    {selectedOrder.shippingAddress.postalCode && (
+                      <>{selectedOrder.shippingAddress.postalCode}</>
+                    )}
+                    {selectedOrder.shippingAddress.phone && (
+                      <> ({selectedOrder.shippingAddress.phone})</>
+                    )}
+                  </>
+                ) : (
+                  "N/A"
+                )}
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>

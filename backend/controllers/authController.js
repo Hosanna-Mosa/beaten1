@@ -224,7 +224,7 @@ const verifyOtpLogin = async (req, res) => {
 const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-
+    console.log(user);
     if (!user) {
       return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
@@ -243,6 +243,7 @@ const getProfile = async (req, res, next) => {
         isActive: user.isActive,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
+        subscription: user.subscription,
       },
     });
   } catch (error) {
