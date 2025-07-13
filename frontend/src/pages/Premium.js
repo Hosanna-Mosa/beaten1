@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Container,
@@ -153,15 +152,18 @@ const Premium = ({ mode }) => {
         name: "BEATEN Premium",
         description: "Yearly Premium Membership",
         handler: async function (response) {
-          setSuccess("Premium membership activated successfully! (Test Payment)");
+          setSuccess(
+            "Premium membership activated successfully! (Test Payment)"
+          );
           const now = new Date();
           const expiry = new Date(now);
           expiry.setFullYear(expiry.getFullYear() + 1); // 1 year plan
-          updateProfile && updateProfile({
-            isPremium: true,
-            premiumSubscribedAt: now.toISOString(),
-            premiumExpiry: expiry.toISOString(),
-          });
+          updateProfile &&
+            updateProfile({
+              isPremium: true,
+              premiumSubscribedAt: now.toISOString(),
+              premiumExpiry: expiry.toISOString(),
+            });
           // Send subscription info to backend
           const token = localStorage.getItem("token");
           try {
@@ -623,8 +625,12 @@ const Premium = ({ mode }) => {
           Are you sure you want to buy this Premium?
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)} color="secondary">Cancel</Button>
-          <Button onClick={handleConfirmSubscribe} color="primary" autoFocus>Yes, Buy Premium</Button>
+          <Button onClick={() => setConfirmOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmSubscribe} color="primary" autoFocus>
+            Yes, Buy Premium
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

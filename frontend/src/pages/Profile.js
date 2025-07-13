@@ -48,6 +48,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 
 const matteColors = {
   900: "#1a1a1a",
@@ -88,10 +89,19 @@ const Profile = ({ mode }) => {
   const [editAddressDialog, setEditAddressDialog] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState(null);
   const [addressForm, setAddressForm] = useState({
-    address: '', city: '', state: '', country: '', postalCode: '', phone: '', isDefault: false
+    address: "",
+    city: "",
+    state: "",
+    country: "",
+    postalCode: "",
+    phone: "",
+    isDefault: false,
   });
   const [profileForm, setProfileForm] = useState({
-    name: '', gender: '', dob: '', phone: ''
+    name: "",
+    gender: "",
+    dob: "",
+    phone: "",
   });
   const [isAddAddress, setIsAddAddress] = useState(false);
   const [deleteAddressDialog, setDeleteAddressDialog] = useState(false);
@@ -106,7 +116,7 @@ const Profile = ({ mode }) => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/user/profile` || "http://localhost:8000/api/user/profile", {
+        const res = await axios.get(buildApiUrl(API_ENDPOINTS.USER_PROFILE), {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProfileUser(res.data.data);
@@ -122,10 +132,10 @@ const Profile = ({ mode }) => {
   useEffect(() => {
     if (profileUser) {
       setProfileForm({
-        name: profileUser.name || '',
-        gender: profileUser.gender || '',
-        dob: profileUser.dob || '',
-        phone: profileUser.phone || ''
+        name: profileUser.name || "",
+        gender: profileUser.gender || "",
+        dob: profileUser.dob || "",
+        phone: profileUser.phone || "",
       });
     }
   }, [profileUser]);
@@ -135,10 +145,10 @@ const Profile = ({ mode }) => {
     if (!dob) return "N/A";
     try {
       const date = new Date(dob);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     } catch (error) {
       return "Invalid Date";
@@ -178,18 +188,22 @@ const Profile = ({ mode }) => {
   const handleProfileSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      await axios.patch(`${process.env.REACT_APP_API_URL}/user/profile` || 'http://localhost:8000/api/user/profile', profileForm, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        buildApiUrl(API_ENDPOINTS.UPDATE_PROFILE),
+        profileForm,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setEditProfileDialog(false);
       // Refresh profile
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/user/profile` ||'http://localhost:8000/api/user/profile', {
+      const res = await axios.get(buildApiUrl(API_ENDPOINTS.USER_PROFILE), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
     } catch (err) {
-      setError('Failed to update profile');
+      setError("Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -198,13 +212,13 @@ const Profile = ({ mode }) => {
   const handleEditAddress = (addr) => {
     setAddressToEdit(addr);
     setAddressForm({
-      address: addr.address.split(',')[0] || '',
-      city: addr.address.split(',')[1]?.trim() || '',
-      state: addr.address.split(',')[2]?.trim() || '',
-      country: addr.address.split(',')[3]?.trim() || '',
-      postalCode: addr.address.split(',')[4]?.trim() || '',
-      phone: addr.phone || '',
-      isDefault: addr.isDefault || false
+      address: addr.address.split(",")[0] || "",
+      city: addr.address.split(",")[1]?.trim() || "",
+      state: addr.address.split(",")[2]?.trim() || "",
+      country: addr.address.split(",")[3]?.trim() || "",
+      postalCode: addr.address.split(",")[4]?.trim() || "",
+      phone: addr.phone || "",
+      isDefault: addr.isDefault || false,
     });
     setEditAddressDialog(true);
   };
@@ -212,7 +226,13 @@ const Profile = ({ mode }) => {
     setIsAddAddress(true);
     setAddressToEdit(null);
     setAddressForm({
-      address: '', city: '', state: '', country: '', postalCode: '', phone: '', isDefault: false
+      address: "",
+      city: "",
+      state: "",
+      country: "",
+      postalCode: "",
+      phone: "",
+      isDefault: false,
     });
     setEditAddressDialog(true);
   };
@@ -220,25 +240,33 @@ const Profile = ({ mode }) => {
   const handleAddressSave = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (isAddAddress) {
-        await axios.post(`${process.env.REACT_APP_API_URL}/user/addresses` || `http://localhost:8000/api/user/addresses`, addressForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.post(
+          buildApiUrl(API_ENDPOINTS.USER_ADDRESSES),
+          addressForm,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       } else {
-        await axios.patch(`${process.env.REACT_APP_API_URL}/user/addresses/${addressToEdit._id}` ||`http://localhost:8000/api/user/addresses/${addressToEdit._id}`, addressForm, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await axios.patch(
+          buildApiUrl(API_ENDPOINTS.USER_ADDRESS_DETAIL(addressToEdit._id)),
+          addressForm,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
       }
       setEditAddressDialog(false);
       setIsAddAddress(false);
       // Refresh profile
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/user/profile` || 'http://localhost:8000/api/user/profile', {
+      const res = await axios.get(buildApiUrl(API_ENDPOINTS.USER_PROFILE), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
     } catch (err) {
-      setError('Failed to save address');
+      setError("Failed to save address");
     } finally {
       setLoading(false);
     }
@@ -251,19 +279,22 @@ const Profile = ({ mode }) => {
   const confirmDeleteAddress = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      await axios.delete(`${process.env.REACT_APP_API_URL}/user/addresses/${addressToDelete._id}` || `http://localhost:8000/api/user/addresses/${addressToDelete._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        buildApiUrl(API_ENDPOINTS.USER_ADDRESS_DETAIL(addressToDelete._id)),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setDeleteAddressDialog(false);
       setAddressToDelete(null);
       // Refresh profile
-      const res = await axios.get(`${process.env.REACT_APP_API_URL}/user/profile` ||'http://localhost:8000/api/user/profile', {
+      const res = await axios.get(buildApiUrl(API_ENDPOINTS.USER_PROFILE), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfileUser(res.data.data);
     } catch (err) {
-      setError('Failed to delete address');
+      setError("Failed to delete address");
     } finally {
       setLoading(false);
     }
@@ -272,10 +303,10 @@ const Profile = ({ mode }) => {
   // Sign out handler
   const handleSignOut = () => {
     logout && logout();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setProfileUser(null);
-    navigate('/login');
+    navigate("/login");
   };
 
   // Delete account handler (demo only)
@@ -286,7 +317,12 @@ const Profile = ({ mode }) => {
     navigate("/");
   };
 
-  if (loading) return <Box sx={{ py: 8, textAlign: "center" }}><CircularProgress /></Box>;
+  if (loading)
+    return (
+      <Box sx={{ py: 8, textAlign: "center" }}>
+        <CircularProgress />
+      </Box>
+    );
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!profileUser) return null;
 
@@ -298,7 +334,7 @@ const Profile = ({ mode }) => {
         background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)",
         py: { xs: 0, md: 4 },
         px: 0,
-        margin: 0
+        margin: 0,
       }}
     >
       <Container
@@ -336,7 +372,10 @@ const Profile = ({ mode }) => {
             </Typography>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 400, color: mode == "dark" ? "#fff" : "#181818" }}
+              sx={{
+                fontWeight: 400,
+                color: mode == "dark" ? "#fff" : "#181818",
+              }}
             >
               Welcome back! Manage your account and preferences below.
             </Typography>
@@ -349,7 +388,13 @@ const Profile = ({ mode }) => {
             {/* Personal Information */}
             <Paper
               elevation={3}
-              sx={{ p: 4, borderRadius: 4, boxShadow: "0 2px 12px rgba(0,0,0,0.06)", position: "relative", mb: 4 }}
+              sx={{
+                p: 4,
+                borderRadius: 4,
+                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                position: "relative",
+                mb: 4,
+              }}
             >
               <Button
                 variant="contained"
@@ -362,7 +407,7 @@ const Profile = ({ mode }) => {
                   borderRadius: 8,
                   textTransform: "none",
                   fontWeight: 500,
-                  boxShadow: 2
+                  boxShadow: 2,
                 }}
                 onClick={handleEditProfile}
               >
@@ -375,29 +420,41 @@ const Profile = ({ mode }) => {
                 <Grid item xs={12} sm={6}>
                   <Box display="flex" alignItems="center" mb={1}>
                     <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Name:</Typography>
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
+                      Name:
+                    </Typography>
                     <Typography sx={{ ml: 1 }}>{profileUser.name}</Typography>
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
                     <CakeIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Date of Birth:</Typography>
-                    <Typography sx={{ ml: 1 }}>{formatDateOfBirth(profileUser.dob)}</Typography>
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
+                      Date of Birth:
+                    </Typography>
+                    <Typography sx={{ ml: 1 }}>
+                      {formatDateOfBirth(profileUser.dob)}
+                    </Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <Box display="flex" alignItems="center" mb={1}>
                     <PhoneIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Phone:</Typography>
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
+                      Phone:
+                    </Typography>
                     <Typography sx={{ ml: 1 }}>{profileUser.phone}</Typography>
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
                     <EmailIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Email:</Typography>
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
+                      Email:
+                    </Typography>
                     <Typography sx={{ ml: 1 }}>{profileUser.email}</Typography>
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
                     <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>Gender:</Typography>
+                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
+                      Gender:
+                    </Typography>
                     <Typography sx={{ ml: 1 }}>{profileUser.gender}</Typography>
                   </Box>
                 </Grid>
@@ -413,15 +470,29 @@ const Profile = ({ mode }) => {
                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
               }}
             >
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: "text.primary", mb: 0 }}
+                >
                   Addresses
                 </Typography>
                 <Button
                   variant="contained"
                   color="primary"
                   startIcon={<AddLocationIcon />}
-                  sx={{ borderRadius: 8, textTransform: "none", fontWeight: 500 }}
+                  sx={{
+                    borderRadius: 8,
+                    textTransform: "none",
+                    fontWeight: 500,
+                  }}
                   onClick={handleAddAddress}
                 >
                   Add Address
@@ -429,7 +500,17 @@ const Profile = ({ mode }) => {
               </Box>
               {profileUser.addresses && profileUser.addresses.length > 0 ? (
                 profileUser.addresses.map((addr, idx) => (
-                  <Paper key={addr._id || idx} sx={{ p: 2, mb: 2, borderRadius: 2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Paper
+                    key={addr._id || idx}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      borderRadius: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <Box>
                       <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
                         {addr.label || "Home"}
@@ -438,18 +519,31 @@ const Profile = ({ mode }) => {
                         {addr.address}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button variant="outlined" size="small" sx={{ borderRadius: 8, textTransform: "none" }} onClick={() => handleEditAddress(addr)}>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{ borderRadius: 8, textTransform: "none" }}
+                        onClick={() => handleEditAddress(addr)}
+                      >
                         Edit
                       </Button>
-                      <Button variant="outlined" color="error" size="small" sx={{ borderRadius: 8, textTransform: "none" }} onClick={() => handleDeleteAddress(addr)}>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        sx={{ borderRadius: 8, textTransform: "none" }}
+                        onClick={() => handleDeleteAddress(addr)}
+                      >
                         Delete
                       </Button>
                     </Box>
                   </Paper>
                 ))
               ) : (
-                <Typography color="text.secondary">No addresses found.</Typography>
+                <Typography color="text.secondary">
+                  No addresses found.
+                </Typography>
               )}
             </Paper>
           </Grid>
@@ -463,21 +557,34 @@ const Profile = ({ mode }) => {
                 mb: 4,
                 borderRadius: 3,
                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}
+              >
                 Membership
               </Typography>
-              {profileUser?.subscription && profileUser.subscription.isSubscribed && new Date(profileUser.subscription.subscriptionExpiry) > new Date() ? (
+              {profileUser?.subscription &&
+              profileUser.subscription.isSubscribed &&
+              new Date(profileUser.subscription.subscriptionExpiry) >
+                new Date() ? (
                 <Box>
                   <Typography sx={{ fontWeight: 600, color: "#ff9800", mb: 1 }}>
-                    <PremiumIcon sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }} />
+                    <PremiumIcon
+                      sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }}
+                    />
                     Premium Member
                   </Typography>
                   <Typography>
-                    Days left: <b>
-                      {Math.ceil((new Date(profileUser.subscription.subscriptionExpiry) - new Date()) / (1000 * 60 * 60 * 24))}
+                    Days left:{" "}
+                    <b>
+                      {Math.ceil(
+                        (new Date(profileUser.subscription.subscriptionExpiry) -
+                          new Date()) /
+                          (1000 * 60 * 60 * 24)
+                      )}
                     </b>
                   </Typography>
                 </Box>
@@ -493,61 +600,193 @@ const Profile = ({ mode }) => {
                 mb: 4,
                 borderRadius: 3,
                 boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                textAlign: "center"
+                textAlign: "center",
               }}
             >
-              <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}>
+              <Typography
+                variant="h6"
+                sx={{ fontWeight: 600, color: "text.primary", mb: 2 }}
+              >
                 Account Actions
               </Typography>
-              <Button variant="outlined" color="primary" onClick={handleSignOut} sx={{ mb: 2, borderRadius: 8, textTransform: "none", fontWeight: 500, width: "100%" }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleSignOut}
+                sx={{
+                  mb: 2,
+                  borderRadius: 8,
+                  textTransform: "none",
+                  fontWeight: 500,
+                  width: "100%",
+                }}
+              >
                 Sign Out
               </Button>
             </Paper>
           </Grid>
         </Grid>
         {/* Edit Profile Dialog */}
-        <Dialog open={editProfileDialog} onClose={() => setEditProfileDialog(false)}>
+        <Dialog
+          open={editProfileDialog}
+          onClose={() => setEditProfileDialog(false)}
+        >
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogContent>
-            <TextField label="Name" fullWidth margin="normal" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} />
-            <TextField label="Gender" select fullWidth margin="normal" value={profileForm.gender} onChange={e => setProfileForm({ ...profileForm, gender: e.target.value })}>
+            <TextField
+              label="Name"
+              fullWidth
+              margin="normal"
+              value={profileForm.name}
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, name: e.target.value })
+              }
+            />
+            <TextField
+              label="Gender"
+              select
+              fullWidth
+              margin="normal"
+              value={profileForm.gender}
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, gender: e.target.value })
+              }
+            >
               <MenuItem value="male">Male</MenuItem>
               <MenuItem value="female">Female</MenuItem>
               <MenuItem value="other">Other</MenuItem>
             </TextField>
-            <TextField label="Date of Birth" type="date" fullWidth margin="normal" value={profileForm.dob} onChange={e => setProfileForm({ ...profileForm, dob: e.target.value })} InputLabelProps={{ shrink: true }} />
-            <TextField label="Phone" fullWidth margin="normal" value={profileForm.phone} onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })} />
+            <TextField
+              label="Date of Birth"
+              type="date"
+              fullWidth
+              margin="normal"
+              value={profileForm.dob}
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, dob: e.target.value })
+              }
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              label="Phone"
+              fullWidth
+              margin="normal"
+              value={profileForm.phone}
+              onChange={(e) =>
+                setProfileForm({ ...profileForm, phone: e.target.value })
+              }
+            />
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setEditProfileDialog(false)}>Cancel</Button>
-            <Button onClick={handleProfileSave} variant="contained">Save</Button>
+            <Button onClick={handleProfileSave} variant="contained">
+              Save
+            </Button>
           </DialogActions>
         </Dialog>
         {/* Edit Address Dialog */}
-        <Dialog open={editAddressDialog} onClose={() => { setEditAddressDialog(false); setIsAddAddress(false); }}>
-          <DialogTitle>{isAddAddress ? 'Add Address' : 'Edit Address'}</DialogTitle>
+        <Dialog
+          open={editAddressDialog}
+          onClose={() => {
+            setEditAddressDialog(false);
+            setIsAddAddress(false);
+          }}
+        >
+          <DialogTitle>
+            {isAddAddress ? "Add Address" : "Edit Address"}
+          </DialogTitle>
           <DialogContent>
-            <TextField label="Address" fullWidth margin="normal" value={addressForm.address} onChange={e => setAddressForm({ ...addressForm, address: e.target.value })} />
-            <TextField label="City" fullWidth margin="normal" value={addressForm.city} onChange={e => setAddressForm({ ...addressForm, city: e.target.value })} />
-            <TextField label="State" fullWidth margin="normal" value={addressForm.state} onChange={e => setAddressForm({ ...addressForm, state: e.target.value })} />
-            <TextField label="Country" fullWidth margin="normal" value={addressForm.country} onChange={e => setAddressForm({ ...addressForm, country: e.target.value })} />
-            <TextField label="Postal Code" fullWidth margin="normal" value={addressForm.postalCode} onChange={e => setAddressForm({ ...addressForm, postalCode: e.target.value })} />
-            <TextField label="Phone" fullWidth margin="normal" value={addressForm.phone} onChange={e => setAddressForm({ ...addressForm, phone: e.target.value })} />
+            <TextField
+              label="Address"
+              fullWidth
+              margin="normal"
+              value={addressForm.address}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, address: e.target.value })
+              }
+            />
+            <TextField
+              label="City"
+              fullWidth
+              margin="normal"
+              value={addressForm.city}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, city: e.target.value })
+              }
+            />
+            <TextField
+              label="State"
+              fullWidth
+              margin="normal"
+              value={addressForm.state}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, state: e.target.value })
+              }
+            />
+            <TextField
+              label="Country"
+              fullWidth
+              margin="normal"
+              value={addressForm.country}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, country: e.target.value })
+              }
+            />
+            <TextField
+              label="Postal Code"
+              fullWidth
+              margin="normal"
+              value={addressForm.postalCode}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, postalCode: e.target.value })
+              }
+            />
+            <TextField
+              label="Phone"
+              fullWidth
+              margin="normal"
+              value={addressForm.phone}
+              onChange={(e) =>
+                setAddressForm({ ...addressForm, phone: e.target.value })
+              }
+            />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => { setEditAddressDialog(false); setIsAddAddress(false); }}>Cancel</Button>
-            <Button onClick={handleAddressSave} variant="contained">Save</Button>
+            <Button
+              onClick={() => {
+                setEditAddressDialog(false);
+                setIsAddAddress(false);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleAddressSave} variant="contained">
+              Save
+            </Button>
           </DialogActions>
         </Dialog>
         {/* Delete Address Dialog */}
-        <Dialog open={deleteAddressDialog} onClose={() => setDeleteAddressDialog(false)}>
+        <Dialog
+          open={deleteAddressDialog}
+          onClose={() => setDeleteAddressDialog(false)}
+        >
           <DialogTitle>Delete Address</DialogTitle>
           <DialogContent>
-            <Typography>Are you sure you want to delete this address?</Typography>
+            <Typography>
+              Are you sure you want to delete this address?
+            </Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteAddressDialog(false)}>Cancel</Button>
-            <Button onClick={confirmDeleteAddress} color="error" variant="contained">Delete</Button>
+            <Button onClick={() => setDeleteAddressDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteAddress}
+              color="error"
+              variant="contained"
+            >
+              Delete
+            </Button>
           </DialogActions>
         </Dialog>
       </Container>

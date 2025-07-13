@@ -68,12 +68,12 @@ exports.applyCoupon = async (req, res) => {
         .json({ success: false, message: "Invalid coupon code" });
 
     // Only allow public coupons for users
-    if (coupon.type !== "public") {
-      return res.status(400).json({
-        success: false,
-        message: "This coupon is not available for public use",
-      });
-    }
+    // if (coupon.type !== "public") {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "This coupon is not available for public use",
+    //   });
+    // }
 
     const now = new Date();
     if (

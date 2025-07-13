@@ -25,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 // Remove: import { mockCoupons, validateCoupon } from "../data/mockData";
 
 // Dynamically load Razorpay script
@@ -61,15 +62,15 @@ const Payment = ({ mode = "dark" }) => {
     // Fetch public coupons from backend
     const fetchCoupons = async () => {
       try {
-        const BASE_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
-        const response = await axios.get(`${BASE_URL}/coupons`);
+        const response = await axios.get(buildApiUrl(API_ENDPOINTS.COUPONS));
         console.log("response", response.data.data);
         const coupons = response.data.data || [];
         const filtered = coupons.filter((c) => c.type === "public");
         console.log("filteredCoupons", filtered);
         setAvailableCoupons(filtered);
       } catch (err) {
+        const error = handleApiError(err);
+        console.error("Error fetching coupons:", error);
         setAvailableCoupons([]);
       }
     };
@@ -98,12 +99,14 @@ const Payment = ({ mode = "dark" }) => {
     setCouponError("");
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
-      const response = await axios.post(`${apiUrl}/coupons/apply`, {  
-        code: coupon.trim(),
-        userId: user?._id,
-        cartTotal: subtotal,
-      });
+      const response = await axios.post(
+        buildApiUrl(API_ENDPOINTS.COUPONS_APPLY),
+        {
+          code: coupon.trim(),
+          userId: user?._id,
+          cartTotal: subtotal,
+        }
+      );
 
       if (response.data.success) {
         // Calculate discount (assuming percent)
@@ -146,16 +149,15 @@ const Payment = ({ mode = "dark" }) => {
     if (!showOffers) {
       // Fetch fresh coupons when opening offers
       try {
-        const BASE_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
-        const response = await axios.get(`${BASE_URL}/coupons`);
+        const response = await axios.get(buildApiUrl(API_ENDPOINTS.COUPONS));
         console.log("response", response.data.data);
         const coupons = response.data.data || [];
         const filtered = coupons.filter((c) => c.type === "public");
         console.log("filteredCoupons", filtered);
         setAvailableCoupons(filtered);
       } catch (err) {
-        console.error("Error fetching coupons:", err);
+        const error = handleApiError(err);
+        console.error("Error fetching coupons:", error);
         setAvailableCoupons([]);
       }
     }
@@ -252,14 +254,17 @@ const Payment = ({ mode = "dark" }) => {
         },
         totalPrice: finalTotal,
       };
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${apiUrl}/orders`, orderData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        buildApiUrl(API_ENDPOINTS.ORDERS),
+        orderData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.data.success) {
         return true;
       } else {
@@ -267,11 +272,8 @@ const Payment = ({ mode = "dark" }) => {
         return false;
       }
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Payment failed. Please try again."
-      );
+      const error = handleApiError(err);
+      setError(error.message || "Payment failed. Please try again.");
       return false;
     }
   };
@@ -293,11 +295,8 @@ const Payment = ({ mode = "dark" }) => {
       }
       setLoading(false);
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Payment failed. Please try again."
-      );
+      const error = handleApiError(err);
+      setError(error.message || "Payment failed. Please try again.");
       setLoading(false);
     }
   };

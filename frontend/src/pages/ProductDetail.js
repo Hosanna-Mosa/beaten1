@@ -34,6 +34,8 @@ import {
   ExpandMore as ExpandMoreIcon,
 } from "@mui/icons-material";
 import { useWishlist } from "../context/WishlistContext";
+import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
+import axios from "axios";
 
 import { getProductById, mockReviews } from "../data/mockData";
 
@@ -49,7 +51,7 @@ const matteColors = {
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+// Removed BASE_URL as it's now handled by the centralized API
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
@@ -60,7 +62,7 @@ const getImageUrl = (imagePath) => {
     return imagePath;
   }
   if (imagePath && !imagePath.includes("/")) {
-    return `${BASE_URL}/uploads/${imagePath}`;
+    return `${buildApiUrl("")}/uploads/${imagePath}`;
   }
   return imagePath;
 };
@@ -158,21 +160,16 @@ const ProductDetail = ({ mode }) => {
 
     const fetchProduct = async () => {
       try {
-        const response = await fetch(
-          `${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/products/${productId}`
+        const response = await axios.get(
+          buildApiUrl(API_ENDPOINTS.PRODUCT_DETAIL(productId))
         );
+        console.log(response.data.data);
 
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        const data = await response.json();
-        console.log(data.data);
-
-        setProduct(data.data);
+        setProduct(response.data.data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching product:", error);
-
+        const apiError = handleApiError(error);
+        console.error("Error fetching product:", apiError);
         setProduct(null);
       }
     };
