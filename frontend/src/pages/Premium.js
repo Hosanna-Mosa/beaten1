@@ -39,7 +39,7 @@ import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
 
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const Premium = ({ mode }) => {
   const { user, updateProfile, login } = useAuth();
@@ -166,7 +166,7 @@ const Premium = ({ mode }) => {
           const token = localStorage.getItem("token");
           try {
             await axios.post(
-              `${BASE_URL}/api/user/manual-subscribe`,
+              `${BASE_URL}/user/manual-subscribe`,
               {
                 plan: "year",
                 paymentId: response.razorpay_payment_id,

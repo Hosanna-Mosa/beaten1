@@ -51,8 +51,8 @@ const Returns = () => {
     setError('');
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const response = await axios.get(`${apiUrl}/api/admin/returns`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const response = await axios.get(`${apiUrl}/admin/returns`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setReturns(response.data.data || []);
@@ -70,8 +70,8 @@ const Returns = () => {
   const handleStatusChange = async (returnId, newStatus) => {
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      await axios.patch(`${apiUrl}/api/admin/returns/${returnId}/status`, { status: newStatus }, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      await axios.patch(`${apiUrl}/admin/returns/${returnId}/status`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbar({ open: true, message: 'Status updated!', severity: 'success' });
@@ -86,8 +86,8 @@ const Returns = () => {
     setReceivedLoading((prev) => ({ ...prev, [returnId]: true }));
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      await axios.patch(`${apiUrl}/api/admin/returns/${returnId}/received`, {}, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+        await axios.patch(`${apiUrl}/admin/returns/${returnId}/received`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setReceivedMap((prev) => ({ ...prev, [returnId]: true }));

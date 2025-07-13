@@ -62,8 +62,8 @@ const Payment = ({ mode = "dark" }) => {
     const fetchCoupons = async () => {
       try {
         const BASE_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:8000";
-        const response = await axios.get(`${BASE_URL}/api/coupons`);
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+        const response = await axios.get(`${BASE_URL}/coupons`);
         console.log("response", response.data.data);
         const coupons = response.data.data || [];
         const filtered = coupons.filter((c) => c.type === "public");
@@ -98,8 +98,8 @@ const Payment = ({ mode = "dark" }) => {
     setCouponError("");
 
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
-      const response = await axios.post(`${apiUrl}/api/coupons/apply`, {
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+      const response = await axios.post(`${apiUrl}/coupons/apply`, {  
         code: coupon.trim(),
         userId: user?._id,
         cartTotal: subtotal,
@@ -147,8 +147,8 @@ const Payment = ({ mode = "dark" }) => {
       // Fetch fresh coupons when opening offers
       try {
         const BASE_URL =
-          process.env.REACT_APP_API_URL || "http://localhost:8000";
-        const response = await axios.get(`${BASE_URL}/api/coupons`);
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+        const response = await axios.get(`${BASE_URL}/coupons`);
         console.log("response", response.data.data);
         const coupons = response.data.data || [];
         const filtered = coupons.filter((c) => c.type === "public");
@@ -252,9 +252,9 @@ const Payment = ({ mode = "dark" }) => {
         },
         totalPrice: finalTotal,
       };
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${apiUrl}/api/orders`, orderData, {
+      const response = await axios.post(`${apiUrl}/orders`, orderData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,

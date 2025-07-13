@@ -57,8 +57,8 @@ const Coupons = () => {
     setError('');
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const response = await axios.get(`${apiUrl}/api/admin/coupons`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const response = await axios.get(`${apiUrl}/admin/coupons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCoupons(response.data.data || []);
@@ -101,7 +101,7 @@ const Coupons = () => {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
       const payload = {
         ...formData,
         discount: Number(formData.discount),
@@ -111,7 +111,7 @@ const Coupons = () => {
         validUntil: new Date(formData.validUntil),
         recipient: formData.type === 'personal' ? formData.recipient : undefined,
       };
-      await axios.post(`${apiUrl}/api/admin/coupons`, payload, {
+      await axios.post(`${apiUrl}/admin/coupons`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbar({ open: true, message: 'Coupon created!', severity: 'success' });
@@ -148,7 +148,7 @@ const Coupons = () => {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
       const payload = {
         ...formData,
         discount: Number(formData.discount),
@@ -158,7 +158,7 @@ const Coupons = () => {
         validUntil: new Date(formData.validUntil),
         recipient: formData.type === 'personal' ? formData.recipient : undefined,
       };
-      await axios.patch(`${apiUrl}/api/admin/coupons/${editId}`, payload, {
+      await axios.patch(`${apiUrl}/admin/coupons/${editId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbar({ open: true, message: 'Coupon updated!', severity: 'success' });
@@ -179,8 +179,8 @@ const Coupons = () => {
   const handleConfirmDelete = async () => {
     try {
       const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      await axios.delete(`${apiUrl}/api/admin/coupons/${deleteId}`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      await axios.delete(`${apiUrl}/admin/coupons/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSnackbar({ open: true, message: 'Coupon deleted!', severity: 'success' });

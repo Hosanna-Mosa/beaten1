@@ -78,7 +78,7 @@ const Checkout = ({ mode = "dark" }) => {
   const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
-  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
   useEffect(() => {
     fetchAddresses();
@@ -89,7 +89,7 @@ const Checkout = ({ mode = "dark" }) => {
   const fetchAddresses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${BASE_URL}/api/user/addresses`, {
+      const response = await axios.get(`${BASE_URL}/user/addresses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userAddresses = response.data.data || [];
@@ -107,7 +107,7 @@ const Checkout = ({ mode = "dark" }) => {
 
   const fetchPublicCoupons = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/coupons`);
+      const response = await axios.get(`${BASE_URL}/coupons`);
       const coupons = response.data.data || [];
       setPublicCoupons(coupons.filter(c => c.type === 'public'));
     } catch (err) {
@@ -160,7 +160,7 @@ const Checkout = ({ mode = "dark" }) => {
       if (newAddress._id) {
         // Edit address
         await axios.patch(
-          `${BASE_URL}/api/user/addresses/${newAddress._id}`,
+          `${BASE_URL}/user/addresses/${newAddress._id}`,
           addressData,
           {
             headers: { Authorization: `Bearer ${token}` },
@@ -168,7 +168,7 @@ const Checkout = ({ mode = "dark" }) => {
         );
       } else {
         // Add new address
-        await axios.post(`${BASE_URL}/api/user/addresses`, addressData, {
+        await axios.post(`${BASE_URL}/user/addresses`, addressData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -238,7 +238,7 @@ const Checkout = ({ mode = "dark" }) => {
 
       const token = localStorage.getItem("token");
       // Send order to backend
-      await axios.post(`${BASE_URL}/api/orders`, orderPayload, {
+      await axios.post(`${BASE_URL}/orders`, orderPayload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -449,7 +449,7 @@ const Checkout = ({ mode = "dark" }) => {
                             try {
                               const token = localStorage.getItem("token");
                               await axios.delete(
-                                `${BASE_URL}/api/user/addresses/${address._id}`,
+                                `${BASE_URL}/user/addresses/${address._id}`,
                                 {
                                   headers: { Authorization: `Bearer ${token}` },
                                 }

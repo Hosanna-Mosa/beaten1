@@ -49,7 +49,7 @@ const matteColors = {
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:8000";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
@@ -159,7 +159,7 @@ const ProductDetail = ({ mode }) => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(
-          `${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/products/${productId}`
+          `${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/products/${productId}`
         );
 
         // if (!response.ok) {

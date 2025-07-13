@@ -47,7 +47,7 @@ const matteColors = {
 };
 
 const BACKEND_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:8000";
+  process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
 const Home = ({ mode }) => {
   const navigate = useNavigate();
@@ -136,7 +136,7 @@ const Home = ({ mode }) => {
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/auth/profile`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -184,7 +184,7 @@ const Home = ({ mode }) => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get(`${BACKEND_URL}/api/products`);
+        const response = await axios.get(`${BACKEND_URL}/products`);
 
         if (response.data && response.data.data) {
           console.log("response.data.data", response.data.data);

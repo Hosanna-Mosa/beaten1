@@ -1093,7 +1093,7 @@ const Products = ({ mode }) => {
   const fetchProducts = async () => {
     setShowLoading(true);
     try {
-      const response = await axios.get(process.env.REACT_APP_API_URL||"http://localhost:8000/api/products");
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/products`||"http://localhost:8000/api/products");
       setProducts(response.data.data || []);
     } catch (err) {
       setError("Failed to load products");

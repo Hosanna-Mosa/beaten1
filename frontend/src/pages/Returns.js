@@ -120,9 +120,9 @@ const Returns = ({ mode }) => {
     setLoading(true);
     setError("");
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${apiUrl}/api/user/returns`, {
+      const response = await axios.get(`${apiUrl}/user/returns`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -177,9 +177,9 @@ const Returns = ({ mode }) => {
     setOrderError("");
     setOrderDetails(null);
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${apiUrl}/api/orders/my/${orderId}`, {
+      const response = await axios.get(`${apiUrl}/orders/my/${orderId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
