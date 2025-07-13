@@ -1,8 +1,11 @@
+const Address = require("../models/Address");
 const Order = require("../models/Order");
 const { STATUS_CODES } = require("../utils/constants");
 const {
   sendOrderStatusEmail,
   sendOrderConfirmedEmail,
+  sendAdminOrderNotification,
+  sendAdminOrderStatusNotification,
 } = require("../utils/emailService");
 
 // @desc    Create a new order
@@ -35,7 +38,10 @@ const createOrder = async (req, res) => {
       user.subscription.subscriptionExpiry > new Date()
     ) {
       // Reduce price by subscription cost, but not below zero
-      finalPrice = Math.max(0, totalPrice - (user.subscription.subscriptionCost || 0));
+      finalPrice = Math.max(
+        0,
+        totalPrice - (user.subscription.subscriptionCost || 0)
+      );
     }
     const order = new Order({
       user: req.user._id,
@@ -45,7 +51,7 @@ const createOrder = async (req, res) => {
       totalPrice: finalPrice,
     });
     const createdOrder = await order.save();
-    // Send order confirmation email
+    // Send order confirmation email to user
     const populatedOrder = await order.populate("user", "name email");
     if (populatedOrder.user && populatedOrder.user.email) {
       await sendOrderConfirmedEmail(
@@ -54,6 +60,24 @@ const createOrder = async (req, res) => {
         populatedOrder.user.name
       );
     }
+    const addressData = await Address.findById(shippingAddress);
+    
+    // Send admin notification
+    await sendAdminOrderNotification({
+      orderId: order._id,
+      userName: populatedOrder.user.name,
+      userEmail: populatedOrder.user.email,
+      totalPrice: finalPrice,
+      orderItems: orderItems,
+      shippingAddress:{
+        address:addressData.address,
+        city:addressData.city,
+        state:addressData.state,
+        postalCode:addressData.postalCode,
+        country:addressData.country,
+      }
+    });
+
     res.status(STATUS_CODES.CREATED).json({
       success: true,
       message: "Order placed successfully",
@@ -72,17 +96,18 @@ const createOrder = async (req, res) => {
 // @access  Private
 const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id })
-      .populate('shippingAddress'); // Populate address details
+    const orders = await Order.find({ user: req.user._id }).populate(
+      "shippingAddress"
+    ); // Populate address details
 
     // Debug: Log the populated shippingAddress for each order
-    orders.forEach(order => {
-      console.log('Order ID:', order._id);
-      console.log('Populated Shipping Address:', order.shippingAddress);
+    orders.forEach((order) => {
+      console.log("Order ID:", order._id);
+      console.log("Populated Shipping Address:", order.shippingAddress);
     });
 
     // Add originalPrice and subscriptionDiscount to each order
-    const ordersWithDiscountInfo = orders.map(order => {
+    const ordersWithDiscountInfo = orders.map((order) => {
       let originalPrice = order.totalPrice;
       let subscriptionDiscount = 0;
       if (order.paymentInfo && order.paymentInfo.originalPrice) {
@@ -180,9 +205,11 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
+    const oldStatus = order.status;
     order.status = status;
 
     await order.save();
+
     // Send email notification to user
     if (order.user && order.user.email) {
       await sendOrderStatusEmail(
@@ -192,6 +219,15 @@ const updateOrderStatus = async (req, res) => {
         order.user.name
       );
     }
+
+    // Send admin notification for status change
+    await sendAdminOrderStatusNotification({
+      orderId: order._id,
+      userName: order.user.name,
+      userEmail: order.user.email,
+      oldStatus: oldStatus,
+      newStatus: status,
+    });
 
     res.status(STATUS_CODES.OK).json({
       success: true,
@@ -211,8 +247,10 @@ const updateOrderStatus = async (req, res) => {
 // @access  Private
 const getMyOrderById = async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.id, user: req.user._id })
-      .populate("shippingAddress");
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    }).populate("shippingAddress");
     if (!order) {
       return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
