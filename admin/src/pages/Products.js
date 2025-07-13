@@ -103,6 +103,7 @@ const sortOptions = [
   { value: "stock_desc", label: "Stock (High to Low)" },
   { value: "rating_desc", label: "Rating (High to Low)" },
   { value: "created_desc", label: "Newest First" },
+  { value: "sold_desc", label: "Sold Count (High to Low)" }, // Added
 ];
 
 function Products() {
@@ -385,6 +386,8 @@ function Products() {
             return (b.rating || 0) - (a.rating || 0);
           case "created_desc":
             return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+          case "sold_desc":
+            return (b.soldCount || 0) - (a.soldCount || 0); // Added
           default:
             return 0;
         }
@@ -1577,6 +1580,9 @@ function Products() {
                     Stock
                   </TableCell>
                   <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                    Sold Count
+                  </TableCell>
+                  <TableCell sx={{ border: 1, borderColor: "divider" }}>
                     Status
                   </TableCell>
                   <TableCell sx={{ border: 1, borderColor: "divider" }}>
@@ -1626,6 +1632,9 @@ function Products() {
                       </TableCell>
                       <TableCell sx={{ border: 1, borderColor: "divider" }}>
                         {product.stockQuantity || 0}
+                      </TableCell>
+                      <TableCell sx={{ border: 1, borderColor: "divider" }}>
+                        {product.soldCount || 0}
                       </TableCell>
                       <TableCell sx={{ border: 1, borderColor: "divider" }}>
                         <Chip

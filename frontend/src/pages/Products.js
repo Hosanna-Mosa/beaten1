@@ -1026,11 +1026,11 @@ const Products = ({ mode }) => {
         overflowX: "auto",
         gap: 0,
         px: 0,
-        py: { xs: 1.5, md: 0.5 },
+        py: 0,
         bgcolor: "background.paper",
         borderBottom: "none",
         position: "sticky",
-        top: 48, // adjust if your navbar is taller/shorter
+        top: 44, // changed from 48 to 56 to match header height
         left: 0,
         width: "100%",
         zIndex: 1200,
@@ -1177,8 +1177,9 @@ const Products = ({ mode }) => {
         bgcolor: mode === "dark" ? "#181818" : "#fff",
         color: mode === "dark" ? "#fff" : "inherit",
         minHeight: "100vh",
-        width: "100%",
         transition: "background 0.3s, color 0.3s",
+        pb: { xs: 0, md: 4 },
+        mb: 0,
       }}
     >
       {/* Edge-to-edge Search Bar */}
@@ -1221,7 +1222,7 @@ const Products = ({ mode }) => {
           }}
         />
       </Box>
-      <Container maxWidth="xl" sx={{ py: 0, px: { xs: 0, md: 3 } }}>
+      <Container maxWidth="xl" disableGutters={isMobile} sx={{ pb: { xs: 0, md: 4 }, mb: 0 }}>
         {/* Mobile custom header and chips */}
         {isMobile && (
           <>
@@ -1231,9 +1232,11 @@ const Products = ({ mode }) => {
                 display: { xs: "flex", md: "none" },
                 justifyContent: "center",
                 alignItems: "center",
-                py: 1,
+                py: 0,
                 px: 2,
                 borderBottom: "1px solid #eee",
+                mt: 0,
+                mb: 0,
               }}
             >
               <Typography

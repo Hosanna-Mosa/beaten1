@@ -37,22 +37,29 @@ export const AuthProvider = ({ children }) => {
         `${process.env.REACT_APP_API_URL}/auth/login`,
         { email, password }
       );
-      setLoading(false);
       const { token, user } = response.data.data;
-      console.log(response.data.data);
-
-      console.log(user);
-      console.log(token);
-
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
+      // Fetch latest user profile after login
+      let latestUser = user;
+      try {
+        const profileRes = await axios.get(
+          `${process.env.REACT_APP_API_URL}/user/profile`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (profileRes.data && profileRes.data.data) {
+          latestUser = profileRes.data.data;
+        }
+      } catch (profileErr) {
+        // If profile fetch fails, fallback to login user object
+        console.error("Failed to fetch latest user profile after login", profileErr);
+      }
+      localStorage.setItem("user", JSON.stringify(latestUser));
+      setUser(latestUser);
       setLoading(false);
-      return response.data;
+      return { ...response.data, data: { token, user: latestUser } };
     } catch (err) {
       console.log("Login error:", err);
       setError(err.response?.data?.message || "login failed");
-
       setLoading(false);
       return {
         success: false,
