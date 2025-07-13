@@ -131,7 +131,7 @@ function Orders() {
       try {
         const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${apiUrl}/api/users/${userId}`, {
+        const res = await axios.get(`${apiUrl}/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserNames((prev) => ({
@@ -150,9 +150,9 @@ function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
+        const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${apiUrl}/api/orders`, {
+        const res = await axios.get(`${apiUrl}/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -259,7 +259,7 @@ function Orders() {
     try {
       // Make API call to update backend
       const updateRes = await axios.put(
-        `${process.env.REACT_APP_API_URL || "http://localhost:8000"}/api/orders/${selectedOrder._id}`,
+        `${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/orders/${selectedOrder._id}`,
         { status: newStatus }
       );
 
@@ -1162,10 +1162,10 @@ function Orders() {
                             try {
                               const apiUrl =
                                 process.env.REACT_APP_API_URL ||
-                                "http://localhost:8000";
+                                "http://localhost:8000/api";
                               const token = localStorage.getItem("token");
                               await axios.put(
-                                `${apiUrl}/api/orders/${order._id}/status`,
+                                `${apiUrl}/orders/${order._id}/status`,
                                 { status: newStatus },
                                 {
                                   headers: { Authorization: `Bearer ${token}` },
