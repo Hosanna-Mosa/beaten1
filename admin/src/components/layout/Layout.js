@@ -21,10 +21,11 @@ import {
 } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
+import AdminLayout from "./AdminLayout";
 
 const drawerWidth = 240;
 
-function Layout() {
+function Layout({ toggleTheme, mode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const { user, logout } = useAuth();
@@ -49,7 +50,7 @@ function Layout() {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <AdminLayout toggleTheme={toggleTheme} mode={mode}>
       <AppBar
         position="fixed"
         sx={{
@@ -174,7 +175,7 @@ function Layout() {
       >
         <Outlet />
       </Box>
-    </Box>
+    </AdminLayout>
   );
 }
 

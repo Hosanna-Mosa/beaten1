@@ -29,7 +29,9 @@ import {
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  AccountCircle as AccountIcon
+  AccountCircle as AccountIcon,
+  Brightness4 as DarkModeIcon,
+  Brightness7 as LightModeIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -43,7 +45,7 @@ const menuItems = [
   { text: 'Promotions', icon: <PromotionsIcon />, path: '/admin/promotions' },
 ];
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = ({ children, toggleTheme, mode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
@@ -189,6 +191,19 @@ const AdminLayout = ({ children }) => {
           </IconButton>
 
           <Box sx={{ flexGrow: 1 }} />
+
+          {/* Desktop Theme Toggle */}
+          <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <span>
+              <IconButton
+                color="inherit"
+                onClick={toggleTheme}
+                sx={{ display: { xs: 'none', md: 'inline-flex' }, mr: 1 }}
+              >
+                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+            </span>
+          </Tooltip>
 
           {/* Notifications */}
           <Tooltip title="Notifications">
