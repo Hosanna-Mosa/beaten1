@@ -560,6 +560,16 @@ const Header = ({ mode, toggleColorMode }) => {
                 <CartIcon sx={{ fontSize: 26 }} />
               </Badge>
             </IconButton>
+            {/* Dark/Light Mode Toggle - Desktop Only */}
+            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", mx: 1 }}>
+              <IconButton onClick={toggleColorMode} color="inherit">
+                {mode === "light" ? (
+                  <Brightness4Icon sx={{ color: "#ffd600" }} />
+                ) : (
+                  <Brightness7Icon sx={{ color: "#ffd600" }} />
+                )}
+              </IconButton>
+            </Box>
             {/* Profile Icon - only show on md and up */}
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <IconButton

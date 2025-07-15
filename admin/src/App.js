@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -27,19 +27,31 @@ import Returns from "./pages/Returns";
 import DataEntry from "./pages/DataEntry";
 
 // Create theme
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: {
-      main: "#000000",
-    },
-    secondary: {
-      main: "#666666",
-    },
-  },
-});
+const getInitialMode = () => {
+  const savedMode = localStorage.getItem("admin_theme_mode");
+  return savedMode === "dark" ? "dark" : "light";
+};
 
 function App() {
+  const [mode, setMode] = useState(getInitialMode);
+
+  useEffect(() => {
+    localStorage.setItem("admin_theme_mode", mode);
+  }, [mode]);
+
+  const theme = useMemo(() =>
+    createTheme({
+      palette: {
+        mode,
+        primary: { main: "#000000" },
+        secondary: { main: "#666666" },
+      },
+    }), [mode]);
+
+  const toggleTheme = () => {
+    setMode((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
   return (
     <AuthProvider>
       <ThemeProvider theme={theme}>
@@ -68,7 +80,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <Layout />
+                <Layout toggleTheme={toggleTheme} mode={mode} />
               </ProtectedRoute>
             }
           >
