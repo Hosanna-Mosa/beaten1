@@ -4,12 +4,14 @@ const crypto = require("crypto");
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER || "support@beaten.in",
-      pass: process.env.EMAIL_PASS || "xsfrxortzsatttdi",
-    },
-  });
+  host: 'smtp.hostinger.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS, // use your new password here
+  },
+});
 };
 
 // Generate OTP
