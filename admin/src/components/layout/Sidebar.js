@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   List,
@@ -7,8 +7,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider
-} from '@mui/material';
+  Divider,
+} from "@mui/material";
 import {
   Dashboard as DashboardIcon,
   Inventory as InventoryIcon,
@@ -16,21 +16,27 @@ import {
   People as CustomersIcon,
   Logout as LogoutIcon,
   Inventory as ProductsIcon,
-  LocalOffer as PromotionsIcon
-} from '@mui/icons-material';
-import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
-import { useAuth } from '../../context/AuthContext';
+  LocalOffer as PromotionsIcon,
+} from "@mui/icons-material";
+import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Products', icon: <ProductsIcon />, path: '/products' },
-  { text: 'Orders', icon: <OrdersIcon />, path: '/orders' },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
+  { text: "Products", icon: <ProductsIcon />, path: "/products" },
+  { text: "Orders", icon: <OrdersIcon />, path: "/orders" },
   // { text: 'Customers', icon: <CustomersIcon />, path: '/customers' },
-  { text: 'Coupons', icon: <PromotionsIcon />, path: '/promotions' },
+  { text: "Coupons", icon: <PromotionsIcon />, path: "/promotions" },
   {
-    text: 'Returns',
+    text: "Returns",
     icon: <AssignmentReturnIcon />,
-    path: '/returns',
+    path: "/returns",
+  },
+  {
+    text: "Data Entry",
+    icon: <EditNoteIcon />,
+    path: "/data-entry",
   },
 ];
 
@@ -41,16 +47,16 @@ function Sidebar() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box sx={{ p: 2 }}>
         <img
           src="/logo.png"
           alt="BEATEN"
-          style={{ width: '100%', maxWidth: '150px' }}
+          style={{ width: "100%", maxWidth: "150px" }}
         />
       </Box>
       <Divider />
@@ -82,4 +88,4 @@ function Sidebar() {
   );
 }
 
-export default Sidebar; 
+export default Sidebar;
