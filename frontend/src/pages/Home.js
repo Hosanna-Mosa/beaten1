@@ -38,6 +38,7 @@ import {
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
+import { fetchSlideImages , fetchMobileSlideImages } from "../api/newsContentAPI";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -92,6 +93,9 @@ const Home = ({ mode }) => {
     hoodies: useRef(null),
     "co-ord-sets": useRef(null),
   };
+  const DATA_ENTRY_ID = "68764ef87d492357106bb01d"; // Use the same as NewsScroller
+  const [heroSlides, setHeroSlides] = useState([]);
+  const [mobileHeroSlides, setMobileHeroSlides] = useState([]);
 
   // Use imported hero slides data
   const slides = isMobile ? mobileHeroSlides : heroSlides;
@@ -278,19 +282,45 @@ const Home = ({ mode }) => {
       setShopByCategory(categoryMix);
 
       // Log the results for debugging
-      console.log("Category counts:", {
-        tShirts: tShirtsProducts.length,
-        shirts: shirtsProducts.length,
-        oversizedTShirts: oversizedTShirtsProducts.length,
-        bottomWear: bottomWearProducts.length,
-        cargoPants: cargoPantsProducts.length,
-        jackets: jacketsProducts.length,
-        hoodies: hoodiesProducts.length,
-        coOrdSets: coOrdSetsProducts.length,
-        bestSellers: sortedBySales.length,
-      });
+      // console.log("Category counts:", {
+      //   tShirts: tShirtsProducts.length,
+      //   shirts: shirtsProducts.length,
+      //   oversizedTShirts: oversizedTShirtsProducts.length,
+      //   bottomWear: bottomWearProducts.length,
+      //   cargoPants: cargoPantsProducts.length,
+      //   jackets: jacketsProducts.length,
+      //   hoodies: hoodiesProducts.length,
+      //   coOrdSets: coOrdSetsProducts.length,
+      //   bestSellers: sortedBySales.length,
+      // });
     }
   }, [allProducts]);
+
+  useEffect(() => {
+    const getSlides = async () => {
+      try {
+        const data = await fetchSlideImages(DATA_ENTRY_ID);
+        // Assuming data.slideImages is an array of image URLs
+        setHeroSlides((data.slideImages || []).map((img) => ({ image: img })));
+      } catch (err) {
+        setHeroSlides([]);
+      }
+    };
+    getSlides();
+  }, []);
+
+  useEffect(() => {
+    const getMobileSlides = async () => {
+      try {
+        const data = await fetchMobileSlideImages(DATA_ENTRY_ID);
+        // Assuming data.slideImages is an array of image URLs
+        setMobileHeroSlides((data.mobileSlideImages || []).map((img) => ({ image: img })));
+      } catch (err) {
+        setMobileHeroSlides([]);
+      }
+    };
+    getMobileSlides();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {

@@ -71,6 +71,11 @@ export const API_ENDPOINTS = {
   ADMIN_ORDERS: "/admin/orders",
   ADMIN_USERS: "/admin/users",
   ADMIN_DASHBOARD: "/admin/dashboard",
+
+  // DataEntry
+  NEWS_CONTENT: (id) => `/data-entry/${id}/news-content`,
+  SLIDE_IMAGES: (id) => `/data-entry/${id}/slide-images`,
+  MOBIEL_SLIDE_IMAGES: (id) => `/data-entry/${id}/mobile-slide-images`,
 };
 
 // Helper function to get auth headers
