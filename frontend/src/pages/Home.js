@@ -38,7 +38,7 @@ import {
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
-import { fetchSlideImages , fetchMobileSlideImages } from "../api/newsContentAPI";
+import { fetchSlideImages , fetchMobileSlideImages , fetchCollectionImages } from "../api/newsContentAPI";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -96,12 +96,17 @@ const Home = ({ mode }) => {
   const DATA_ENTRY_ID = "68764ef87d492357106bb01d"; // Use the same as NewsScroller
   const [heroSlides, setHeroSlides] = useState([]);
   const [mobileHeroSlides, setMobileHeroSlides] = useState([]);
+  const [categoryImages, setCategoryImages] = useState([]);
 
   // Use imported hero slides data
   const slides = isMobile ? mobileHeroSlides : heroSlides;
 
   // Use imported collections data
   const collections = collectionsData;
+
+  //cateroy images for collections
+  // const categoryImages = [
+  // ];
 
   // Use imported features data with icons
   const featuresWithIcons = [
@@ -321,6 +326,20 @@ const Home = ({ mode }) => {
     };
     getMobileSlides();
   }, []);
+
+  useEffect(() => {
+    const getCategoryImages = async () => {
+      
+    try {
+      const data = await fetchCollectionImages(DATA_ENTRY_ID);
+      setCategoryImages(data.collectionsImages);
+    } catch (err) {
+      setCategoryImages([]);
+    }
+  };
+    getCategoryImages();
+  }, []);
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -887,30 +906,30 @@ const Home = ({ mode }) => {
         {
           name: "T-SHIRTS",
           key: "t-shirts",
-          image: "/images/category1Desktip.png",
+          image: categoryImages[0],
         },
-        { name: "SHIRTS", key: "shirts", image: "/images/shirts.png" },
+        { name: "SHIRTS", key: "shirts", image: categoryImages[1] },
         {
           name: "OVERSIZED T-SHIRTS",
           key: "oversized-t-shirts",
-          image: "/images/oversized-tshirts.png",
+          image: categoryImages[2],
         },
         {
           name: "BOTTOM WEAR",
           key: "bottom-wear",
-          image: "/images/bottom-wear.png",
+          image: categoryImages[3],
         },
         {
           name: "CARGO PANTS",
           key: "cargo-pants",
-          image: "/images/cargo-pants.png",
+          image: categoryImages[4],
         },
-        { name: "JACKETS", key: "jackets", image: "/images/jackets.png" },
-        { name: "HOODIES", key: "hoodies", image: "/images/hoodies.png" },
+        { name: "JACKETS", key: "jackets", image: categoryImages[5] },
+        { name: "HOODIES", key: "hoodies", image: categoryImages[6] },
         {
           name: "CO-ORD SETS",
           key: "co-ord-sets",
-          image: "/images/co-ord-sets.png",
+          image: categoryImages[7],
         },
       ].map((section, idx) => (
         <Box

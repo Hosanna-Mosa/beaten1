@@ -25,6 +25,7 @@ import Orders from "./pages/Orders";
 import Promotions from "./pages/Promotions";
 import Returns from "./pages/Returns";
 import DataEntry from "./pages/DataEntry";
+import FooterInfo from "./pages/FooterInfo";
 
 // Create theme
 const getInitialMode = () => {
@@ -39,14 +40,17 @@ function App() {
     localStorage.setItem("admin_theme_mode", mode);
   }, [mode]);
 
-  const theme = useMemo(() =>
-    createTheme({
-      palette: {
-        mode,
-        primary: { main: "#000000" },
-        secondary: { main: "#666666" },
-      },
-    }), [mode]);
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: { main: "#000000" },
+          secondary: { main: "#666666" },
+        },
+      }),
+    [mode]
+  );
 
   const toggleTheme = () => {
     setMode((prev) => (prev === "light" ? "dark" : "light"));
@@ -93,6 +97,7 @@ function App() {
             <Route path="promotions" element={<Promotions />} />
             <Route path="returns" element={<Returns />} />
             <Route path="data-entry" element={<DataEntry />} />
+            <Route path="footer-info" element={<FooterInfo />} />
           </Route>
         </Routes>
 

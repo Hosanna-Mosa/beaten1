@@ -21,14 +21,14 @@ const seedData = async () => {
     // Seed data
     const entry = new DataEntry({
       slideImages: [
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583011/1_ch6hh4.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583070/2_zadfhe.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583072/4_se3imx.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583072/5_np9pgw.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583072/6_usdkbw.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583107/7_qvotk3.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583113/8_sykiry.png",
-        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752583127/9_kji5ri.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670120/2_kpvp4e.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670120/2_kpvp4e.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670123/5_ht5hap.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670123/4_koildp.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670123/6_wdwote.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670138/8_xu5wyx.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670138/7_zjbpnp.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752670139/9_jxccyv.png"
       ],
       mobileSlideImages: [
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752590569/1_kcaing.jpg",
@@ -41,9 +41,18 @@ const seedData = async () => {
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752590570/8_rcrrrj.jpg",
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752590570/9_qeizzr.jpg",
       ],
-
+      collectionsImages : [
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689841/category1Desktip_op0bfg.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689813/shirts_oojhag.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689813/oversized-tshirts_oz1gku.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689822/bottom-wear_r43mtt.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689822/cargo-pants_hphn9z.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689813/jackets_dfacfm.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689813/hoodies_qonxcq.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689835/co-ord-sets_weogc8.png"
+      ],
       newsContent:
-        "Welcome to BEATEN! Enjoy our premium drops and secret sales. changed to cloud",
+       "Welcome to BEATEN! Enjoy our premium drops and secret sales. changed to cloud",
     });
 
     await entry.save();

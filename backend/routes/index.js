@@ -12,6 +12,7 @@ const orderRoutes = require("./orders");
 const addressRoutes = require("./address");
 const forgotPasswordRoutes = require("./forgotPassword");
 const emailRoutes = require("./email");
+const footerInfoRoutes = require("./footerInfo");
 
 // Route definitions
 router.use("/auth", authRoutes);
@@ -26,6 +27,7 @@ router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);
 router.use("/forgot-password", forgotPasswordRoutes);
 router.use("/email", emailRoutes);
+router.use("/footer-info", footerInfoRoutes);
 
 // Health check route
 router.get("/health", (req, res) => {
