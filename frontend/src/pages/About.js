@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Typography,
@@ -18,6 +18,7 @@ import {
   Favorite as HeartIcon,
   AutoAwesome as AutoAwesomeIcon,
 } from "@mui/icons-material";
+import { fetchAboutUsPage } from "../api/newsContentAPI";
 
 const About = ({ mode }) => {
   const theme = useTheme();
@@ -79,6 +80,33 @@ const About = ({ mode }) => {
         "We continuously innovate and evolve, bringing fresh perspectives and cutting-edge designs to our collections.",
     },
   ];
+
+  // Dynamic about us page state
+  const [aboutData, setAboutData] = useState({
+    aboutContent: "",
+    storyContent: "",
+    image: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetchAboutUsPage();
+        if (res && typeof res === "object") {
+          setAboutData(res);
+        }
+      } catch (err) {
+        setError(err.message || "Failed to load About Us page");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <Box
@@ -182,12 +210,11 @@ const About = ({ mode }) => {
                     mb: 3,
                   }}
                 >
-                  Founded by two brothers with a shared passion for fashion and
-                  an unwavering vision, Beaten was born to create a unique space
-                  in the fashion industry. Our collection captures the essence
-                  of modern luxury, inspired by global trends and refined
-                  aesthetics. We aim to deliver standout designs with a premium
-                  yet affordable approach.
+                  {loading
+                    ? "Loading..."
+                    : error
+                      ? error
+                      : aboutData.aboutContent}
                 </Typography>
                 <Typography
                   variant="subtitle1"
@@ -209,12 +236,11 @@ const About = ({ mode }) => {
                     color: mode === "dark" ? "#fff" : matteColors[700],
                   }}
                 >
-                  Founded by two brothers with a shared passion for fashion and
-                  an unwavering vision, Beaten was born to create a unique space
-                  in the fashion industry. Our collection captures the essence
-                  of modern luxury, inspired by global trends and refined
-                  aesthetics. We aim to deliver standout designs with a premium
-                  yet affordable approach.
+                  {loading
+                    ? "Loading..."
+                    : error
+                      ? error
+                      : aboutData.storyContent}
                 </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
@@ -240,7 +266,10 @@ const About = ({ mode }) => {
                 >
                   <Box
                     component="img"
-                    src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80"
+                    src={
+                      aboutData.image ||
+                      "https://via.placeholder.com/500x300?text=No+Image"
+                    }
                     alt="Beaten Fashion"
                     sx={{
                       width: "100%",

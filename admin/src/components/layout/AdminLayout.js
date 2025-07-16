@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   AppBar,
@@ -17,8 +17,8 @@ import {
   useTheme,
   useMediaQuery,
   Badge,
-  Tooltip
-} from '@mui/material';
+  Tooltip,
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
@@ -32,22 +32,22 @@ import {
   AccountCircle as AccountIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
-} from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+} from "@mui/icons-material";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const drawerWidth = 280;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin/dashboard' },
-  { text: 'Orders', icon: <OrdersIcon />, path: '/admin/orders' },
-  // { text: 'Customers', icon: <CustomersIcon />, path: '/admin/customers' },
-  { text: 'Products', icon: <ProductsIcon />, path: '/admin/products' },
-  { text: 'Promotions', icon: <PromotionsIcon />, path: '/admin/promotions' },
+  { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
+  { text: "Orders", icon: <OrdersIcon />, path: "/admin/orders" },
+  { text: 'Customers', icon: <CustomersIcon />, path: '/admin/customers' },
+  { text: "Products", icon: <ProductsIcon />, path: "/admin/products" },
+  { text: "Promotions", icon: <PromotionsIcon />, path: "/admin/promotions" },
 ];
 
 const AdminLayout = ({ children, toggleTheme, mode }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -74,20 +74,22 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
   const handleLogout = () => {
     // Implement logout logic
     handleMenuClose();
-    navigate('/admin/login');
+    navigate("/admin/login");
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Logo and Brand */}
-      <Box sx={{ 
-        p: 2, 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: 1,
-        borderBottom: '1px solid',
-        borderColor: 'divider'
-      }}>
+      <Box
+        sx={{
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <img src="/logo.png" alt="Logo" style={{ height: 40 }} />
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Admin Panel
@@ -108,25 +110,23 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             sx={{
               borderRadius: 2,
               mb: 0.5,
-              '&.Mui-selected': {
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
-                '&:hover': {
-                  backgroundColor: 'primary.dark',
+              "&.Mui-selected": {
+                backgroundColor: "primary.main",
+                color: "primary.contrastText",
+                "&:hover": {
+                  backgroundColor: "primary.dark",
                 },
-                '& .MuiListItemIcon-root': {
-                  color: 'inherit',
+                "& .MuiListItemIcon-root": {
+                  color: "inherit",
                 },
               },
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              {item.icon}
-            </ListItemIcon>
-            <ListItemText 
+            <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+            <ListItemText
               primary={item.text}
               primaryTypographyProps={{
-                fontWeight: location.pathname === item.path ? 600 : 400
+                fontWeight: location.pathname === item.path ? 600 : 400,
               }}
             />
           </ListItem>
@@ -134,23 +134,27 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
       </List>
 
       {/* User Profile Section */}
-      <Box sx={{ 
-        p: 2, 
-        borderTop: '1px solid',
-        borderColor: 'divider'
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          p: 1,
-          borderRadius: 2,
-          cursor: 'pointer',
-          '&:hover': {
-            backgroundColor: 'action.hover'
-          }
+      <Box
+        sx={{
+          p: 2,
+          borderTop: "1px solid",
+          borderColor: "divider",
         }}
-        onClick={handleProfileMenuOpen}>
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            p: 1,
+            borderRadius: 2,
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: "action.hover",
+            },
+          }}
+          onClick={handleProfileMenuOpen}
+        >
           <Avatar sx={{ width: 40, height: 40 }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" fontWeight={600}>
@@ -166,18 +170,18 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       {/* App Bar */}
       <AppBar
         position="fixed"
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          backgroundColor: 'background.paper',
-          color: 'text.primary',
-          boxShadow: 'none',
-          borderBottom: '1px solid',
-          borderColor: 'divider'
+          backgroundColor: "background.paper",
+          color: "text.primary",
+          boxShadow: "none",
+          borderBottom: "1px solid",
+          borderColor: "divider",
         }}
       >
         <Toolbar>
@@ -185,7 +189,7 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ mr: 2, display: { md: "none" } }}
           >
             <MenuIcon />
           </IconButton>
@@ -193,21 +197,25 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Desktop Theme Toggle */}
-          <Tooltip title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <Tooltip
+            title={
+              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
             <span>
               <IconButton
                 color="inherit"
                 onClick={toggleTheme}
-                sx={{ display: { xs: 'none', md: 'inline-flex' }, mr: 1 }}
+                sx={{ display: { xs: "none", md: "inline-flex" }, mr: 1 }}
               >
-                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+                {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </span>
           </Tooltip>
 
           {/* Notifications */}
           <Tooltip title="Notifications">
-            <IconButton 
+            <IconButton
               color="inherit"
               onClick={handleNotificationsOpen}
               sx={{ mr: 1 }}
@@ -220,9 +228,9 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
 
           {/* Settings */}
           <Tooltip title="Settings">
-            <IconButton 
+            <IconButton
               color="inherit"
-              onClick={() => navigate('/admin/settings')}
+              onClick={() => navigate("/admin/settings")}
               sx={{ mr: 1 }}
             >
               <SettingsIcon />
@@ -244,12 +252,13 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: '1px solid',
-              borderColor: 'divider'
+              borderRight: "1px solid",
+              borderColor: "divider",
+              backgroundColor: "background.paper",
             },
           }}
         >
@@ -258,12 +267,13 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { 
-              boxSizing: 'border-box', 
+            display: { xs: "none", md: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: drawerWidth,
-              borderRight: '1px solid',
-              borderColor: 'divider'
+              borderRight: "1px solid",
+              borderColor: "divider",
+              backgroundColor: "background.paper",
             },
           }}
           open
@@ -271,16 +281,15 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
           {drawer}
         </Drawer>
       </Box>
-
       {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 0,
           width: { md: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
-          backgroundColor: 'background.default'
+          minHeight: "100vh",
+          backgroundColor: "background.default",
         }}
       >
         <Toolbar /> {/* Spacer for AppBar */}
@@ -297,14 +306,16 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             mt: 1.5,
             minWidth: 200,
             borderRadius: 2,
-            boxShadow: theme.shadows[3]
-          }
+            boxShadow: theme.shadows[3],
+          },
         }}
       >
-        <MenuItem onClick={() => {
-          handleMenuClose();
-          navigate('/admin/profile');
-        }}>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
+            navigate("/admin/profile");
+          }}
+        >
           <ListItemIcon>
             <AccountIcon fontSize="small" />
           </ListItemIcon>
@@ -329,8 +340,8 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             minWidth: 360,
             maxHeight: 400,
             borderRadius: 2,
-            boxShadow: theme.shadows[3]
-          }
+            boxShadow: theme.shadows[3],
+          },
         }}
       >
         <MenuItem>
@@ -356,4 +367,4 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
   );
 };
 
-export default AdminLayout; 
+export default AdminLayout;

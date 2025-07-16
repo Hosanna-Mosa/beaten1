@@ -27,6 +27,11 @@ router.get("/:id/mobile-slide-images", dataEntryController.getMobileSlideImages)
 router.put("/:id/mobile-slide-images", dataEntryController.updateMobileSlideImages);
 router.delete("/:id/mobile-slide-images", dataEntryController.deleteMobileSlideImages);
 
+// Collection images
+router.get("/:id/collection-images", dataEntryController.getCollectionImages);
+router.put("/:id/collection-images", dataEntryController.updateCollectionImages);
+// router.delete("/:id/mobile-slide-images", dataEntryController.deleteMobileSlideImages);
+
 // NewsContent endpoints
 router.get("/:id/news-content", dataEntryController.getNewsContent);
 router.put("/:id/news-content", dataEntryController.updateNewsContent);
