@@ -23,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import AdminLayout from "./AdminLayout";
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 function Layout({ toggleTheme, mode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,83 +51,7 @@ function Layout({ toggleTheme, mode }) {
 
   return (
     <AdminLayout toggleTheme={toggleTheme} mode={mode}>
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
-          bgcolor: "background.paper",
-          color: "text.primary",
-          boxShadow: 1,
-        }}
-      >
-        <Toolbar sx={{ justifyContent: "space-between" }}>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: "none" } }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              BEATEN Admin
-            </Typography>
-          </Box>
-
-          {/* User Menu */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Typography
-              variant="body2"
-              sx={{ mr: 2, display: { xs: "none", sm: "block" } }}
-            >
-              Welcome, {user?.name || "Admin"}
-            </Typography>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleMenu}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-            <Menu
-              id="menu-appbar"
-              anchorEl={anchorEl}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
-              <MenuItem onClick={handleClose}>
-                <AccountCircle sx={{ mr: 1 }} />
-                Profile
-              </MenuItem>
-              <MenuItem onClick={handleClose}>
-                <Settings sx={{ mr: 1 }} />
-                Settings
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={handleLogout}>
-                <Logout sx={{ mr: 1 }} />
-                Logout
-              </MenuItem>
-            </Menu>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
+      {/* Remove AppBar/Toolbar from here, handled in AdminLayout */}
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -144,6 +68,7 @@ function Layout({ toggleTheme, mode }) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              bgcolor: "background.paper",
             },
           }}
         >
@@ -156,6 +81,7 @@ function Layout({ toggleTheme, mode }) {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              bgcolor: "background.paper",
             },
           }}
           open
@@ -163,14 +89,15 @@ function Layout({ toggleTheme, mode }) {
           <Sidebar />
         </Drawer>
       </Box>
-
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: "64px",
+          minHeight: "100vh",
+          backgroundColor: "background.default",
+          p: 0,
+          mt: 0,
         }}
       >
         <Outlet />

@@ -184,6 +184,67 @@ exports.getMobileSlideImages = async (req, res) => {
     }
   };
 
+  //--- collections - dekstop
+exports.getCollectionImages = async (req, res) => {
+  try {
+    const dataEntry = await DataEntry.find();
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    console.log("camed to collection images get");
+    
+    res.status(200).json({ collectionsImages: dataEntry[0].collectionsImages });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update only slideImages
+exports.updateCollectionImages = async (req, res) => {
+  try {
+    const { collectionsImages } = req.body;
+    // const dataEntry = await DataEntry.findByIdAndUpdate(
+    //   req.params.id,
+    //   { slideImages },
+    //   { new: true }
+    // );
+    const dataEntry = await DataEntry.findOneAndUpdate({}, { collectionsImages }, { new: true });
+    
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    console.log("collections updated succesfully");
+    
+    res.status(200).json({ collectionsImages: dataEntry.collectionsImages });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete all slideImages
+// exports.deleteMobileSlideImages = async (req, res) => {
+//   try {
+//     const dataEntry = await DataEntry.findByIdAndUpdate(
+//       req.params.id,
+//       { slideImages: [] },
+//       { new: true }
+//     );
+//     if (!dataEntry) {
+//       return res.status(404).json({ message: "DataEntry not found" });
+//     }
+//     console.log("deleted succesfully");
+    
+//     res
+//       .status(200)
+//       .json({
+//         message: "All slideImages deleted",
+//         slideImages: dataEntry.mobileSlideImages,
+//       });
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 
 // Get only newsContent
 exports.getNewsContent = async (req, res) => {

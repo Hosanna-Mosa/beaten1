@@ -20,6 +20,7 @@ import {
 } from "@mui/icons-material";
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import EditNoteIcon from "@mui/icons-material/EditNote";
+import InfoIcon from "@mui/icons-material/Info";
 import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
@@ -34,9 +35,14 @@ const menuItems = [
     path: "/returns",
   },
   {
-    text: "Data Entry",
+    text: "Content MGR",
     icon: <EditNoteIcon />,
     path: "/data-entry",
+  },
+  {
+    text: "Footer Info",
+    icon: <InfoIcon />,
+    path: "/footer-info",
   },
 ];
 
