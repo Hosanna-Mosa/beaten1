@@ -41,6 +41,7 @@ import {
 } from "recharts";
 import { dashboardAPI } from "../api/axiosAdmin";
 import { productsAPI } from "../api/axiosAdmin";
+import { useNavigate } from "react-router-dom";
 
 // Colors for charts
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
@@ -54,6 +55,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allProducts, setAllProducts] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch all products for top products logic
   useEffect(() => {
@@ -116,7 +118,7 @@ function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  const StatCard = ({ title, value, icon, color, growth }) => (
+  const StatCard = ({ title, value, icon, color, growth, onClick }) => (
     <Paper
       sx={{
         p: 3,
@@ -125,7 +127,12 @@ function Dashboard() {
         height: 140,
         bgcolor: color,
         color: "white",
+        cursor: onClick ? "pointer" : "default",
+        transition: "box-shadow 0.2s",
+        "&:hover": onClick ? { boxShadow: 6 } : {},
       }}
+      onClick={onClick}
+      elevation={onClick ? 6 : 1}
     >
       <Box
         sx={{
@@ -283,6 +290,7 @@ function Dashboard() {
             icon={<OrdersIcon />}
             color="#2e7d32"
             growth={stats?.growth?.orders}
+            onClick={() => navigate("/orders")}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -291,6 +299,7 @@ function Dashboard() {
             value={stats?.totalProducts || 0}
             icon={<ProductsIcon />}
             color="#ed6c02"
+            onClick={() => navigate("/products")}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
