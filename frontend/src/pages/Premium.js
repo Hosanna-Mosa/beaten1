@@ -299,17 +299,7 @@ const Premium = ({ mode }) => {
                       },
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 40 }}>
-                      {benefit.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={benefit.text}
-                      primaryTypographyProps={{
-                        fontWeight: 500,
-                        color: mode === "dark" ? "#fff" : matteColors[900],
-                        fontSize: { xs: "0.95rem", md: "1.05rem" },
-                      }}
-                    />
+                  
                   </ListItem>
                 ))}
               </List>

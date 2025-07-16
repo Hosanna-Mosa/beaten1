@@ -60,10 +60,6 @@ const Login = () => {
   // Store resetToken after OTP verification
   const [resetToken, setResetToken] = useState("");
 
-  // Remove tab logic
-  // const [tab, setTab] = useState(0);
-  // const handleTabChange = ...
-
   const [otpInput, setOtpInput] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
@@ -326,9 +322,6 @@ const Login = () => {
     setOtpVerifyError("");
     setOtpLoading(false);
     setOtpVerifyLoading(false);
-    toast.info(
-      mode === "email" ? "Switched to Email Login" : "Switched to OTP Login"
-    );
   };
 
   return (
@@ -343,7 +336,7 @@ const Login = () => {
         draggable
         pauseOnHover
       />
-      <Box sx={{ mt: 8 }}>
+      <Box sx={{ py:5,background:'white' }}>
         <Typography variant="h5" align="center" sx={{ mb: 3, fontWeight: 700 }}>
           Welcome Back
         </Typography>

@@ -248,7 +248,8 @@ const Wishlist = ({ mode }) => {
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ mb: 3, maxWidth: "400px", mx: "auto" }}
+              
+              sx={{ mb: 3, maxWidth: "400px", mx: "auto",color: mode === "dark" ? "#fff" : "#181818", }}
             >
               Start adding items to your wishlist by clicking the heart icon on
               any product you like.
@@ -361,8 +362,7 @@ const Wishlist = ({ mode }) => {
                       flexDirection: "column",
                       gap: 1,
                       borderRadius: 0,
-                      color: "#fff",
-                      backgroundColor : "#fff"
+                      color: mode === "dark" ? "#fff" : "#181818",
                     }}
                   >
                     <Typography
@@ -375,13 +375,12 @@ const Wishlist = ({ mode }) => {
                         fontSize: { xs: "0.875rem", md: "1rem" },
                         "&:hover": { color: "primary.main" },
                         lineHeight: 1.4,
-                        mb: 1,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         display: "-webkit-box",
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: "vertical",
-                        color: mode === "dark" ? "#181818" : "#fff",
+                        color: mode === "dark" ? "#fff" : "#000",
                       }}
                       onClick={() => handleProductClick(product._id)}
                     >
@@ -395,7 +394,7 @@ const Wishlist = ({ mode }) => {
                         fontSize: {
                           xs: "1rem",
                           md: "1.1rem",
-                          color: mode === "dark" ? "#181818" : "#fff",
+                          color: mode === "dark" ? "#fff" : "#000",
                         },
                         mb: 1,
                       }}
@@ -418,7 +417,7 @@ const Wishlist = ({ mode }) => {
                               "&:hover": {
                                 transform: "scale(1.2)",
                               },
-                              color: mode === "dark" ? "#fff" : "#181818",
+                              color: mode === "dark" ? "#fff" : "#000",
                             }}
                             title={color}
                           />
@@ -435,7 +434,7 @@ const Wishlist = ({ mode }) => {
                         mt: "auto",
                         backgroundColor:
                           mode === "dark" ? "#181818" : "#fff",
-                        color: mode === "dark" ? "#fff" : "#181818",
+                        color: mode === "dark" ? "#fff" : "#000",
                         py: { xs: 0.7, md: 1 },
                         px: { xs: 2, md: 3 },
                         fontSize: { xs: "0.92rem", md: "0.98rem" },

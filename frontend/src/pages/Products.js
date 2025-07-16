@@ -7,20 +7,15 @@ import {
   Typography,
   Box,
   Card,
-  CardContent,
   CardMedia,
   CardActionArea,
-  Button,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Slider,
   Checkbox,
   FormGroup,
   FormControlLabel,
-  Divider,
-  Pagination,
   TextField,
   InputAdornment,
   IconButton,
@@ -38,13 +33,9 @@ import {
   Close as CloseIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
-  ArrowBack as ArrowBackIcon,
   ViewModule as ViewModuleIcon,
   ViewList as ViewListIcon,
-  Sort as SortIcon,
-  Refresh as RefreshIcon,
 } from "@mui/icons-material";
-import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
@@ -55,20 +46,16 @@ import Tooltip from "@mui/material/Tooltip";
 import Fade from "@mui/material/Fade";
 
 import {
-  mockProducts,
   categories,
   collections,
-  searchProducts,
 } from "../data/mockData";
 
 const sizeOptions = ["S", "M", "L", "XL", "XXL"];
 const fitOptions = ["Slim", "Oversized", "Regular"];
-// Get all unique colors from products
-const colorOptions = []; // or compute from products if needed
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect fill="%23f5f5f5" width="200" height="200"/><text x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-size="20">Image</text></svg>';
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+const BASE_URL = "http://localhost:3000/api";
 
 const getImageUrl = (imagePath) => {
   if (!imagePath) return FALLBACK_IMAGE;
@@ -174,14 +161,12 @@ const Products = ({ mode }) => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const { user } = useAuth();
   const { addToCart } = useCart();
-  const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } =
+  const { addToWishlist, removeFromWishlist, isInWishlist } =
     useWishlist();
 
   // State
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     gender: [],
@@ -198,7 +183,6 @@ const Products = ({ mode }) => {
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-  const [activeChip, setActiveChip] = useState("all");
   // Add a loading skeleton state for demo
   const [showLoading, setShowLoading] = useState(false);
   const [shopAllActive, setShopAllActive] = useState(false);
@@ -417,22 +401,6 @@ const Products = ({ mode }) => {
       (filter === "category" && value.includes("Shop All"))
     ) {
       setTimeout(fetchProducts, 0);
-    }
-  };
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setPage(1);
-  };
-
-  const handleAddToCart = async (product) => {
-    try {
-      await addToCart(product._id, 1);
-      console.log("Navigating to cart...");
-      navigate("/cart");
-      console.log("Navigation to cart done");
-    } catch (err) {
-      console.error("Error adding to cart:", err);
     }
   };
 

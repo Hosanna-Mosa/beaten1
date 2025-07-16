@@ -47,9 +47,9 @@ const Footer = () => {
       links: [
         { text: 'Home', to: '/' },
         { text: 'Products', to: '/products' },
-        { text: 'Orders', to: '/orders' },
-        { text: 'Collections', to: '/collections' },
-        { text: 'Premium Membership', to: '/premium' }
+        { text: "Beaten Exclusive", to: "/products?collection=Beaten%20Exclusive%20Collection"},
+        { text: "Beaten Signature",to: "/products?collection=Beaten%20Signature%20Collection",},
+        { text: 'Beaten Club', to: '/premium' }
       ]
     },
     {
@@ -207,7 +207,7 @@ const Footer = () => {
               to="/"
               sx={{
                 fontWeight: 800,
-                mb: 3,
+                
                 display: 'block',
                 textDecoration: 'none',
                 color: 'white',

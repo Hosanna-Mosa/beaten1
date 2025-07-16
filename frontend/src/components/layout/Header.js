@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+
 import {
   AppBar,
   Box,
@@ -11,10 +13,6 @@ import {
   Button,
   MenuItem,
   Badge,
-  useScrollTrigger,
-  Slide,
-  useTheme,
-  useMediaQuery,
   Drawer,
   List,
   ListItem,
@@ -26,21 +24,16 @@ import {
 import {
   ShoppingCart as CartIcon,
   Menu as MenuIcon,
-  Notifications as NotificationsIcon,
   Person as PersonIcon,
   FavoriteBorder as FavoriteBorderIcon,
-  Brightness4 as Brightness4Icon,
-  Brightness7 as Brightness7Icon,
   Close as CloseIcon,
 } from "@mui/icons-material";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
-import HeroSearchBar from "../common/HeroSearchBar";
 
 const pages = [
   { name: "HOME", path: "/" },
   { name: "PRODUCTS", path: "/products" },
-  // { name: 'COLLECTIONS', path: '/collections' },
   { name: "PREMIUM", path: "/premium" },
   { name: "ABOUT", path: "/about" },
   { name: "CONTACT", path: "/contact" },
@@ -50,11 +43,11 @@ const mobilePages = {
   main: [
     { name: "HOME", path: "/" },
     {
-      name: "BEATEN EXCLUSIVE COLLECTION",
+      name: "BEATEN EXCLUSIVE",
       path: "/products?collection=Beaten%20Exclusive%20Collection",
     },
     {
-      name: "BEATEN SINGNATURE COLLECTION",
+      name: "BEATEN SINGNATURE",
       path: "/products?collection=Beaten%20Signature%20Collection",
     },
     { name: "PREMIUM", path: "/premium" },
@@ -72,40 +65,18 @@ const mobilePages = {
   ],
 };
 
-// Hide on scroll down, show on scroll up
-function HideOnScroll(props) {
-  const { children } = props;
-  const trigger = useScrollTrigger({
-    threshold: 100,
-    disableHysteresis: true,
-  });
-
-  return (
-    <Slide appear={false} direction="down" in={!trigger}>
-      {children}
-    </Slide>
-  );
-}
-
 const Header = ({ mode, toggleColorMode }) => {
-  const [anchorElNav, setAnchorElNav] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { getCartCount } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user, logout } = useAuth();
-  const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
-  const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
+  const bgColor = mode === "dark" ? "#fff" : "#000000";
+  const textColor = mode === "dark" ? "#000" : "#fff";
 
   const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
     window.scrollTo(0, 0);
   };
 
@@ -118,31 +89,9 @@ const Header = ({ mode, toggleColorMode }) => {
     window.scrollTo(0, 0);
   };
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMenuAnchor(event.currentTarget);
-  };
-
-  const handleMobileMenuClose = () => {
-    setMobileMenuAnchor(null);
-  };
-
-  const handleUserMenuOpen = (event) => {
-    setUserMenuAnchor(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setUserMenuAnchor(null);
-  };
-
   const handleLogout = () => {
     logout();
-    handleUserMenuClose();
     navigate("/");
-  };
-
-  const handleNavigate = (path) => {
-    navigate(path);
-    handleMobileMenuClose();
   };
 
   const handleProfileMenuOpen = (event) => {
@@ -153,220 +102,224 @@ const Header = ({ mode, toggleColorMode }) => {
     setProfileAnchorEl(null);
   };
 
-  const drawer = (
-    <Box
-      sx={{
-        position: "relative",
-        textAlign: "center",
-        bgcolor: "black", // ensure background is black
-        height: "100%",
-        minHeight: "100vh", // ensure it fills the viewport
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
+const drawer = (
+  <Box
+    disablePadding
+    sx={{
+      position: "relative",
+      textAlign: "center",
+      bgcolor: bgColor,
+      color: textColor,
+      height: "100%",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      overflowY: "auto", // ✅ enable scroll
+    }}
+    onClick={handleDrawerClose}
+  >
+    <IconButton
+      aria-label="close drawer"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleDrawerClose();
       }}
-      onClick={handleDrawerClose}
+      sx={{
+        position: "absolute",
+        top: 8,
+        right: 8,
+        color: textColor,
+        zIndex: 10,
+        display: { xs: "flex", md: "none" },
+      }}
     >
-      {/* Close (Cross) Button for Mobile Drawer */}
-      <IconButton
-        aria-label="close drawer"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDrawerClose();
-        }}
-        sx={{
-          position: "absolute",
-          top: 8,
-          right: 8,
-          color: "white",
-          zIndex: 10,
-          display: { xs: "flex", md: "none" },
-        }}
-      >
-        <CloseIcon sx={{ fontSize: 32 }} />
-      </IconButton>
-      <List sx={{ pt: 2 }}>
-        {/* Main Navigation */}
-        {mobilePages.main.map((page) => (
-          <ListItem
-            key={page.name}
-            component={RouterLink}
-            to={page.path}
-            onClick={handleDrawerClose}
-            sx={{
-              color: "white",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            <ListItemText
-              primary={page.name}
-              sx={{
-                textAlign: "left",
-                pl: 1,
-                "& .MuiListItemText-primary": {
-                  fontWeight: location.pathname === page.path ? 600 : 400,
-                  letterSpacing: "0.1em",
-                  fontSize: "0.95rem",
-                },
-              }}
-            />
-          </ListItem>
-        ))}
+      <CloseIcon sx={{ fontSize: 32 }} />
+    </IconButton>
 
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
+    <Divider sx={{ mt: 7, borderColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }} />
 
-        {/* Account Section */}
-        <ListItem sx={{ py: 1 }}>
-          <ListItemText
-            primary="ACCOUNT"
-            sx={{
-              textAlign: "left",
-              pl: 1,
-              "& .MuiListItemText-primary": {
-                fontSize: "0.7rem",
-                letterSpacing: "0.2em",
-                color: "rgba(255, 255, 255, 0.5)",
-                textTransform: "uppercase",
-              },
-            }}
-          />
-        </ListItem>
-        {mobilePages.account.map((page) => (
-          <ListItem
-            key={page.name}
-            component={RouterLink}
-            to={page.path}
-            onClick={handleDrawerClose}
-            sx={{
-              color: "white",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            <ListItemText
-              primary={page.name}
-              sx={{
-                textAlign: "left",
-                pl: 1,
-                "& .MuiListItemText-primary": {
-                  fontWeight: location.pathname === page.path ? 600 : 400,
-                  letterSpacing: "0.1em",
-                  fontSize: "0.95rem",
-                },
-              }}
-            />
-          </ListItem>
-        ))}
-
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
-
-        {/* Support Section */}
-        <ListItem sx={{ py: 1 }}>
-          <ListItemText
-            primary="SUPPORT"
-            sx={{
-              textAlign: "left",
-              pl: 1,
-              "& .MuiListItemText-primary": {
-                fontSize: "0.7rem",
-                letterSpacing: "0.2em",
-                color: "rgba(255, 255, 255, 0.5)",
-                textTransform: "uppercase",
-              },
-            }}
-          />
-        </ListItem>
-        {mobilePages.support.map((page) => (
-          <ListItem
-            key={page.name}
-            component={RouterLink}
-            to={page.path}
-            onClick={handleDrawerClose}
-            sx={{
-              color: "white",
-              "&:hover": {
-                backgroundColor: "rgba(255, 255, 255, 0.1)",
-              },
-            }}
-          >
-            <ListItemText
-              primary={page.name}
-              sx={{
-                textAlign: "left",
-                pl: 1,
-                "& .MuiListItemText-primary": {
-                  fontWeight: location.pathname === page.path ? 600 : 400,
-                  letterSpacing: "0.1em",
-                  fontSize: "0.95rem",
-                },
-              }}
-            />
-          </ListItem>
-        ))}
-
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
-
-        {/* Cart Link */}
+    <List>
+      {mobilePages.main.map((page) => (
         <ListItem
+          key={page.name}
           component={RouterLink}
-          to="/cart"
+          to={page.path}
           onClick={handleDrawerClose}
           sx={{
-            color: "white",
+            py: 0.25,
+            px: 2,
+            color: textColor,
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
           }}
         >
           <ListItemText
-            primary="CART"
+            primary={page.name}
             sx={{
               textAlign: "left",
               pl: 1,
               "& .MuiListItemText-primary": {
-                fontWeight: location.pathname === "/cart" ? 600 : 400,
+                fontWeight: location.pathname === page.path ? 600 : 400,
                 letterSpacing: "0.1em",
                 fontSize: "0.95rem",
+                color: textColor, // ✅ ensure text follows mode
               },
             }}
           />
         </ListItem>
-      </List>
-      {/* Light/Dark Mode Toggler - Mobile Drawer */}
-      <Box
+      ))}
+
+      <Divider sx={{ borderColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)", my: 1 }} />
+
+      <ListItem>
+       <ListItemText
+  primary="ACCOUNT"
+  sx={{
+    textAlign: "left",
+    pl: 1,
+    "& .MuiListItemText-primary": {
+      fontSize: "0.7rem",
+      letterSpacing: "0.2em",
+        color: mode === "dark" ?  "rgba(0, 0, 0, 0.5)" :"rgba(255, 255, 255, 0.5)",
+      textTransform: "uppercase",
+    },
+  }}
+/>
+
+      </ListItem>
+      {mobilePages.account.map((page) => (
+        <ListItem
+          key={page.name}
+          component={RouterLink}
+          to={page.path}
+          onClick={handleDrawerClose}
+          sx={{
+            py: 0.25,
+            px: 2,
+            color: textColor,
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+            },
+          }}
+        >
+          <ListItemText
+            primary={page.name}
+            sx={{
+              textAlign: "left",
+              pl: 1,
+              "& .MuiListItemText-primary": {
+                fontWeight: location.pathname === page.path ? 600 : 400,
+                letterSpacing: "0.1em",
+                fontSize: "0.95rem",
+                color: textColor,
+              },
+            }}
+          />
+        </ListItem>
+      ))}
+
+      <Divider sx={{ borderColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)", my: 1 }} />
+
+      <ListItem>
+        <ListItemText
+  primary="SUPPORT"
+  sx={{
+    textAlign: "left",
+    pl: 1,
+    "& .MuiListItemText-primary": {
+      fontSize: "0.7rem",
+      letterSpacing: "0.2em",
+      color: mode === "dark" ?  "rgba(0, 0, 0, 0.5)" :"rgba(255, 255, 255, 0.5)",
+      textTransform: "uppercase",
+    },
+  }}
+/>
+
+      </ListItem>
+      {mobilePages.support.map((page) => (
+        <ListItem
+          key={page.name}
+          component={RouterLink}
+          to={page.path}
+          onClick={handleDrawerClose}
+          sx={{
+            py: 0.25,
+            px: 2,
+            color: textColor,
+            "&:hover": {
+              backgroundColor: "rgba(255, 255, 255, 0.1)",
+            },
+          }}
+        >
+          <ListItemText
+            primary={page.name}
+            sx={{
+              textAlign: "left",
+              pl: 1,
+              "& .MuiListItemText-primary": {
+                fontWeight: location.pathname === page.path ? 600 : 400,
+                letterSpacing: "0.1em",
+                fontSize: "0.95rem",
+                color: textColor,
+              },
+            }}
+          />
+        </ListItem>
+      ))}
+
+      <Divider sx={{ borderColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)", my: 1 }} />
+    </List>
+
+    {/* Mode Switch */}
+    <Box
+      sx={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        px: 1,
+        ml: 2,
+        py: 0.5,
+        color: textColor,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Typography sx={{ fontSize: "0.9rem", fontWeight: 500, mr: 1, color: textColor }}>
+        Mode:
+      </Typography>
+      <Typography sx={{ fontSize: "0.9rem", mr: 1, color: textColor }}>
+        {mode === "dark" ? "ON" : "OFF"}
+      </Typography>
+      <Switch
+        checked={mode === "dark"}
+        onChange={toggleColorMode}
+        color="default"
         sx={{
-          width: "100%",
-          py: 2,
-          display: "flex",
-          alignItems: "center",
-          ml: 2,
-          bgcolor: "black",
+          '& .MuiSwitch-switchBase.Mui-checked': {
+            color: '#fff',
+            '& + .MuiSwitch-track': {
+              backgroundColor: '#4caf50',
+            },
+          },
+          '& .MuiSwitch-switchBase': {
+            color: '#fff',
+            '& + .MuiSwitch-track': {
+              backgroundColor: '#ccc',
+            },
+          },
         }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Brightness7Icon
-          sx={{ color: mode === "light" ? "#ffd600" : "#888", mr: 1 }}
-        />
-        <Switch
-          checked={mode === "dark"}
-          onChange={toggleColorMode}
-          color="default"
-        />
-        <Brightness4Icon
-          sx={{ color: mode === "dark" ? "#ffd600" : "#888", ml: 1 }}
-        />
-      </Box>
+      />
     </Box>
-  );
+  </Box>
+);
+
 
   return (
     <AppBar
       position="sticky"
       sx={{
-        backgroundColor: "black",
+        backgroundColor: bgColor,
+        color: textColor,
         backdropFilter: "blur(10px)",
         boxShadow: "none",
         borderBottom: "none",
@@ -378,7 +331,7 @@ const Header = ({ mode, toggleColorMode }) => {
         left: 0,
       }}
     >
-      <Container
+<Container
         maxWidth="xl"
         sx={{
           px: { xs: 0, md: 2 },
@@ -390,7 +343,7 @@ const Header = ({ mode, toggleColorMode }) => {
           disableGutters
           sx={{
             minHeight: { xs: "44px", md: "64px" },
-            px: { xs: 0, md: 2 },
+            px: { xs: 3, md: 2 },
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -453,7 +406,7 @@ const Header = ({ mode, toggleColorMode }) => {
               }}
             >
               <img
-                src="/Beaten/logo.png"
+                src={mode === "dark"? '/Beaten/DarkLogo.png': '/Beaten/logo.png'}
                 alt="Beaten Logo"
                 style={{
                   width: "6em",
@@ -550,11 +503,24 @@ const Header = ({ mode, toggleColorMode }) => {
             >
               <FavoriteBorderIcon sx={{ fontSize: 26 }} />
             </IconButton>
+
+<IconButton
+  color="inherit"
+  onClick={() => navigate("/alerts")}
+  sx={{ p: 1 }}
+>
+  <Badge  color="error">
+    <NotificationsOutlinedIcon sx={{ fontSize: 26 }} />
+  </Badge>
+</IconButton>
+
+
+
             {/* Cart Icon - always show */}
             <IconButton
               color="inherit"
               onClick={() => navigate("/cart")}
-              sx={{ p: 1 }}
+              sx={{p: 1 }}
             >
               <Badge badgeContent={getCartCount()} color="error">
                 <CartIcon sx={{ fontSize: 26 }} />
@@ -696,53 +662,27 @@ const Header = ({ mode, toggleColorMode }) => {
         </Toolbar>
       </Container>
 
-      {/* Mobile Navigation Drawer */}
-      <Drawer
-        anchor="left"
-        open={mobileOpen}
-        onClose={handleDrawerClose}
-        variant="temporary"
-        sx={{
-          display: { xs: "block", md: "none" },
-          zIndex: 10000,
-          "& .MuiBackdrop-root": {
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 9999,
-          },
-          "& .MuiDrawer-paper": {
-            width: "100vw",
-            maxWidth: "100vw",
-            zIndex: 10000,
-            position: "fixed",
-            top: 0,
-            left: 0,
-            height: "100vh", // ensure full viewport height
-            minHeight: "100vh",
-            backgroundColor: "black", // ensure black background
-            boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
-          },
-        }}
-        PaperProps={{
-          sx: {
-            width: "100vw",
-            maxWidth: "100vw",
-            zIndex: 10000,
-            position: "fixed",
-            top: 0,
-            left: 0,
-            height: "100vh", // ensure full viewport height
-            minHeight: "100vh",
-            backgroundColor: "black", // ensure black background
-            boxShadow: "4px 0 10px rgba(0, 0, 0, 0.1)",
-          },
-        }}
-        ModalProps={{
-          keepMounted: true,
-          container: document.body,
-        }}
-      >
-        {drawer}
-      </Drawer>
+     <Drawer
+  anchor="left"
+  open={mobileOpen}
+  onClose={handleDrawerClose}
+  variant="temporary"
+  sx={{
+    display: { xs: "block", md: "none" },
+    zIndex: 10000,
+    "& .MuiDrawer-paper": {
+      width: "80vw",
+      height: "100%",             // ensure it takes full height
+      backgroundColor: bgColor,
+      color: textColor,
+      overflowY: "hidden",          // ✅ enable vertical scroll
+      overflowX: "hidden",          // ✅ enable vertical scroll
+    },
+  }}
+>
+  {drawer}
+</Drawer>
+
     </AppBar>
   );
 };

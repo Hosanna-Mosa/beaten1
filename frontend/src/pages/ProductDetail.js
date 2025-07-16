@@ -7,12 +7,7 @@ import {
   Grid,
   IconButton,
   TextField,
-  Avatar,
   Rating,
-  Divider,
-  Paper,
-  Breadcrumbs,
-  Link,
   useTheme,
   useMediaQuery,
   Chip,
@@ -163,7 +158,6 @@ const ProductDetail = ({ mode }) => {
         const response = await axios.get(
           buildApiUrl(API_ENDPOINTS.PRODUCT_DETAIL(productId))
         );
-        console.log(response.data.data);
 
         setProduct(response.data.data);
         setLoading(false);

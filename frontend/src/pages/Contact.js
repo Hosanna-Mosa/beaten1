@@ -137,6 +137,7 @@ const Contact = ({ mode }) => {
         <Box
           sx={{
             textAlign: "center",
+            mt:{xs:8},
             mb: { xs: 4, md: 10 },
             position: "relative",
           }}

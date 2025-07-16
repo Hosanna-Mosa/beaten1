@@ -20,7 +20,7 @@ const collections = [
   {
     id: 'best-sellers',
     name: 'Best Sellars',
-    image: 'https://i.pinimg.com/736x/81/e9/ab/81e9abe7ceaf1b46ed0ee2027646aa26.jpg' },
+    image: '/images/category1Desktip.png' },
   {
     id: 'tshirts',
     name: 'Tshirts',

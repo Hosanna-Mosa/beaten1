@@ -23,25 +23,33 @@ import {
 const bottomNavItems = [
   { name: 'Explore', path: '/collections', icon: <ExploreOutlinedIcon />, activeIcon: <ExploreIcon /> },
   { name: 'Products', path: '/products', icon: <ShoppingBagOutlinedIcon />, activeIcon: <ShoppingBagIcon /> },
-  { 
-    name: '', 
-    path: '/', 
-    icon: (
-      <Box 
-        component="img" 
-        src="/Beaten/Artboard 3 copy.png" 
-        alt="Beaten Logo" 
-        className="bottom-nav-home-img"
-        sx={{
-          width: 50,
-          height: 50,
+ {
+  name: '',
+  path: '/',
+  icon: (
+    <Box
+      sx={{
+        width: 70,
+        height: 70,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: '-3px' // optional: lifts the center icon
+      }}
+    >
+      <img
+        src="/Beaten/Artboard3copy.png"
+        alt=""
+        style={{
+          width: '100%',
+          height: '100%',
           objectFit: 'contain',
-          display: 'block',
-          mx: 'auto',
         }}
       />
-    ) 
-  },
+    </Box>
+  )
+}
+,
   { name: 'Wishlist', path: '/wishlist', icon: <FavoriteBorderIcon />, activeIcon: <FavoriteIcon /> },
   { name: 'Account', path: '/profile', icon: <PersonOutlineIcon />, activeIcon: <PersonIcon /> }
 ];

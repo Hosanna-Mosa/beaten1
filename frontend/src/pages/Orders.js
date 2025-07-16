@@ -214,7 +214,6 @@ const Orders = ({ mode }) => {
       setReturnDialogOpen(false);
       setSnackbarOpen(true);
       setReturnItem(null);
-      console.log("Snackbar should open now");
     }
   };
 
@@ -292,8 +291,6 @@ const Orders = ({ mode }) => {
       <Grid container spacing={3}>
         {orders.map((order) => {
           // Debug log for order and shippingAddress
-          console.log("Order:", order);
-          console.log("Shipping Address:", order.shippingAddress);
           return (
             <Grid item xs={12} key={order._id}>
               {isMobile ? (
