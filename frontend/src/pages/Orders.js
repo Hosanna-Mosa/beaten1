@@ -41,6 +41,7 @@ import PendingTimeIcon from "@mui/icons-material/AccessTime";
 import ProcessingInventoryIcon from "@mui/icons-material/Inventory";
 import MuiAlert from "@mui/material/Alert";
 import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -104,6 +105,7 @@ const statusStyles = {
 
 const Orders = ({ mode }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [trackOpen, setTrackOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -119,23 +121,37 @@ const Orders = ({ mode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [orders, setOrders] = useState([]);
+  const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchOrders = async () => {
+  const fetchOrdersAndReturns = async () => {
     setLoading(true);
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        buildApiUrl(API_ENDPOINTS.ORDERS_MY_ORDERS),
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      setOrders(response.data.data || []);
+      const [ordersRes, returnsRes] = await Promise.all([
+        axios.get(buildApiUrl(API_ENDPOINTS.ORDERS_MY_ORDERS), {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/user/returns`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+      const ordersData = ordersRes.data.data || [];
+      const returnsData = returnsRes.data.data || [];
+      // Attach returnStatus to each order item if a matching return exists
+      ordersData.forEach(order => {
+        order.orderItems.forEach(item => {
+          const foundReturn = returnsData.find(r =>
+            r.orderId === order._id &&
+            (r.productId === item.product || r.productId === item._id)
+          );
+          item.returnStatus = foundReturn ? foundReturn.status : undefined;
+        });
+      });
+      setOrders(ordersData);
+      setReturns(returnsData);
     } catch (err) {
       const error = handleApiError(err);
       setError(error.message || "Failed to fetch orders.");
@@ -145,7 +161,7 @@ const Orders = ({ mode }) => {
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrdersAndReturns();
   }, []);
 
   if (loading) return <p>Loading orders...</p>;
@@ -248,6 +264,9 @@ const Orders = ({ mode }) => {
       : "Pending";
   };
 
+  // Sort orders by createdAt descending (latest first)
+  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
   return (
     <Container
       maxWidth="lg"
@@ -260,7 +279,7 @@ const Orders = ({ mode }) => {
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2, gap: 2 }}>
-        <Button variant="outlined" onClick={fetchOrders}>
+        <Button variant="outlined" onClick={fetchOrdersAndReturns}>
           Refresh Orders
         </Button>
         <Button
@@ -290,7 +309,7 @@ const Orders = ({ mode }) => {
         </Alert>
       )}
       <Grid container spacing={3}>
-        {orders.map((order) => {
+        {sortedOrders.map((order) => {
           // Debug log for order and shippingAddress
           console.log("Order:", order);
           console.log("Shipping Address:", order.shippingAddress);
@@ -430,9 +449,26 @@ const Orders = ({ mode }) => {
                             onClick={() =>
                               handleOpenReturnDialog(order._id, item, idx)
                             }
+                            disabled={item.returnStatus}
                           >
                             Return/Exchange
                           </Button>
+                        )}
+                        {item.returnStatus === 'return_rejected' && (
+                          <Chip
+                            label="Return Rejected"
+                            color="error"
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
+                        )}
+                        {item.returnStatus === 'approved' && (
+                          <Chip
+                            label="Return Accepted"
+                            color="success"
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
                         )}
                       </Box>
                     ))}
@@ -665,6 +701,7 @@ const Orders = ({ mode }) => {
                               0
                             )
                           }
+                          disabled={order.orderItems[0].returnStatus}
                           fullWidth={isMobile}
                         >
                           Return
@@ -866,6 +903,22 @@ const Orders = ({ mode }) => {
                         >
                           {item.name}
                         </Typography>
+                        {item.returnStatus === 'return_rejected' && (
+                          <Chip
+                            label="Return Rejected"
+                            color="error"
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
+                        )}
+                        {item.returnStatus === 'approved' && (
+                          <Chip
+                            label="Return Accepted"
+                            color="success"
+                            size="small"
+                            sx={{ ml: 1, fontWeight: 600 }}
+                          />
+                        )}
                       </Box>
                     ))}
                   </Box>
@@ -963,6 +1016,7 @@ const Orders = ({ mode }) => {
                           0
                         )
                       }
+                      disabled={order.orderItems[0].returnStatus}
                     >
                       Return
                     </Button>

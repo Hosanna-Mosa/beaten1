@@ -99,9 +99,10 @@ const userSchema = new mongoose.Schema(
 
         status: {
           type: String,
-          enum: ["pending", "approved", "rejected"],
+          enum: ["pending", "approved", "rejected", "return_rejected"],
           default: "pending",
         },
+        rejectionReason: { type: String, default: "" },
         date: { type: Date, default: Date.now },
         received: { type: Boolean, default: false },
       },

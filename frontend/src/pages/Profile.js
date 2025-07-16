@@ -317,6 +317,11 @@ const Profile = ({ mode }) => {
     navigate("/");
   };
 
+  // Unify premium status check
+  const isPremium =
+    (profileUser?.isPremium && new Date(profileUser.premiumExpiry) > new Date()) ||
+    (profileUser?.subscription?.isSubscribed && new Date(profileUser.subscription.subscriptionExpiry) > new Date());
+
   if (loading)
     return (
       <Box sx={{ py: 8, textAlign: "center" }}>
@@ -329,12 +334,24 @@ const Profile = ({ mode }) => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
-        width: "100vw",
-        background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)",
-        py: { xs: 0, md: 4 },
-        px: 0,
-        margin: 0,
+        ...(isPremium
+          ? {
+              background: 'linear-gradient(135deg, #FFFBEA 0%, #F7E7B7 50%, #FFD700 100%)',
+              minHeight: '100vh',
+              boxShadow: '0 0 60px 0 #FFD70033',
+              border: '2px solid #FFD700',
+              position: 'relative',
+            }
+          : {
+              minHeight: "100vh",
+              width: "100vw",
+              background: "linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%)",
+              py: { xs: 0, md: 4 },
+              px: 0,
+              margin: 0,
+            }),
+        py: { xs: 4, md: 8 },
+        transition: "background 0.3s, color 0.3s",
       }}
     >
       <Container
@@ -556,8 +573,16 @@ const Profile = ({ mode }) => {
                 p: { xs: 3, md: 4 },
                 mb: 4,
                 borderRadius: 3,
-                boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                textAlign: "center",
+                textAlign: 'center',
+                ...(isPremium
+                  ? {
+                      background: 'linear-gradient(135deg, #FFFBEA 0%, #F7E7B7 50%, #FFD700 100%)',
+                      border: '2px solid #FFD700',
+                      boxShadow: '0 0 32px 0 #FFD70055',
+                    }
+                  : {
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                    }),
               }}
             >
               <Typography
@@ -575,7 +600,7 @@ const Profile = ({ mode }) => {
                     <PremiumIcon
                       sx={{ color: "#FFD700", verticalAlign: "middle", mr: 1 }}
                     />
-                    Premium Member
+                    Beaten Club Member
                   </Typography>
                   <Typography>
                     Days left:{" "}

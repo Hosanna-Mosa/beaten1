@@ -16,6 +16,10 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
@@ -45,6 +49,9 @@ const Returns = () => {
   const [search, setSearch] = useState('');
   const [receivedMap, setReceivedMap] = useState({}); // Track received state per return
   const [receivedLoading, setReceivedLoading] = useState({}); // Track loading state per return
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectingReturnId, setRejectingReturnId] = useState(null);
 
   const fetchReturns = async () => {
     setLoading(true);
@@ -97,6 +104,36 @@ const Returns = () => {
       setSnackbar({ open: true, message: err?.response?.data?.message || 'Failed to mark as received.', severity: 'error' });
     } finally {
       setReceivedLoading((prev) => ({ ...prev, [returnId]: false }));
+    }
+  };
+
+  const handleOpenRejectDialog = (returnId) => {
+    setRejectingReturnId(returnId);
+    setRejectReason("");
+    setRejectDialogOpen(true);
+  };
+  const handleCloseRejectDialog = () => {
+    setRejectDialogOpen(false);
+    setRejectingReturnId(null);
+    setRejectReason("");
+  };
+  const handleSubmitReject = async () => {
+    if (!rejectingReturnId || !rejectReason.trim()) return;
+    try {
+      const token = localStorage.getItem('admin_token');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      await axios.patch(`${apiUrl}/admin/returns/${rejectingReturnId}/status`, {
+        status: 'return_rejected',
+        rejectionReason: rejectReason.trim(),
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSnackbar({ open: true, message: 'Status updated!', severity: 'success' });
+      fetchReturns();
+    } catch (err) {
+      setSnackbar({ open: true, message: err?.response?.data?.message || 'Failed to update status.', severity: 'error' });
+    } finally {
+      handleCloseRejectDialog();
     }
   };
 
@@ -203,8 +240,8 @@ const Returns = () => {
                       size="small"
                       fullWidth
                       startIcon={<CancelIcon />}
-                      disabled={ret.status === 'rejected'}
-                      onClick={() => handleStatusChange(ret._id, 'rejected')}
+                      disabled={ret.status === 'return_rejected'}
+                      onClick={() => handleOpenRejectDialog(ret._id)}
                     >
                       Reject
                     </Button>
@@ -259,6 +296,27 @@ const Returns = () => {
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
+      {/* Reject Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onClose={handleCloseRejectDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>Reject Return</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Reason for Rejection"
+            value={rejectReason}
+            onChange={e => setRejectReason(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            required
+            autoFocus
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRejectDialog} color="primary">Cancel</Button>
+          <Button onClick={handleSubmitReject} color="error" variant="contained" disabled={!rejectReason.trim()}>Reject</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
+const os = require("os");
 const { uploadImage } = require("../controllers/uploadController");
 
-// Multer config (store in /tmp for Cloudinary upload)
+// Multer config (store in OS temp dir for Cloudinary upload)
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "/tmp"),
+  destination: (req, file, cb) => cb(null, os.tmpdir()),
   filename: (req, file, cb) =>
     cb(null, Date.now() + path.extname(file.originalname)),
 });

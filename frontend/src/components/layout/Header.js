@@ -36,12 +36,18 @@ import {
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import HeroSearchBar from "../common/HeroSearchBar";
+import { keyframes } from '@mui/system';
+
+const shine = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
 
 const pages = [
   { name: "HOME", path: "/" },
   { name: "PRODUCTS", path: "/products" },
   // { name: 'COLLECTIONS', path: '/collections' },
-  { name: "PREMIUM", path: "/premium" },
+  { name: "BEATEN CLUB", path: "/premium" },
   { name: "ABOUT", path: "/about" },
   { name: "CONTACT", path: "/contact" },
 ];
@@ -57,7 +63,7 @@ const mobilePages = {
       name: "BEATEN SINGNATURE COLLECTION",
       path: "/products?collection=Beaten%20Signature%20Collection",
     },
-    { name: "PREMIUM", path: "/premium" },
+    { name: "BEATEN CLUB", path: "/premium" },
   ],
   account: [
     { name: "MY ACCOUNT", path: "/profile" },
@@ -96,6 +102,9 @@ const Header = ({ mode, toggleColorMode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user, logout } = useAuth();
+  // Determine if user is premium
+  const isPremium = user && (user.isPremium || (user.subscription && user.subscription.isSubscribed && (!user.subscription.subscriptionExpiry || new Date(user.subscription.subscriptionExpiry) > new Date())));
+  const goldColor = '#FFD700';
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
@@ -194,7 +203,7 @@ const Header = ({ mode, toggleColorMode }) => {
             to={page.path}
             onClick={handleDrawerClose}
             sx={{
-              color: "white",
+              color: isPremium ? goldColor : "white",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -209,6 +218,7 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
+                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -227,7 +237,7 @@ const Header = ({ mode, toggleColorMode }) => {
               "& .MuiListItemText-primary": {
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
-                color: "rgba(255, 255, 255, 0.5)",
+                color: isPremium ? goldColor : "rgba(255, 255, 255, 0.5)",
                 textTransform: "uppercase",
               },
             }}
@@ -240,7 +250,7 @@ const Header = ({ mode, toggleColorMode }) => {
             to={page.path}
             onClick={handleDrawerClose}
             sx={{
-              color: "white",
+              color: isPremium ? goldColor : "white",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -255,6 +265,7 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
+                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -273,7 +284,7 @@ const Header = ({ mode, toggleColorMode }) => {
               "& .MuiListItemText-primary": {
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
-                color: "rgba(255, 255, 255, 0.5)",
+                color: isPremium ? goldColor : "rgba(255, 255, 255, 0.5)",
                 textTransform: "uppercase",
               },
             }}
@@ -286,7 +297,7 @@ const Header = ({ mode, toggleColorMode }) => {
             to={page.path}
             onClick={handleDrawerClose}
             sx={{
-              color: "white",
+              color: isPremium ? goldColor : "white",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -301,6 +312,7 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
+                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -315,7 +327,7 @@ const Header = ({ mode, toggleColorMode }) => {
           to="/cart"
           onClick={handleDrawerClose}
           sx={{
-            color: "white",
+            color: isPremium ? goldColor : "white",
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
@@ -330,6 +342,7 @@ const Header = ({ mode, toggleColorMode }) => {
                 fontWeight: location.pathname === "/cart" ? 600 : 400,
                 letterSpacing: "0.1em",
                 fontSize: "0.95rem",
+                color: isPremium ? goldColor : "white",
               },
             }}
           />
@@ -505,26 +518,41 @@ const Header = ({ mode, toggleColorMode }) => {
                 onClick={handleCloseNavMenu}
                 sx={{
                   my: 2,
-                  color: "white",
+                  color: "white", // keep button/icon color default
                   display: "block",
-                  mx: 2,
-                  position: "relative",
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    width: location.pathname === page.path ? "100%" : "0%",
-                    height: "2px",
-                    bottom: 0,
-                    left: 0,
-                    backgroundColor: "white",
-                    transition: "width 0.3s ease-in-out",
-                  },
-                  "&:hover::after": {
-                    width: "100%",
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  fontSize: "1.08rem",
+                  px: 2.5,
+                  borderRadius: 2,
+                  transition: "color 0.2s, background 0.2s",
+                  backgroundColor: 'transparent',
+                  ...(location.pathname === page.path && {
+                    textShadow: isPremium ? `0 0 8px ${goldColor}99` : undefined,
+                  }),
+                  "&:hover": {
+                    backgroundColor: "rgba(255,255,255,0.08)",
                   },
                 }}
               >
-                {page.name}
+                <span
+                  style={
+                    isPremium
+                      ? {
+                          color: goldColor,
+                          fontWeight: 600,
+                          background: `linear-gradient(90deg, #FFD700 20%, #FFFBEA 50%, #FFD700 80%)`,
+                          backgroundSize: '200% auto',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          animation: 'shine 2.5s linear infinite',
+                        }
+                      : { color: 'white', fontWeight: 600 }
+                  }
+                  className={isPremium ? 'gold-shine' : ''}
+                >
+                  {page.name}
+                </span>
               </Button>
             ))}
           </Box>
@@ -758,3 +786,15 @@ const Header = ({ mode, toggleColorMode }) => {
 };
 
 export default Header;
+
+// Add this to inject the keyframes for the shine animation
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes shine {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}`;
+if (!document.head.querySelector('style[data-gold-shine]')) {
+  style.setAttribute('data-gold-shine', 'true');
+  document.head.appendChild(style);
+}

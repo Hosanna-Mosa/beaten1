@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ToastContainer } from "react-toastify";
@@ -61,6 +61,8 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <Routes>
+          {/* Redirect /admin to / */}
+          <Route path="/admin" element={<Navigate to="/" replace />} />
           {/* Public Routes - Login and Register Pages */}
           <Route
             path="/login"
