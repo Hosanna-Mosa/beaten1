@@ -23,7 +23,7 @@ import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import AdminLayout from "./AdminLayout";
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 function Layout({ toggleTheme, mode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -168,9 +168,11 @@ function Layout({ toggleTheme, mode }) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 0,
+          m: 0,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: "64px",
+          minHeight: '100vh',
+          mt: 0,
         }}
       >
         <Outlet />

@@ -595,6 +595,12 @@ const DataEntry = () => {
                 Drag & drop a new image here, or click to select
               </Typography>
             )}
+            {/* Mobile recommended size */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size (Mobile): <b>800 x 800 px</b>
+              </Typography>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
@@ -805,7 +811,7 @@ const DataEntry = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* Add Image Dialog */}
+      {/* Add Image Dialog (Desktop) */}
       <Dialog
         open={addDialogOpen}
         onClose={handleAddDialogClose}
@@ -852,6 +858,12 @@ const DataEntry = () => {
                 Drag & drop a new image here, or click to select
               </Typography>
             )}
+            {/* Desktop recommended size */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size (Desktop): <b>1920 x 600 px</b>
+              </Typography>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>

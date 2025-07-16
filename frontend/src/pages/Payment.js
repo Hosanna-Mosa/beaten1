@@ -397,7 +397,7 @@ const Payment = ({ mode = "dark" }) => {
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                       <Chip
-                        label={appliedCoupon.isPersonal ? "Personal" : "Public"}
+                        label={appliedCoupon.isPersonal ? "Personal" : ""}
                         color={
                           appliedCoupon.isPersonal ? "primary" : "secondary"
                         }
@@ -440,7 +440,7 @@ const Payment = ({ mode = "dark" }) => {
             {showOffers && availableCoupons.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  Public Coupons
+                  Coupons
                 </Typography>
                 {availableCoupons.map((coupon) => (
                   <Paper

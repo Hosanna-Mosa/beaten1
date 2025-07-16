@@ -61,6 +61,8 @@ const getStatusColor = (status) => {
       return "warning";
     case "rejected":
       return "error";
+    case "return_rejected":
+      return "error";
     default:
       return "default";
   }
@@ -73,6 +75,8 @@ const getStatusIcon = (status) => {
     case "pending":
       return <PendingIcon />;
     case "rejected":
+      return <RejectedIcon />;
+    case "return_rejected":
       return <RejectedIcon />;
     default:
       return <PendingIcon />;
@@ -93,6 +97,7 @@ const statusLabels = {
   pending: 'Requested',
   approved: 'Approved',
   completed: 'Completed',
+  return_rejected: 'Return Rejected',
 };
 const steps = ['Requested', 'Approved', 'Completed'];
 
@@ -253,6 +258,12 @@ const Returns = ({ mode }) => {
               chipColor = statusChipColors.approved;
               chipLabel = statusLabels.approved;
             }
+            if (ret.status === 'rejected' || ret.status === 'return_rejected') {
+              stepIndex = 0;
+              cardBg = statusColors.pending;
+              chipColor = 'error';
+              chipLabel = 'Return Rejected';
+            }
             if (ret.received) {
               stepIndex = 2;
               cardBg = statusColors.completed;
@@ -295,7 +306,7 @@ const Returns = ({ mode }) => {
                     <Chip
                       label={chipLabel}
                       color={chipColor}
-                      icon={stepIndex === 2 ? <CheckCircleIcon /> : (stepIndex === 1 ? <InfoIcon /> : <PendingIcon />)}
+                      icon={ret.status === 'rejected' || ret.status === 'return_rejected' ? <RejectedIcon /> : (stepIndex === 2 ? <CheckCircleIcon /> : (stepIndex === 1 ? <InfoIcon /> : <PendingIcon />))}
                       sx={{ fontWeight: 600, fontSize: 15, borderRadius: 2, px: 1.5, py: 0.5 }}
                     />
                   </Box>
@@ -310,6 +321,11 @@ const Returns = ({ mode }) => {
                   <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.5 }}>
                     Reason: <span style={{ fontWeight: 700 }}>{ret.reason}</span>
                   </Typography>
+                  { (ret.status === 'rejected' || ret.status === 'return_rejected') && ret.rejectionReason && (
+                    <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600, mb: 0.5 }}>
+                      Rejection Reason: <span style={{ fontWeight: 700 }}>{ret.rejectionReason}</span>
+                    </Typography>
+                  )}
                   <Box sx={{ mt: 3 }}>
                     <Stepper activeStep={stepIndex} alternativeLabel>
                       {steps.map((label) => (

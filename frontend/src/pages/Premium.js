@@ -37,6 +37,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { formatPrice } from "../utils/format";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
 
@@ -48,6 +49,7 @@ const Premium = ({ mode }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
 
   // Define matte black colors
   const matteColors = {
@@ -180,6 +182,8 @@ const Premium = ({ mode }) => {
           } catch (err) {
             // Optionally handle backend error
           }
+          // Redirect to profile page after successful subscription
+          navigate("/profile");
         },
         prefill: {
           name: user?.name || "",
@@ -343,189 +347,112 @@ const Premium = ({ mode }) => {
 
           {/* Plan Section */}
           <Grid item xs={12} md={6}>
-            <Card
+            <Paper
               sx={{
+                p: { xs: 2, md: 4 },
                 height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                position: "relative",
+                borderRadius: "16px",
                 background:
                   mode === "dark"
                     ? "#232323"
                     : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
                 color: mode === "dark" ? "#fff" : matteColors[900],
                 boxShadow: `0 8px 24px ${goldColors.light}40`,
-                borderRadius: "16px",
-                overflow: "hidden",
-                p: { xs: 0, md: 0 },
-                mb: { xs: 2, md: 0 },
+                border: `1.5px solid ${goldColors.primary}`,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
               }}
             >
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  right: 0,
-                  width: { xs: "120px", md: "200px" },
-                  height: { xs: "120px", md: "200px" },
-                  background: goldColors.gradient,
-                  opacity: 0.13,
-                  borderRadius: { xs: "0 0 0 120px", md: "0 0 0 200px" },
-                }}
-              />
-              <Chip
-                label="Best Value"
-                sx={{
-                  position: "absolute",
-                  top: 12,
-                  right: 12,
-                  fontWeight: 600,
-                  fontSize: { xs: "0.8rem", md: "0.9rem" },
-                  padding: { xs: "4px 10px", md: "8px 16px" },
-                  borderRadius: "20px",
-                  boxShadow: `0 2px 8px ${goldColors.light}40`,
-                  background: goldColors.gradient,
-                  color: "#fff",
-                  border: `1.5px solid ${goldColors.primary}`,
-                }}
-              />
-              <CardContent sx={{ flexGrow: 1, p: 4 }}>
+              <Box>
                 <Typography
-                  variant="h6"
+                  variant="h5"
                   gutterBottom
                   sx={{
                     fontWeight: 700,
-                    color: mode === "dark" ? "#fff" : matteColors[900],
+                    color: goldColors.primary,
                     mb: { xs: 1.2, md: 2 },
-                    fontSize: { xs: "1.05rem", md: "1.3rem" },
-                    mt: { xs: 5, md: 0 },
+                    fontSize: { xs: '1.5rem', md: '2.1rem' },
                   }}
                 >
-                  BEATEN CLUB Yearly Plan
+                  JOIN THE BEATEN CLUB – NOW LIVE!
                 </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      fontWeight: 800,
-                      mb: 0.5,
-                      display: "flex",
-                      alignItems: "baseline",
-                      color: mode === "dark" ? "#fff" : matteColors[900],
-                      fontSize: { xs: "1.5rem", md: "2rem" },
-                    }}
-                  >
-                    ₹249
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        ml: 1,
-                        fontWeight: 400,
-                        color: mode === "dark" ? "#fff" : matteColors[700],
-                        fontSize: { xs: "0.95rem", md: "1.05rem" },
-                      }}
-                    >
-                      /year
-                    </Typography>
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: mode === "dark" ? "#fff" : matteColors[700],
-                      fontSize: { xs: "0.92rem", md: "1.02rem" },
-                    }}
-                  >
-                    Save big with our annual plan
-                  </Typography>
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <List sx={{ py: 0 }}>
-                  {benefits.map((benefit, index) => (
-                    <ListItem
-                      key={index}
-                      sx={{
-                        py: 1.1,
-                        px: 0,
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        {benefit.icon}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={benefit.text}
-                        primaryTypographyProps={{
-                          fontWeight: 500,
-                          color: mode === "dark" ? "#fff" : matteColors[900],
-                          fontSize: { xs: "0.95rem", md: "1.05rem" },
-                        }}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              </CardContent>
-              <CardActions sx={{ p: 4, pt: 0 }}>
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, mb: 1, color: goldColors.primary, fontSize: { xs: '1.1rem', md: '1.3rem' } }}
+                >
+                  Pay ₹249/year. Save ₹249 on EVERY Product. Unlimited.
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2, fontWeight: 500 }}>
+                  Beaten Club is here!<br/>
+                  India’s first-ever clothing subscription where every order gives you ₹249 OFF per product – no limits, no fine print.<br/><br/>
+                  Buy more, save more.<br/>
+                  Exclusive for members only.<br/>
+                  ₹249/year. Valid for 12 months from purchase.
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
                 {isPremium ? (
                   <Button
-                    fullWidth
                     variant="contained"
-                    size="large"
                     disabled
                     sx={{
-                      py: isMobile ? 1.2 : 1,
-                      px: isMobile ? 3 : 4,
-                      borderRadius: 10,
-                      fontSize: { xs: "1.04rem", md: "0.9rem" },
+                      background: `linear-gradient(90deg, ${goldColors.primary} 0%, ${goldColors.light} 100%)`,
+                      color: '#232323',
                       fontWeight: 700,
-                      textTransform: "none",
-                      background: goldColors.gradient,
-                      color: "#fff",
-                      boxShadow: `0 4px 12px ${goldColors.light}40`,
-                      border: `1.5px solid ${goldColors.primary}`,
-                      width: "auto",
-                      minWidth: 0,
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
+                      fontSize: '1.1rem',
+                      px: 4,
+                      py: 1.2,
+                      borderRadius: 8,
+                      boxShadow: `0 2px 8px ${goldColors.light}40`,
                       opacity: 0.7,
                     }}
                   >
-                    Subscribed
+                    Joined
                   </Button>
                 ) : (
                   <Button
-                    fullWidth
                     variant="contained"
-                    size="large"
                     onClick={handleSubscribe}
-                    disabled={loading}
                     sx={{
-                      py: isMobile ? 1.2 : 1,
-                      px: isMobile ? 3 : 4,
-                      borderRadius: 10,
-                      fontSize: { xs: "1.04rem", md: "0.9rem" },
+                      background: `linear-gradient(90deg, ${goldColors.primary} 0%, ${goldColors.light} 100%)`,
+                      color: '#232323',
                       fontWeight: 700,
-                      textTransform: "none",
-                      background: goldColors.gradient,
-                      color: "#fff",
-                      boxShadow: `0 4px 12px ${goldColors.light}40`,
-                      border: `1.5px solid ${goldColors.primary}`,
-                      width: "auto",
-                      minWidth: 0,
-                      alignSelf: "center",
-                      whiteSpace: "nowrap",
-                      transition: "all 0.3s ease",
-                      "&:hover": {
-                        background: goldColors.hover,
-                        boxShadow: `0 6px 16px ${goldColors.light}60`,
-                        transform: "translateY(-2px)",
+                      fontSize: '1.1rem',
+                      px: 4,
+                      py: 1.2,
+                      borderRadius: 8,
+                      boxShadow: `0 2px 8px ${goldColors.light}40`,
+                      '&:hover': {
+                        background: `linear-gradient(90deg, ${goldColors.light} 0%, ${goldColors.primary} 100%)`,
+                        color: '#232323',
                       },
                     }}
                   >
-                    {loading ? "Processing..." : "Subscribe Now"}
+                    Join Beaten Club
                   </Button>
                 )}
-              </CardActions>
-            </Card>
+                <Button
+                  variant="outlined"
+                  sx={{
+                    borderColor: goldColors.primary,
+                    color: goldColors.primary,
+                    fontWeight: 600,
+                    fontSize: '1.05rem',
+                    px: 3,
+                    py: 1.2,
+                    borderRadius: 8,
+                    '&:hover': {
+                      borderColor: goldColors.light,
+                      color: goldColors.light,
+                      background: 'rgba(255, 215, 0, 0.08)',
+                    },
+                  }}
+                >
+                  Learn More
+                </Button>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
 

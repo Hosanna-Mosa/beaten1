@@ -71,8 +71,8 @@ router.get("/returns", protectAdmin, async (req, res) => {
 // Update return status
 router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
   try {
-    const { status } = req.body;
-    if (!["pending", "approved", "rejected"].includes(status)) {
+    const { status, rejectionReason } = req.body;
+    if (!["pending", "approved", "rejected", "return_rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
     // Find the user and return by return _id
@@ -81,6 +81,9 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
     const ret = user.returns.id(req.params.id);
     if (!ret) return res.status(404).json({ message: "Return not found" });
     ret.status = status;
+    if (status === 'return_rejected' && typeof rejectionReason === 'string') {
+      ret.rejectionReason = rejectionReason;
+    }
     await user.save();
 
     // If approved, update product stockQuantity and soldCount

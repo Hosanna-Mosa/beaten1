@@ -1316,7 +1316,7 @@ function Products() {
   );
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', minHeight: '100vh', p: 0, m: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -1364,7 +1364,16 @@ function Products() {
       </Box>
 
       {/* Filters and Search */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper
+        sx={{
+          p: 0,
+          mb: 0,
+          borderRadius: 0,
+          boxShadow: 0,
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={4}>
             <TextField
@@ -1430,56 +1439,46 @@ function Products() {
               </Select>
             </FormControl>
           </Grid>
-          {/* <Grid item xs={12} md={2}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<FilterIcon />}
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              More Filters
-            </Button>
-          </Grid> */}
         </Grid>
-
-        {showFilters && (
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={4}>
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <TextField
-                  label="Min Price"
-                  type="number"
-                  value={priceRange.min}
-                  onChange={(e) =>
-                    setPriceRange((prev) => ({ ...prev, min: e.target.value }))
-                  }
-                  InputProps={{ startAdornment: <PriceIcon /> }}
-                />
-                <TextField
-                  label="Max Price"
-                  type="number"
-                  value={priceRange.max}
-                  onChange={(e) =>
-                    setPriceRange((prev) => ({ ...prev, max: e.target.value }))
-                  }
-                  InputProps={{ startAdornment: <PriceIcon /> }}
-                />
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={showOnlyFeatured}
-                    onChange={(e) => setShowOnlyFeatured(e.target.checked)}
-                  />
-                }
-                label="Show Featured Only"
-              />
-            </Grid>
-          </Grid>
-        )}
       </Paper>
+
+      {showFilters && (
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          <Grid item xs={12} md={4}>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <TextField
+                label="Min Price"
+                type="number"
+                value={priceRange.min}
+                onChange={(e) =>
+                  setPriceRange((prev) => ({ ...prev, min: e.target.value }))
+                }
+                InputProps={{ startAdornment: <PriceIcon /> }}
+              />
+              <TextField
+                label="Max Price"
+                type="number"
+                value={priceRange.max}
+                onChange={(e) =>
+                  setPriceRange((prev) => ({ ...prev, max: e.target.value }))
+                }
+                InputProps={{ startAdornment: <PriceIcon /> }}
+              />
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showOnlyFeatured}
+                  onChange={(e) => setShowOnlyFeatured(e.target.checked)}
+                />
+              }
+              label="Show Featured Only"
+            />
+          </Grid>
+        </Grid>
+      )}
 
       {/* Bulk Actions */}
       {selectedProducts.length > 0 && (
@@ -1544,7 +1543,7 @@ function Products() {
           <Typography>No products found</Typography>
         </Box>
       ) : view === "list" ? (
-        <Paper sx={{ width: "100%", overflow: "hidden" }}>
+        <Paper sx={{ width: '100%', overflow: 'auto', mt: 0, boxSizing: 'border-box', borderRadius: 0, boxShadow: 0 }}>
           <TableContainer>
             <Table stickyHeader sx={{ border: 1, borderColor: "divider" }}>
               <TableHead>
