@@ -82,6 +82,20 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
     if (!ret) return res.status(404).json({ message: "Return not found" });
     ret.status = status;
     await user.save();
+
+    // If approved, update product stockQuantity and soldCount
+    if (status === "approved") {
+      const Product = require("../models/Product");
+      const product = await Product.findById(ret.productId);
+      if (product) {
+        // Increase stockQuantity by the returned quantity
+        product.stockQuantity = (product.stockQuantity || 0) + (ret.quantity || 1);
+        // Decrease soldCount by the returned quantity, but not below 0
+        product.soldCount = Math.max(0, (product.soldCount || 0) - (ret.quantity || 1));
+        await product.save();
+      }
+    }
+
     // Send return status update email
     sendReturnStatusEmail(
       user.email,

@@ -209,6 +209,46 @@ const updateOrderStatus = async (req, res) => {
     order.status = status;
 
     await order.save();
+    console.log("order status saved",status);
+    
+    // If status is delivered, update soldCount and stockQuantity for each product
+    if ( status === "delivered" && order.orderItems &&  order.orderItems.length > 0) {
+      const Product = require("../models/Product");
+      console.log("order items", order.orderItems);
+      for (const item of order.orderItems) {
+        console.log("camed to product");
+        console.log("item", item);
+        const product = await Product.findById(item.product);
+        if (product) {
+          // Increase soldCount by the quantity ordered
+          product.soldCount = (product.soldCount || 0) + (item.quantity || 1);
+          // Decrease stockQuantity by the quantity ordered, but not below 0
+          product.stockQuantity = Math.max(0, (product.stockQuantity || 0) - (item.quantity || 1));
+          await product.save();
+          console.log("product saved");
+          
+        }
+      }
+    }
+
+    // If status is return_approved, update stockQuantity and soldCount for each product
+    if (status === "return_approved" && order.orderItems && order.orderItems.length > 0) {
+      const Product = require("../models/Product");
+      console.log("order items for return", order.orderItems);
+      for (const item of order.orderItems) {
+        console.log("camed to product for return");
+        console.log("item", item);
+        const product = await Product.findById(item.product);
+        if (product) {
+          // Increase stockQuantity by the quantity returned
+          product.stockQuantity = (product.stockQuantity || 0) + (item.quantity || 1);
+          // Decrease soldCount by the quantity returned, but not below 0
+          product.soldCount = Math.max(0, (product.soldCount || 0) - (item.quantity || 1));
+          await product.save();
+          console.log("product updated for return");
+        }
+      }
+    }
 
     // Send email notification to user
     if (order.user && order.user.email) {

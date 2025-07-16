@@ -378,6 +378,13 @@ const ProductDetail = ({ mode }) => {
               >
                 {product.name}
               </Typography>
+              <Typography sx={{ fontWeight: 500, mb: 1 }}>
+                {product.inStock ? (
+                  `In Stock: ${product.stockQuantity}`
+                ) : (
+                  <span style={{ color: "red" }}>Out of Stock</span>
+                )}
+              </Typography>
 
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <Rating value={averageRating} precision={0.5} readOnly />
@@ -747,15 +754,6 @@ const ProductDetail = ({ mode }) => {
                   </AccordionDetails>
                 </Accordion>
               </Box>
-
-              {/* Stock Display */}
-              <Typography sx={{ fontWeight: 500, mb: 1 }}>
-                {product.stock > 0 ? (
-                  `In Stock: ${product.stock}`
-                ) : (
-                  <span style={{ color: "red" }}>Out of Stock</span>
-                )}
-              </Typography>
 
               {cartMessage && (
                 <Typography
