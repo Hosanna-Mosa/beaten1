@@ -168,10 +168,6 @@ function Layout({ toggleTheme, mode }) {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 0,
-          m: 0,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
           mt: 0,
         }}
       >
