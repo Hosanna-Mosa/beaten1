@@ -36,7 +36,7 @@ import {
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import HeroSearchBar from "../common/HeroSearchBar";
-import { keyframes } from '@mui/system';
+import { keyframes } from "@mui/system";
 
 const shine = keyframes`
   0% { background-position: -200% 0; }
@@ -103,8 +103,14 @@ const Header = ({ mode, toggleColorMode }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user, logout } = useAuth();
   // Determine if user is premium
-  const isPremium = user && (user.isPremium || (user.subscription && user.subscription.isSubscribed && (!user.subscription.subscriptionExpiry || new Date(user.subscription.subscriptionExpiry) > new Date())));
-  const goldColor = '#FFD700';
+  const isPremium =
+    user &&
+    (user.isPremium ||
+      (user.subscription &&
+        user.subscription.isSubscribed &&
+        (!user.subscription.subscriptionExpiry ||
+          new Date(user.subscription.subscriptionExpiry) > new Date())));
+  const goldColor = "#FFD700";
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
@@ -466,7 +472,9 @@ const Header = ({ mode, toggleColorMode }) => {
               }}
             >
               <img
-                src="/Beaten/logo.png"
+                src={
+                  isPremium ? "/Beaten/logo-premium.png" : "/Beaten/logo.png"
+                }
                 alt="Beaten Logo"
                 style={{
                   width: "6em",
@@ -474,6 +482,10 @@ const Header = ({ mode, toggleColorMode }) => {
                   padding: 0,
                   margin: 0,
                   display: "block",
+                  ...(isPremium && {
+                    filter: "drop-shadow(0 0 8px #FFD700) brightness(1.2)",
+                    // or any other gold effect you want
+                  }),
                 }}
               />
             </Typography>
@@ -496,7 +508,7 @@ const Header = ({ mode, toggleColorMode }) => {
             }}
           >
             <img
-              src="/Beaten/logo.png"
+              src={isPremium ? "/Beaten/Artboard-6.png" : "/Beaten/logo.png"}
               alt="Beaten Logo"
               style={{ width: "6em", height: "auto", padding: 0, margin: 0 }}
             />
@@ -526,9 +538,11 @@ const Header = ({ mode, toggleColorMode }) => {
                   px: 2.5,
                   borderRadius: 2,
                   transition: "color 0.2s, background 0.2s",
-                  backgroundColor: 'transparent',
+                  backgroundColor: "transparent",
                   ...(location.pathname === page.path && {
-                    textShadow: isPremium ? `0 0 8px ${goldColor}99` : undefined,
+                    textShadow: isPremium
+                      ? `0 0 8px ${goldColor}99`
+                      : undefined,
                   }),
                   "&:hover": {
                     backgroundColor: "rgba(255,255,255,0.08)",
@@ -542,14 +556,14 @@ const Header = ({ mode, toggleColorMode }) => {
                           color: goldColor,
                           fontWeight: 600,
                           background: `linear-gradient(90deg, #FFD700 20%, #FFFBEA 50%, #FFD700 80%)`,
-                          backgroundSize: '200% auto',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          animation: 'shine 2.5s linear infinite',
+                          backgroundSize: "200% auto",
+                          WebkitBackgroundClip: "text",
+                          WebkitTextFillColor: "transparent",
+                          animation: "shine 2.5s linear infinite",
                         }
-                      : { color: 'white', fontWeight: 600 }
+                      : { color: "white", fontWeight: 600 }
                   }
-                  className={isPremium ? 'gold-shine' : ''}
+                  className={isPremium ? "gold-shine" : ""}
                 >
                   {page.name}
                 </span>
@@ -589,7 +603,13 @@ const Header = ({ mode, toggleColorMode }) => {
               </Badge>
             </IconButton>
             {/* Dark/Light Mode Toggle - Desktop Only */}
-            <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", mx: 1 }}>
+            <Box
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                mx: 1,
+              }}
+            >
               <IconButton onClick={toggleColorMode} color="inherit">
                 {mode === "light" ? (
                   <Brightness4Icon sx={{ color: "#ffd600" }} />
@@ -788,13 +808,13 @@ const Header = ({ mode, toggleColorMode }) => {
 export default Header;
 
 // Add this to inject the keyframes for the shine animation
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.innerHTML = `
 @keyframes shine {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }`;
-if (!document.head.querySelector('style[data-gold-shine]')) {
-  style.setAttribute('data-gold-shine', 'true');
+if (!document.head.querySelector("style[data-gold-shine]")) {
+  style.setAttribute("data-gold-shine", "true");
   document.head.appendChild(style);
 }
