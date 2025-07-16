@@ -97,6 +97,7 @@ function Layout({ toggleTheme, mode }) {
           minHeight: "100vh",
           backgroundColor: "background.default",
           p: 0,
+          m:0,
           mt: 0,
         }}
       >
