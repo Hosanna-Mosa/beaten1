@@ -473,7 +473,7 @@ const Header = ({ mode, toggleColorMode }) => {
             >
               <img
                 src={
-                  isPremium ? "/Beaten/logo-premium.png" : "/Beaten/logo.png"
+                  isPremium ? "/Beaten/Artboard-6.png" : "/Beaten/logo.png"
                 }
                 alt="Beaten Logo"
                 style={{
@@ -484,7 +484,6 @@ const Header = ({ mode, toggleColorMode }) => {
                   display: "block",
                   ...(isPremium && {
                     filter: "drop-shadow(0 0 8px #FFD700) brightness(1.2)",
-                    // or any other gold effect you want
                   }),
                 }}
               />
