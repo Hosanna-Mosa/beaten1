@@ -174,10 +174,10 @@ function Dashboard() {
               activity.type === "order"
                 ? "#2e7d32"
                 : activity.type === "customer"
-                  ? "#1976d2"
-                  : activity.type === "product"
-                    ? "#ed6c02"
-                    : "#9c27b0",
+                ? "#1976d2"
+                : activity.type === "product"
+                ? "#ed6c02"
+                : "#9c27b0",
           }}
         />
       </ListItemIcon>
@@ -193,13 +193,20 @@ function Dashboard() {
   const ProductProgress = ({ product }) => (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
-        <Typography variant="body2" fontWeight="bold">{product.name}</Typography>
+        <Typography variant="body2" fontWeight="bold">
+          {product.name}
+        </Typography>
         <Typography variant="body2" color="text.secondary">
           {product.soldCount} units sold
         </Typography>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ ml: 0.5 }}>
-        ₹{product.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} revenue
+        ₹
+        {product.revenue.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}{" "}
+        revenue
       </Typography>
       <Divider sx={{ my: 1 }} />
     </Box>
@@ -267,7 +274,16 @@ function Dashboard() {
   }
 
   return (
-    <Box>
+    <Box
+      sx={{
+        width: "calc(100vw - 240px)",
+        minHeight: "100vh",
+
+        m: 0,
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
@@ -281,6 +297,7 @@ function Dashboard() {
             icon={<PeopleIcon />}
             color="#1976d2"
             growth={stats?.growth?.customers}
+            onClick={() => navigate("/customers")}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>

@@ -162,12 +162,16 @@ function Orders() {
         });
         // Assume res.data.data is the array of orders
         console.log(res.data.data);
+        // Filter out orders with null/undefined user
+        const filteredOrders = res.data.data.filter(
+          (order) => order.user !== null && order.user !== undefined
+        );
         // Fetch user names for all orders
         const userIds = Array.from(
-          new Set(res.data.data.map((order) => order.user).filter(Boolean))
+          new Set(filteredOrders.map((order) => order.user).filter(Boolean))
         );
         await Promise.all(userIds.map(fetchUserName));
-        setOrders(res.data.data);
+        setOrders(filteredOrders);
       } catch (error) {
         console.error("Failed to fetch orders:", error);
       }
@@ -220,7 +224,9 @@ function Orders() {
             (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
             0
           ) || 0;
-        return `${order._id},${customerName},${new Date(order.createdAt).toLocaleDateString()},${total},${order.status || "pending"}`;
+        return `${order._id},${customerName},${new Date(
+          order.createdAt
+        ).toLocaleDateString()},${total},${order.status || "pending"}`;
       })
       .join("\n");
 
@@ -258,7 +264,9 @@ function Orders() {
     try {
       // Make API call to update backend
       const updateRes = await axios.put(
-        `${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/orders/${selectedOrder._id}`,
+        `${
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api"
+        }/orders/${selectedOrder._id}`,
         { status: newStatus }
       );
 
@@ -547,9 +555,9 @@ function Orders() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={item.product}
-                        secondary={`Quantity: ${
-                          item.quantity
-                        } × ${formatPrice(item.price)}`}
+                        secondary={`Quantity: ${item.quantity} × ${formatPrice(
+                          item.price
+                        )}`}
                       />
                       <Typography variant="subtitle1">
                         {formatPrice(item.quantity * item.price)}
@@ -808,7 +816,15 @@ function Orders() {
   console.log("orders:", orders);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box
+      sx={{
+        width: "calc(100vw - 240px)",
+        minHeight: "100vh",
+        m: 0,
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
       {/* Header Section */}
       <Box
         sx={{
@@ -858,6 +874,9 @@ function Orders() {
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 2,
+          width: "calc(100vw - 240px)",
+          boxSizing: "border-box",
+          overflowX: "hidden",
         }}
       >
         <Grid container spacing={3} alignItems="center">
@@ -1070,11 +1089,12 @@ function Orders() {
       <Paper
         elevation={0}
         sx={{
-          width: "100%",
-          overflow: "hidden",
+          width: "calc(100vw - 240px)",
+          overflowX: "auto",
           border: "1px solid",
           borderColor: "divider",
           borderRadius: 2,
+          boxSizing: "border-box",
         }}
       >
         <TableContainer>
@@ -1109,7 +1129,7 @@ function Orders() {
                           {order.user.name}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                        {order.user.email}
+                          {order.user.email}
                         </Typography>
                       </Box>
                     </TableCell>
