@@ -33,6 +33,12 @@ const orderSchema = new mongoose.Schema(
       method: { type: String },
     },
     totalPrice: { type: Number, required: true },
+    coupon: {
+      code: { type: String },
+      discountType: { type: String, enum: ["percentage", "flat"] },
+      discount: { type: Number },
+      discountAmount: { type: Number }, // The amount discounted from total
+    },
     status: {
       type: String,
       // enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],

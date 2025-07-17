@@ -62,7 +62,7 @@ const Payment = ({ mode = "dark" }) => {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [showOffers, setShowOffers] = useState(false);
-  const [autoFlatDiscount, setAutoFlatDiscount] = useState(null); // NEW
+  // Remove autoFlatDiscount state
 
   useEffect(() => {
     // Fetch public coupons from backend
@@ -71,31 +71,12 @@ const Payment = ({ mode = "dark" }) => {
       setCouponApplied(false);
       setCouponDiscount(0);
       setAppliedCoupon(null);
-      setAutoFlatDiscount(null);
       try {
         const response = await axios.get(buildApiUrl(API_ENDPOINTS.COUPONS));
         const coupons = response.data.data || [];
         const filtered = coupons.filter((c) => c.type === "public");
         setAvailableCoupons(filtered);
         window._debugFilteredCoupons = filtered; // DEBUG
-        const now = new Date();
-        // TEMP: Ignore validFrom/validUntil for testing. Revert for production.
-        const activeFlat = filtered
-          .filter(c => c.discountType === 'flat' && c.status === 'active' && c.type === 'public')
-          .sort((a, b) => b.discount - a.discount)[0];
-        window._debugActiveFlat = activeFlat; // DEBUG: expose to window
-        if (activeFlat) {
-          setAutoFlatDiscount(activeFlat);
-          setCouponDiscount(Math.min(subtotal, activeFlat.discount));
-          setCouponApplied(true);
-          setAppliedCoupon({
-            code: activeFlat.code,
-            discountAmount: Math.min(subtotal, activeFlat.discount),
-            discount: activeFlat.discount,
-            discountType: 'flat',
-            isPersonal: false,
-          });
-        }
       } catch (err) {
         const error = handleApiError(err);
         setAvailableCoupons([]);
@@ -364,21 +345,20 @@ const Payment = ({ mode = "dark" }) => {
         minHeight: "100vh",
       }}
     >
+      {/* Remove autoFlatDiscount from UI */}
       {/* Flat Discount Message - Always at the top if present */}
-      {autoFlatDiscount && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            Flat discount applied! You saved <b>₹{autoFlatDiscount.discount}</b>.
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Previous total: <span style={{ textDecoration: 'line-through', color: '#888' }}>{formatPrice(subtotal - discount + shipping)}</span> &nbsp; | &nbsp;
-            New total: <b>{formatPrice(subtotal - discount - Math.min(subtotal, autoFlatDiscount.discount) + shipping + (paymentMethod === 'cod' ? 50 : 0))}</b>
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Coupon code: {autoFlatDiscount.code}
-          </Typography>
-        </Alert>
-      )}
+      {/* <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          Flat discount applied! You saved <b>₹{autoFlatDiscount.discount}</b>.
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Previous total: <span style={{ textDecoration: 'line-through', color: '#888' }}>{formatPrice(subtotal - discount + shipping)}</span> &nbsp; | &nbsp;
+          New total: <b>{formatPrice(subtotal - discount - Math.min(subtotal, autoFlatDiscount.discount) + shipping + (paymentMethod === 'cod' ? 50 : 0))}</b>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Coupon code: {autoFlatDiscount.code}
+        </Typography>
+      </Alert> */}
       <Grid container spacing={4}>
         <Grid item xs={12} md={7}>
           <Paper sx={{ p: 3, mb: 2 }}>
@@ -390,80 +370,67 @@ const Payment = ({ mode = "dark" }) => {
             </Typography>
 
             {/* Coupon Section */}
-            {!autoFlatDiscount && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Apply Coupon
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  <TextField
-                    label="Coupon Code"
-                    value={coupon}
-                    onChange={(e) => setCoupon(e.target.value)}
-                    size="small"
-                    disabled={couponApplied || validatingCoupon}
-                    sx={{ mr: 2, flex: 1 }}
-                    placeholder="Enter coupon code"
-                  />
-                  <Button
-                    variant="outlined"
-                    onClick={handleApplyCoupon}
-                    disabled={couponApplied || validatingCoupon}
-                    sx={{ mr: couponApplied ? 2 : 0 }}
-                  >
-                    {validatingCoupon ? (
-                      <CircularProgress size={20} />
-                    ) : couponApplied ? (
-                      "Applied"
-                    ) : (
-                      "Apply"
-                    )}
-                  </Button>
-                  {couponApplied && (
-                    <Button
-                      variant="text"
-                      color="error"
-                      onClick={handleRemoveCoupon}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </Box>
-                {couponError && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {couponError}
-                  </Alert>
-                )}
-                {couponApplied && appliedCoupon && (
-                  <Alert severity="success" sx={{ mb: 2 }}>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Coupon applied successfully!
-                      </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                        <Chip
-                          label={appliedCoupon.isPersonal ? "Personal" : ""}
-                          color={appliedCoupon.isPersonal ? "primary" : "secondary"}
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
-                        <Typography variant="body2">
-                          {appliedCoupon.discountType === 'flat'
-                            ? `Flat ₹${appliedCoupon.discount} off`
-                            : `${appliedCoupon.discount}% off`} - ₹
-                          {appliedCoupon.discountAmount.toFixed(2)} saved
-                        </Typography>
-                      </Box>
-                      {appliedCoupon.isPersonal && appliedCoupon.recipientName && (
-                        <Typography variant="caption" color="text.secondary">
-                          For: {appliedCoupon.recipientName}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Alert>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Apply Coupon
+              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                <TextField
+                  label="Coupon Code"
+                  value={coupon}
+                  onChange={e => setCoupon(e.target.value)}
+                  size="small"
+                  sx={{ mr: 2, width: 180 }}
+                  disabled={couponApplied}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleApplyCoupon}
+                  disabled={couponApplied || validatingCoupon}
+                >
+                  {validatingCoupon ? <CircularProgress size={20} /> : couponApplied ? "Applied" : "Apply"}
+                </Button>
+                {couponApplied && (
+                  <IconButton onClick={handleRemoveCoupon} size="small" sx={{ ml: 1 }}>
+                    <Chip label="Remove" color="error" size="small" />
+                  </IconButton>
                 )}
               </Box>
-            )}
+              {couponError && (
+                <Typography color="error" variant="body2" sx={{ mb: 1 }}>
+                  {couponError}
+                </Typography>
+              )}
+              {couponApplied && appliedCoupon && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      Coupon applied successfully!
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                      <Chip
+                        label={appliedCoupon.isPersonal ? "Personal" : ""}
+                        color={appliedCoupon.isPersonal ? "primary" : "secondary"}
+                        size="small"
+                        sx={{ mr: 1 }}
+                      />
+                      <Typography variant="body2">
+                        {appliedCoupon.discountType === 'flat'
+                          ? `Flat ₹${appliedCoupon.discount} off`
+                          : `${appliedCoupon.discount}% off`} - ₹
+                        {appliedCoupon.discountAmount.toFixed(2)} saved
+                      </Typography>
+                    </Box>
+                    {appliedCoupon.isPersonal && appliedCoupon.recipientName && (
+                      <Typography variant="caption" color="text.secondary">
+                        For: {appliedCoupon.recipientName}
+                      </Typography>
+                    )}
+                  </Box>
+                </Alert>
+              )}
+            </Box>
 
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <IconButton
@@ -678,21 +645,8 @@ const Payment = ({ mode = "dark" }) => {
                 </Typography>
               </Box>
             )}
-            {autoFlatDiscount && (
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  Flat discount applied! You saved <b>₹{autoFlatDiscount.discount}</b>.
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Previous total: <span style={{ textDecoration: 'line-through', color: '#888' }}>{formatPrice(subtotal - discount + shipping)}</span> &nbsp; | &nbsp;
-                  New total: <b>{formatPrice(subtotal - discount - Math.min(subtotal, autoFlatDiscount.discount) + shipping + (paymentMethod === 'cod' ? 50 : 0))}</b>
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Coupon code: {autoFlatDiscount.code}
-                </Typography>
-              </Alert>
-            )}
-            {couponDiscount > 0 && !autoFlatDiscount && (
+            {/* Remove autoFlatDiscount from UI */}
+            {couponDiscount > 0 && !appliedCoupon && (
               <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                 <Typography>Coupon Discount</Typography>
                 <Typography color="success.main">
@@ -711,19 +665,19 @@ const Payment = ({ mode = "dark" }) => {
               </Box>
             )}
             <Divider sx={{ my: 2 }} />
-            {autoFlatDiscount ? (
+            {appliedCoupon ? (
               <Box sx={{ display: "flex", flexDirection: 'column', mb: 2 }}>
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center' }}>
                   <Typography variant="h6" fontWeight={700} sx={{ textDecoration: 'line-through', color: 'text.secondary', fontSize: '1.1rem' }}>
                     {formatPrice(subtotal - discount + shipping)}
                   </Typography>
                   <Typography variant="h6" color="primary" fontWeight={700}>
-                    {formatPrice(subtotal - discount - Math.min(subtotal, autoFlatDiscount.discount) + shipping + (paymentMethod === 'cod' ? 50 : 0))}
+                    {formatPrice(subtotal - discount - couponDiscount + shipping + (paymentMethod === 'cod' ? 50 : 0))}
                   </Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: 'center' }}>
                   <Typography variant="caption" color="success.main">
-                    Flat discount: -{formatPrice(Math.min(subtotal, autoFlatDiscount.discount))}
+                    Coupon discount: -{formatPrice(couponDiscount)}
                   </Typography>
                 </Box>
               </Box>

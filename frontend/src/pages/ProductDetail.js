@@ -545,7 +545,7 @@ const ProductDetail = ({ mode }) => {
                     fullWidth
                     variant="contained"
                     size="large"
-                    disabled={product.stock === 0}
+                    disabled={product.stock === 0 || !selectedSize || !selectedColor}
                     onClick={async () => {
                       // Always store only the filename in cart
                       let imageFilename = product.image;

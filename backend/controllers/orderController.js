@@ -15,7 +15,7 @@ const createOrder = async (req, res) => {
   try {
     console.log("camed to here");
     console.log("req.body", req.body);
-    const { orderItems, shippingAddress, paymentInfo, totalPrice } = req.body;
+    const { orderItems, shippingAddress, paymentInfo, totalPrice, couponCode } = req.body;
     if (!orderItems || orderItems.length === 0) {
       return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
@@ -31,16 +31,65 @@ const createOrder = async (req, res) => {
     // Fetch user to check subscription
     const user = await require("../models/User").findById(req.user._id);
     let finalPrice = totalPrice;
+    let appliedCoupon = null;
+    let discountAmount = 0;
+    if (couponCode) {
+      const Coupon = require("../models/Coupon");
+      const coupon = await Coupon.findOne({ code: couponCode });
+      if (!coupon) {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: "Invalid coupon code",
+        });
+      }
+      const now = new Date();
+      if (
+        coupon.status !== "active" ||
+        now < coupon.validFrom ||
+        now > coupon.validUntil
+      ) {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: "Coupon is not valid at this time",
+        });
+      }
+      if (coupon.usageLimit > 0 && coupon.usedCount >= coupon.usageLimit) {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: "Coupon usage limit reached",
+        });
+      }
+      if (totalPrice < coupon.minPurchase) {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({
+          success: false,
+          message: `Minimum purchase is $${coupon.minPurchase}`,
+        });
+      }
+      // Calculate discount
+      if (coupon.discountType === "flat") {
+        discountAmount = coupon.discount;
+      } else if (coupon.discountType === "percentage") {
+        discountAmount = (totalPrice * coupon.discount) / 100;
+      }
+      finalPrice = Math.max(0, totalPrice - discountAmount);
+      appliedCoupon = {
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discount: coupon.discount,
+        discountAmount,
+      };
+      // Optionally, increment usedCount here or after payment confirmation
+    }
+    // Subscription discount (applied after coupon)
     if (
       user &&
       user.subscription &&
       user.subscription.isSubscribed &&
       user.subscription.subscriptionExpiry > new Date()
     ) {
-      // Reduce price by subscription cost, but not below zero
       finalPrice = Math.max(
         0,
-        totalPrice - (user.subscription.subscriptionCost || 0)
+        finalPrice - (user.subscription.subscriptionCost || 0)
       );
     }
     const order = new Order({
@@ -49,6 +98,7 @@ const createOrder = async (req, res) => {
       shippingAddress,
       paymentInfo,
       totalPrice: finalPrice,
+      coupon: appliedCoupon,
     });
     const createdOrder = await order.save();
     // Send order confirmation email to user
