@@ -1,5 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
+import {
+  buildApiUrl,
+  API_ENDPOINTS,
+  getApiConfig,
+  handleApiResponse,
+  handleApiError,
+  getAuthHeaders,
+} from "../utils/api";
 
 const AuthContext = createContext();
 
@@ -33,25 +41,27 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/auth/login`,
-        { email, password }
-      );
+      const response = await axios.post(buildApiUrl(API_ENDPOINTS.LOGIN), {
+        email,
+        password,
+      });
       const { token, user } = response.data.data;
       localStorage.setItem("token", token);
       // Fetch latest user profile after login
       let latestUser = user;
       try {
-        const profileRes = await axios.get(
-          `${process.env.REACT_APP_API_URL}/user/profile`,
-          { headers: { Authorization: `Bearer ${token}` } }
+        const profileRes = await axios(
+          getApiConfig(API_ENDPOINTS.USER_PROFILE, "GET")
         );
         if (profileRes.data && profileRes.data.data) {
           latestUser = profileRes.data.data;
         }
       } catch (profileErr) {
         // If profile fetch fails, fallback to login user object
-        console.error("Failed to fetch latest user profile after login", profileErr);
+        console.error(
+          "Failed to fetch latest user profile after login",
+          profileErr
+        );
       }
       localStorage.setItem("user", JSON.stringify(latestUser));
       setUser(latestUser);
@@ -74,7 +84,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/auth/register`,
+        buildApiUrl(API_ENDPOINTS.REGISTER),
         userData
       );
       const { token, user } = response.data.data;

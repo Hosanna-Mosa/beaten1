@@ -247,7 +247,11 @@ function Products() {
     const csvContent = getFilteredProducts()
       .map(
         (product) =>
-          `${product.sku || "N/A"},${product.name},${product.category},${product.price},${product.stockQuantity || 0},${product.inStock ? "In Stock" : "Out of Stock"}`
+          `${product.sku || "N/A"},${product.name},${product.category},${
+            product.price
+          },${product.stockQuantity || 0},${
+            product.inStock ? "In Stock" : "Out of Stock"
+          }`
       )
       .join("\n");
 
@@ -1316,7 +1320,16 @@ function Products() {
   );
 
   return (
-    <Box sx={{ width: '100%', minHeight: '100vh', p: 0, m: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
+    <Box
+      sx={{
+        width: "calc(100vw - 240px)",
+        minHeight: "100vh",
+        p: 0,
+        m: 0,
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -1370,8 +1383,10 @@ function Products() {
           mb: 0,
           borderRadius: 0,
           boxShadow: 0,
-          width: '100%',
-          boxSizing: 'border-box',
+          width: "calc(100vw - 240px)",
+          boxSizing: "border-box",
+          overflowX: "hidden",
+          marginLeft: 0,
         }}
       >
         <Grid container spacing={2} alignItems="center">
@@ -1543,7 +1558,17 @@ function Products() {
           <Typography>No products found</Typography>
         </Box>
       ) : view === "list" ? (
-        <Paper sx={{ width: '100%', overflow: 'auto', mt: 0, boxSizing: 'border-box', borderRadius: 0, boxShadow: 0 }}>
+        <Paper
+          sx={{
+            width: "calc(100vw - 240px)",
+            overflowX: "auto",
+            mt: 0,
+            boxSizing: "border-box",
+            borderRadius: 0,
+            boxShadow: 0,
+            marginLeft: 0,
+          }}
+        >
           <TableContainer>
             <Table stickyHeader sx={{ border: 1, borderColor: "divider" }}>
               <TableHead>

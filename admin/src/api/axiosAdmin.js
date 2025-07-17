@@ -83,7 +83,7 @@ export const ordersAPI = {
 
 // Customers APIs
 export const customersAPI = {
-  getCustomers: (params) => api.get("/users", { params }),
+  getCustomers: (params) => api.get("/user/users", { params }),
   getCustomerById: (id) => api.get(`/users/${id}`),
   updateCustomer: (id, data) => api.put(`/users/${id}`, data),
   deleteCustomer: (id) => api.delete(`/users/${id}`),

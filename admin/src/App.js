@@ -21,7 +21,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
-// import Customers from './pages/Customers';
+ import Customers from './pages/Customers';
 import Promotions from "./pages/Promotions";
 import Returns from "./pages/Returns";
 import DataEntry from "./pages/DataEntry";
@@ -93,7 +93,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />
             <Route path="orders" element={<Orders />} />
-            {/* <Route path="customers" element={<Customers />} /> */}
+            <Route path="customers" element={<Customers />} />
             <Route path="promotions" element={<Promotions />} />
             <Route path="returns" element={<Returns />} />
             <Route path="data-entry" element={<DataEntry />} />

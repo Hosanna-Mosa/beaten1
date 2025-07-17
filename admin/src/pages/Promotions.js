@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Typography,
@@ -23,30 +23,34 @@ import {
   TextField,
   MenuItem,
   DialogContentText,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
-import dayjs from 'dayjs';
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import axios from "axios";
+import dayjs from "dayjs";
 
 const Coupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [error, setError] = useState("");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const [openDialog, setOpenDialog] = useState(false);
   const [formData, setFormData] = useState({
-    code: '',
-    type: 'public',
-    discountType: 'percentage', // NEW FIELD
-    discount: '',
-    minPurchase: '',
-    validFrom: dayjs().format('YYYY-MM-DD'),
-    validUntil: dayjs().add(7, 'day').format('YYYY-MM-DD'),
+    code: "",
+    type: "public",
+    discountType: "percentage", // NEW FIELD
+    discount: "",
+    minPurchase: "",
+    validFrom: dayjs().format("YYYY-MM-DD"),
+    validUntil: dayjs().add(7, "day").format("YYYY-MM-DD"),
     usageLimit: 1,
-    recipient: '',
-    description: '',
+    recipient: "",
+    description: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -55,16 +59,21 @@ const Coupons = () => {
 
   const fetchCoupons = async () => {
     setLoading(true);
-    setError('');
+    setError("");
     try {
-      const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem("admin_token");
+      const apiUrl =
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const response = await axios.get(`${apiUrl}/admin/coupons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCoupons(response.data.data || []);
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to fetch coupons.');
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to fetch coupons."
+      );
     } finally {
       setLoading(false);
     }
@@ -78,16 +87,16 @@ const Coupons = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setFormData({
-      code: '',
-      type: 'public',
-      discountType: 'percentage', // NEW FIELD
-      discount: '',
-      minPurchase: '',
-      validFrom: dayjs().format('YYYY-MM-DD'),
-      validUntil: dayjs().add(7, 'day').format('YYYY-MM-DD'),
+      code: "",
+      type: "public",
+      discountType: "percentage", // NEW FIELD
+      discount: "",
+      minPurchase: "",
+      validFrom: dayjs().format("YYYY-MM-DD"),
+      validUntil: dayjs().add(7, "day").format("YYYY-MM-DD"),
       usageLimit: 1,
-      recipient: '',
-      description: '',
+      recipient: "",
+      description: "",
     });
   };
   const handleFormChange = (e) => {
@@ -96,14 +105,24 @@ const Coupons = () => {
   };
   const handleCreateCoupon = async () => {
     // Basic validation
-    if (!formData.code || !formData.discount || !formData.validFrom || !formData.validUntil) {
-      setSnackbar({ open: true, message: 'Please fill all required fields.', severity: 'error' });
+    if (
+      !formData.code ||
+      !formData.discount ||
+      !formData.validFrom ||
+      !formData.validUntil
+    ) {
+      setSnackbar({
+        open: true,
+        message: "Please fill all required fields.",
+        severity: "error",
+      });
       return;
     }
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem("admin_token");
+      const apiUrl =
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const payload = {
         ...formData,
         discount: Number(formData.discount),
@@ -111,16 +130,25 @@ const Coupons = () => {
         usageLimit: Number(formData.usageLimit),
         validFrom: new Date(formData.validFrom),
         validUntil: new Date(formData.validUntil),
-        recipient: formData.type === 'personal' ? formData.recipient : undefined,
+        recipient:
+          formData.type === "personal" ? formData.recipient : undefined,
       };
       await axios.post(`${apiUrl}/admin/coupons`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSnackbar({ open: true, message: 'Coupon created!', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Coupon created!",
+        severity: "success",
+      });
       handleCloseDialog();
       fetchCoupons();
     } catch (err) {
-      setSnackbar({ open: true, message: err?.response?.data?.message || 'Failed to create coupon.', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Failed to create coupon.",
+        severity: "error",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -131,27 +159,37 @@ const Coupons = () => {
     setFormData({
       code: coupon.code,
       type: coupon.type,
-      discountType: coupon.discountType || 'percentage', // NEW
+      discountType: coupon.discountType || "percentage", // NEW
       discount: coupon.discount,
       minPurchase: coupon.minPurchase,
-      validFrom: dayjs(coupon.validFrom).format('YYYY-MM-DD'),
-      validUntil: dayjs(coupon.validUntil).format('YYYY-MM-DD'),
+      validFrom: dayjs(coupon.validFrom).format("YYYY-MM-DD"),
+      validUntil: dayjs(coupon.validUntil).format("YYYY-MM-DD"),
       usageLimit: coupon.usageLimit,
-      recipient: coupon.recipient?._id || '',
-      description: coupon.description || '',
+      recipient: coupon.recipient?._id || "",
+      description: coupon.description || "",
     });
     setOpenDialog(true);
   };
 
   const handleUpdateCoupon = async () => {
-    if (!formData.code || !formData.discount || !formData.validFrom || !formData.validUntil) {
-      setSnackbar({ open: true, message: 'Please fill all required fields.', severity: 'error' });
+    if (
+      !formData.code ||
+      !formData.discount ||
+      !formData.validFrom ||
+      !formData.validUntil
+    ) {
+      setSnackbar({
+        open: true,
+        message: "Please fill all required fields.",
+        severity: "error",
+      });
       return;
     }
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem("admin_token");
+      const apiUrl =
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       const payload = {
         ...formData,
         discount: Number(formData.discount),
@@ -159,16 +197,25 @@ const Coupons = () => {
         usageLimit: Number(formData.usageLimit),
         validFrom: new Date(formData.validFrom),
         validUntil: new Date(formData.validUntil),
-        recipient: formData.type === 'personal' ? formData.recipient : undefined,
+        recipient:
+          formData.type === "personal" ? formData.recipient : undefined,
       };
       await axios.patch(`${apiUrl}/admin/coupons/${editId}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSnackbar({ open: true, message: 'Coupon updated!', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Coupon updated!",
+        severity: "success",
+      });
       handleCloseDialog();
       fetchCoupons();
     } catch (err) {
-      setSnackbar({ open: true, message: err?.response?.data?.message || 'Failed to update coupon.', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Failed to update coupon.",
+        severity: "error",
+      });
     } finally {
       setSubmitting(false);
       setEditId(null);
@@ -181,17 +228,26 @@ const Coupons = () => {
   };
   const handleConfirmDelete = async () => {
     try {
-      const token = localStorage.getItem('admin_token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+      const token = localStorage.getItem("admin_token");
+      const apiUrl =
+        process.env.REACT_APP_API_URL || "http://localhost:8000/api";
       await axios.delete(`${apiUrl}/admin/coupons/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSnackbar({ open: true, message: 'Coupon deleted!', severity: 'success' });
+      setSnackbar({
+        open: true,
+        message: "Coupon deleted!",
+        severity: "success",
+      });
       setDeleteDialogOpen(false);
       setDeleteId(null);
       fetchCoupons();
     } catch (err) {
-      setSnackbar({ open: true, message: err?.response?.data?.message || 'Failed to delete coupon.', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: err?.response?.data?.message || "Failed to delete coupon.",
+        severity: "error",
+      });
     }
   };
   const handleCancelDelete = () => {
@@ -200,66 +256,201 @@ const Coupons = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Box
+      sx={{
+        width: "calc(100vw - 240px)",
+        minHeight: "100vh",
+
+        m: 0,
+        boxSizing: "border-box",
+        overflowX: "hidden",
+      }}
+    >
       <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>
         Coupons Management
       </Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} sx={{ borderRadius: 2, fontWeight: 600 }} onClick={handleOpenDialog}>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{ borderRadius: 2, fontWeight: 600 }}
+          onClick={handleOpenDialog}
+        >
           Create Coupon
         </Button>
       </Box>
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editId ? 'Edit Coupon' : 'Create Coupon'}</DialogTitle>
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{editId ? "Edit Coupon" : "Create Coupon"}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField label="Code" name="code" value={formData.code} onChange={handleFormChange} required fullWidth disabled={!!editId} />
-            <TextField select label="Type" name="type" value={formData.type} onChange={handleFormChange} fullWidth disabled={!!editId}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label="Code"
+              name="code"
+              value={formData.code}
+              onChange={handleFormChange}
+              required
+              fullWidth
+              disabled={!!editId}
+            />
+            <TextField
+              select
+              label="Type"
+              name="type"
+              value={formData.type}
+              onChange={handleFormChange}
+              fullWidth
+              disabled={!!editId}
+            >
               <MenuItem value="public">Public</MenuItem>
               <MenuItem value="personal">Personal</MenuItem>
             </TextField>
-            <TextField select label="Discount Type" name="discountType" value={formData.discountType} onChange={handleFormChange} required fullWidth>
+            <TextField
+              select
+              label="Discount Type"
+              name="discountType"
+              value={formData.discountType}
+              onChange={handleFormChange}
+              required
+              fullWidth
+            >
               <MenuItem value="percentage">Discount (%)</MenuItem>
               <MenuItem value="flat">Flat Discount</MenuItem>
             </TextField>
-            {formData.discountType === 'percentage' ? (
-              <TextField label="Discount (%)" name="discount" type="number" value={formData.discount} onChange={handleFormChange} required fullWidth />
+            {formData.discountType === "percentage" ? (
+              <TextField
+                label="Discount (%)"
+                name="discount"
+                type="number"
+                value={formData.discount}
+                onChange={handleFormChange}
+                required
+                fullWidth
+              />
             ) : (
-              <TextField label="Flat Discount (₹)" name="discount" type="number" value={formData.discount} onChange={handleFormChange} required fullWidth />
+              <TextField
+                label="Flat Discount (₹)"
+                name="discount"
+                type="number"
+                value={formData.discount}
+                onChange={handleFormChange}
+                required
+                fullWidth
+              />
             )}
-            <TextField label="Min Purchase ($)" name="minPurchase" type="number" value={formData.minPurchase} onChange={handleFormChange} fullWidth />
-            <TextField label="Valid From" name="validFrom" type="date" value={formData.validFrom} onChange={handleFormChange} InputLabelProps={{ shrink: true }} required fullWidth />
-            <TextField label="Valid Until" name="validUntil" type="date" value={formData.validUntil} onChange={handleFormChange} InputLabelProps={{ shrink: true }} required fullWidth />
-            <TextField label="Usage Limit" name="usageLimit" type="number" value={formData.usageLimit} onChange={handleFormChange} fullWidth />
-            {formData.type === 'personal' && (
-              <TextField label="Recipient User ID" name="recipient" value={formData.recipient} onChange={handleFormChange} fullWidth />
+            <TextField
+              label="Min Purchase ($)"
+              name="minPurchase"
+              type="number"
+              value={formData.minPurchase}
+              onChange={handleFormChange}
+              fullWidth
+            />
+            <TextField
+              label="Valid From"
+              name="validFrom"
+              type="date"
+              value={formData.validFrom}
+              onChange={handleFormChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Valid Until"
+              name="validUntil"
+              type="date"
+              value={formData.validUntil}
+              onChange={handleFormChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              fullWidth
+            />
+            <TextField
+              label="Usage Limit"
+              name="usageLimit"
+              type="number"
+              value={formData.usageLimit}
+              onChange={handleFormChange}
+              fullWidth
+            />
+            {formData.type === "personal" && (
+              <TextField
+                label="Recipient User ID"
+                name="recipient"
+                value={formData.recipient}
+                onChange={handleFormChange}
+                fullWidth
+              />
             )}
-            <TextField label="Description" name="description" value={formData.description} onChange={handleFormChange} fullWidth multiline rows={2} />
+            <TextField
+              label="Description"
+              name="description"
+              value={formData.description}
+              onChange={handleFormChange}
+              fullWidth
+              multiline
+              rows={2}
+            />
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={editId ? handleUpdateCoupon : handleCreateCoupon} variant="contained" disabled={submitting}>{submitting ? (editId ? 'Updating...' : 'Creating...') : (editId ? 'Update' : 'Create')}</Button>
+          <Button
+            onClick={editId ? handleUpdateCoupon : handleCreateCoupon}
+            variant="contained"
+            disabled={submitting}
+          >
+            {submitting
+              ? editId
+                ? "Updating..."
+                : "Creating..."
+              : editId
+              ? "Update"
+              : "Create"}
+          </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={deleteDialogOpen} onClose={handleCancelDelete}>
         <DialogTitle>Delete Coupon</DialogTitle>
         <DialogContent>
-          <DialogContentText>Are you sure you want to delete this coupon? This action cannot be undone.</DialogContentText>
+          <DialogContentText>
+            Are you sure you want to delete this coupon? This action cannot be
+            undone.
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelDelete}>Cancel</Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained">Delete</Button>
+          <Button
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+          >
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : (
-        <Paper>
+        <Paper
+          sx={{
+            width: "calc(100vw - 240px)",
+            overflowX: "auto",
+            boxSizing: "border-box",
+            borderRadius: 2,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           <TableContainer>
             <Table>
               <TableHead>
@@ -281,18 +472,50 @@ const Coupons = () => {
                   <TableRow key={coupon._id}>
                     <TableCell>{coupon.code}</TableCell>
                     <TableCell>{coupon.type}</TableCell>
-                    <TableCell>{coupon.discountType === 'flat' ? `₹${coupon.discount}` : `${coupon.discount}%`}</TableCell>
-                    <TableCell>${coupon.minPurchase}</TableCell>
-                    <TableCell>{new Date(coupon.validFrom).toLocaleDateString()}</TableCell>
-                    <TableCell>{new Date(coupon.validUntil).toLocaleDateString()}</TableCell>
-                    <TableCell>{coupon.usedCount}/{coupon.usageLimit}</TableCell>
                     <TableCell>
-                      <Chip label={coupon.status} color={coupon.status === 'active' ? 'success' : coupon.status === 'expired' ? 'error' : 'warning'} size="small" />
+                      {coupon.discountType === "flat"
+                        ? `₹${coupon.discount}`
+                        : `${coupon.discount}%`}
                     </TableCell>
-                    <TableCell>{coupon.recipient?.email || '-'}</TableCell>
+                    <TableCell>${coupon.minPurchase}</TableCell>
                     <TableCell>
-                      <IconButton size="small" color="primary" onClick={() => handleEdit(coupon)}><EditIcon /></IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleDelete(coupon._id)}><DeleteIcon /></IconButton>
+                      {new Date(coupon.validFrom).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(coupon.validUntil).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {coupon.usedCount}/{coupon.usageLimit}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={coupon.status}
+                        color={
+                          coupon.status === "active"
+                            ? "success"
+                            : coupon.status === "expired"
+                            ? "error"
+                            : "warning"
+                        }
+                        size="small"
+                      />
+                    </TableCell>
+                    <TableCell>{coupon.recipient?.email || "-"}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => handleEdit(coupon)}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(coupon._id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -305,11 +528,11 @@ const Coupons = () => {
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
