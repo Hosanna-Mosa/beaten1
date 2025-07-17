@@ -4,6 +4,16 @@ const User = require("../models/User");
 // Create a new coupon
 exports.createCoupon = async (req, res) => {
   try {
+    const { discountType, discount } = req.body;
+    if (!discountType || !["percentage", "flat"].includes(discountType)) {
+      return res.status(400).json({ success: false, message: "Invalid or missing discountType. Must be 'percentage' or 'flat'." });
+    }
+    if (typeof discount !== "number" || discount <= 0) {
+      return res.status(400).json({ success: false, message: "Discount value must be a positive number." });
+    }
+    if (discountType === "percentage" && (discount > 100)) {
+      return res.status(400).json({ success: false, message: "Percentage discount cannot exceed 100%." });
+    }
     const coupon = new Coupon({ ...req.body, createdBy: req.admin._id });
     await coupon.save();
     res.status(201).json({ success: true, data: coupon });
@@ -30,6 +40,18 @@ exports.getCoupons = async (req, res) => {
 // Update coupon
 exports.updateCoupon = async (req, res) => {
   try {
+    const { discountType, discount } = req.body;
+    if (discountType && !["percentage", "flat"].includes(discountType)) {
+      return res.status(400).json({ success: false, message: "Invalid discountType. Must be 'percentage' or 'flat'." });
+    }
+    if (discount !== undefined) {
+      if (typeof discount !== "number" || discount <= 0) {
+        return res.status(400).json({ success: false, message: "Discount value must be a positive number." });
+      }
+      if (discountType === "percentage" && discount > 100) {
+        return res.status(400).json({ success: false, message: "Percentage discount cannot exceed 100%." });
+      }
+    }
     const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
@@ -115,7 +137,7 @@ exports.getUserCoupons = async (req, res) => {
       validFrom: { $lte: now },
       validUntil: { $gte: now },
     }).select(
-      "code description discount minPurchase validUntil usageLimit usedCount category type"
+      "code description discount discountType minPurchase validUntil usageLimit usedCount category type status"
     );
 
     // Filter out coupons that have reached usage limit or are expired

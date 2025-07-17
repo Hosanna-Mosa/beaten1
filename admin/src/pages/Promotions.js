@@ -39,6 +39,7 @@ const Coupons = () => {
   const [formData, setFormData] = useState({
     code: '',
     type: 'public',
+    discountType: 'percentage', // NEW FIELD
     discount: '',
     minPurchase: '',
     validFrom: dayjs().format('YYYY-MM-DD'),
@@ -79,6 +80,7 @@ const Coupons = () => {
     setFormData({
       code: '',
       type: 'public',
+      discountType: 'percentage', // NEW FIELD
       discount: '',
       minPurchase: '',
       validFrom: dayjs().format('YYYY-MM-DD'),
@@ -129,6 +131,7 @@ const Coupons = () => {
     setFormData({
       code: coupon.code,
       type: coupon.type,
+      discountType: coupon.discountType || 'percentage', // NEW
       discount: coupon.discount,
       minPurchase: coupon.minPurchase,
       validFrom: dayjs(coupon.validFrom).format('YYYY-MM-DD'),
@@ -215,7 +218,15 @@ const Coupons = () => {
               <MenuItem value="public">Public</MenuItem>
               <MenuItem value="personal">Personal</MenuItem>
             </TextField>
-            <TextField label="Discount (%)" name="discount" type="number" value={formData.discount} onChange={handleFormChange} required fullWidth />
+            <TextField select label="Discount Type" name="discountType" value={formData.discountType} onChange={handleFormChange} required fullWidth>
+              <MenuItem value="percentage">Discount (%)</MenuItem>
+              <MenuItem value="flat">Flat Discount</MenuItem>
+            </TextField>
+            {formData.discountType === 'percentage' ? (
+              <TextField label="Discount (%)" name="discount" type="number" value={formData.discount} onChange={handleFormChange} required fullWidth />
+            ) : (
+              <TextField label="Flat Discount (₹)" name="discount" type="number" value={formData.discount} onChange={handleFormChange} required fullWidth />
+            )}
             <TextField label="Min Purchase ($)" name="minPurchase" type="number" value={formData.minPurchase} onChange={handleFormChange} fullWidth />
             <TextField label="Valid From" name="validFrom" type="date" value={formData.validFrom} onChange={handleFormChange} InputLabelProps={{ shrink: true }} required fullWidth />
             <TextField label="Valid Until" name="validUntil" type="date" value={formData.validUntil} onChange={handleFormChange} InputLabelProps={{ shrink: true }} required fullWidth />
@@ -270,7 +281,7 @@ const Coupons = () => {
                   <TableRow key={coupon._id}>
                     <TableCell>{coupon.code}</TableCell>
                     <TableCell>{coupon.type}</TableCell>
-                    <TableCell>{coupon.discount}%</TableCell>
+                    <TableCell>{coupon.discountType === 'flat' ? `₹${coupon.discount}` : `${coupon.discount}%`}</TableCell>
                     <TableCell>${coupon.minPurchase}</TableCell>
                     <TableCell>{new Date(coupon.validFrom).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(coupon.validUntil).toLocaleDateString()}</TableCell>
