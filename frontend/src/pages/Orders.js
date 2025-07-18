@@ -103,6 +103,13 @@ const statusStyles = {
   cancelled: { bg: "#d32f2f", color: "#fff", icon: <CancelledIcon /> }, // red
 };
 
+const getImageUrl = (img) => {
+  if (!img) return PLACEHOLDER_IMAGE;
+  if (img.startsWith('http')) return img;
+  if (img.startsWith('photo-')) return `https://images.unsplash.com/${img}`;
+  return `/images/${img}`;
+};
+
 const Orders = ({ mode }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -398,20 +405,17 @@ const Orders = ({ mode }) => {
                         }}
                       >
                         <Avatar
-                          src={
-                            item.image && item.image !== ""
-                              ? item.image
-                              : PLACEHOLDER_IMAGE
-                          }
+                          src={getImageUrl(item.image || (item.product && item.product.image))}
                           alt={item.name}
                           sx={{
-                            width: 56,
-                            height: 56,
+                            width: { xs: 72, md: 64 },
+                            height: { xs: 72, md: 64 },
                             borderRadius: 2,
                             bgcolor: "#fafafa",
                             border: "2px solid #e0e0e0",
                             boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                           }}
+                          onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                         />
                         <Typography
                           variant="body1"
@@ -888,15 +892,16 @@ const Orders = ({ mode }) => {
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
                         <Avatar
-                          src={item.image || PLACEHOLDER_IMAGE}
+                          src={getImageUrl(item.image || (item.product && item.product.image))}
                           alt={item.name}
                           sx={{
-                            width: 48,
-                            height: 48,
+                            width: { xs: 64, md: 56 },
+                            height: { xs: 64, md: 56 },
                             borderRadius: 2,
                             bgcolor: "#fafafa",
                             border: "1px solid #eee",
                           }}
+                          onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                         />
                         <Typography
                           variant="body2"
@@ -1086,15 +1091,16 @@ const Orders = ({ mode }) => {
                   sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}
                 >
                   <Avatar
-                    src={item.image || PLACEHOLDER_IMAGE}
+                    src={getImageUrl(item.image || (item.product && item.product.image))}
                     alt={item.name}
                     sx={{
-                      width: 40,
-                      height: 40,
+                      width: { xs: 56, md: 48 },
+                      height: { xs: 56, md: 48 },
                       borderRadius: 2,
                       bgcolor: "#fafafa",
                       border: "1px solid #eee",
                     }}
+                    onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                   />
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>

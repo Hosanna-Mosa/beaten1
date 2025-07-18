@@ -19,6 +19,7 @@ import {
   FavoriteBorder as FavoriteBorderIcon,
   PersonOutline as PersonOutlineIcon
 } from '@mui/icons-material';
+import { useAuth } from '../../context/AuthContext';
 
 const bottomNavItems = [
   { name: 'Explore', path: '/collections', icon: <ExploreOutlinedIcon />, activeIcon: <ExploreIcon /> },
@@ -29,7 +30,7 @@ const bottomNavItems = [
     icon: (
       <Box 
         component="img" 
-        src="/Beaten/Artboard 3 copy.png" 
+        src="/Beaten/goldlogo.png" 
         alt="Beaten Logo" 
         className="bottom-nav-home-img"
         sx={{
@@ -51,10 +52,67 @@ const BottomNav = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { user } = useAuth();
+  // Determine if user is premium
+  const isPremium =
+    user &&
+    (user.isPremium ||
+      (user.subscription &&
+        user.subscription.isSubscribed &&
+        (!user.subscription.subscriptionExpiry ||
+          new Date(user.subscription.subscriptionExpiry) > new Date())));
 
   if (!isMobile) return null;
 
   const currentPath = location.pathname;
+
+  // Update the home icon to use the correct logo based on premium status
+  const updatedBottomNavItems = bottomNavItems.map((item) => {
+    if (item.path === '/') {
+      if (isPremium) {
+        return {
+          ...item,
+          icon: (
+            <Box
+              component="img"
+              src="/Beaten/goldlogo.png"
+              alt="Beaten Gold Logo"
+              className="bottom-nav-home-img"
+              sx={{
+                width: 50,
+                height: 50,
+                objectFit: 'contain',
+                display: 'block',
+                mx: 'auto',
+              }}
+              onError={e => { e.target.onerror = null; e.target.src = "/Beaten/logo.png"; }}
+            />
+          ),
+        };
+      } else {
+        return {
+          ...item,
+          icon: (
+            <Box
+              component="img"
+              src="/Beaten/whitelogo.png"
+              alt="Beaten White Logo"
+              className="bottom-nav-home-img"
+              sx={{
+                width: 50,
+                height: 50,
+                objectFit: 'contain',
+                display: 'block',
+                mx: 'auto',
+              }}
+              onError={e => { e.target.onerror = null; e.target.src = "/Beaten/logo.png"; }}
+            />
+          )
+        };
+      }
+    }
+    return item;
+  });
 
   return (
     <Paper
@@ -117,7 +175,7 @@ const BottomNav = () => {
           }
         }}
       >
-        {bottomNavItems.map((item) => (
+        {updatedBottomNavItems.map((item) => (
           <BottomNavigationAction
             key={item.path}
             label={item.name}

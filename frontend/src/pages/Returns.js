@@ -44,6 +44,14 @@ import InfoIcon from '@mui/icons-material/Info';
 
 const PLACEHOLDER_IMAGE = "https://via.placeholder.com/80x80?text=Product";
 
+// Correct placement for getImageUrl helper
+const getImageUrl = (img) => {
+  if (!img) return PLACEHOLDER_IMAGE;
+  if (img.startsWith('http')) return img;
+  if (img.startsWith('photo-')) return `https://images.unsplash.com/${img}`;
+  return `/images/${img}`;
+};
+
 // Define matte black colors
 const matteColors = {
   900: "#1a1a1a",
@@ -249,50 +257,50 @@ const Returns = ({ mode }) => {
           {sortedReturns.map((ret) => {
             // Determine status for stepper and color
             let stepIndex = 0;
-            let cardBg = statusColors.pending;
+            let cardBg = '#fff'; // White card like Orders
             let chipColor = statusChipColors.pending;
             let chipLabel = statusLabels.pending;
             if (ret.status === 'approved') {
               stepIndex = 1;
-              cardBg = statusColors.approved;
               chipColor = statusChipColors.approved;
               chipLabel = statusLabels.approved;
             }
             if (ret.status === 'rejected' || ret.status === 'return_rejected') {
               stepIndex = 0;
-              cardBg = statusColors.pending;
               chipColor = 'error';
               chipLabel = 'Return Rejected';
             }
             if (ret.received) {
               stepIndex = 2;
-              cardBg = statusColors.completed;
               chipColor = statusChipColors.completed;
               chipLabel = statusLabels.completed;
             }
             return (
               <Grid item xs={12} sm={12} md={10} lg={8} key={ret._id} sx={{ mx: 'auto' }}>
                 <Paper
-                  elevation={2}
+                  elevation={3}
                   sx={{
-                    borderRadius: 4,
-                    p: 3,
-                    bgcolor: cardBg,
+                    borderRadius: 3,
+                    p: { xs: 2.5, sm: 4 },
                     boxShadow: '0 2px 12px rgba(60,60,60,0.07)',
                     minHeight: 220,
                     mb: 2,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 2,
+                    gap: 2.5,
+                    bgcolor: '#fff',
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar sx={{ width: 56, height: 56, bgcolor: '#f5f5f5', border: '2px solid #e0e0e0' }}>
-                        <Inventory2OutlinedIcon fontSize="large" />
-                      </Avatar>
+                  <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', sm: 'auto' }, mb: { xs: 2, sm: 0 } }}>
+                      <Avatar
+                        src={getImageUrl(ret.productImage || ret.image)}
+                        alt={ret.productName || 'Product Name'}
+                        sx={{ width: { xs: 72, md: 64 }, height: { xs: 72, md: 64 }, borderRadius: 2, bgcolor: '#fafafa', border: '2px solid #e0e0e0', mr: 2 }}
+                        onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
+                      />
                       <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
                           {ret.productName || 'Product Name'}
                         </Typography>
                         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -307,7 +315,7 @@ const Returns = ({ mode }) => {
                       label={chipLabel}
                       color={chipColor}
                       icon={ret.status === 'rejected' || ret.status === 'return_rejected' ? <RejectedIcon /> : (stepIndex === 2 ? <CheckCircleIcon /> : (stepIndex === 1 ? <InfoIcon /> : <PendingIcon />))}
-                      sx={{ fontWeight: 600, fontSize: 15, borderRadius: 2, px: 1.5, py: 0.5 }}
+                      sx={{ fontWeight: 600, fontSize: 15, borderRadius: 2, px: 1.5, py: 0.5, minWidth: 120, textAlign: 'center' }}
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', mb: 1 }}>
