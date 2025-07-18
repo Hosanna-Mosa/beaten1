@@ -20,6 +20,7 @@ import {
   IconButton,
   Grid,
   ButtonGroup,
+  InputAdornment,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
@@ -72,6 +73,7 @@ const Login = () => {
   const [otpVerifyLoading, setOtpVerifyLoading] = useState(false);
   const [otpVerifyError, setOtpVerifyError] = useState("");
   const [loginMode, setLoginMode] = useState("email"); // "email" or "otp"
+  const [isPhone, setIsPhone] = useState(false);
 
   const from = location.state?.from?.pathname || "/";
 
@@ -331,6 +333,19 @@ const Login = () => {
     );
   };
 
+  const handleOtpInputChange = (e) => {
+    const value = e.target.value;
+    // If first character is a digit, treat as phone
+    if (/^\d/.test(value)) {
+      setIsPhone(true);
+      // Remove any non-digit characters
+      setOtpInput(value.replace(/\D/g, ""));
+    } else {
+      setIsPhone(false);
+      setOtpInput(value);
+    }
+  };
+
   return (
     <Container maxWidth="sm">
       <ToastContainer
@@ -475,14 +490,24 @@ const Login = () => {
                 <TextField
                   label="Email or Phone"
                   value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value)}
+                  onChange={handleOtpInputChange}
                   fullWidth
                   margin="normal"
                   InputProps={{
-                    startAdornment: (
-                      <PhoneIphoneIcon sx={{ color: "action.active", mr: 1 }} />
+                    startAdornment: isPhone ? (
+                      <>
+                        <InputAdornment position="start">+91</InputAdornment>
+                        <InputAdornment position="start">
+    
+                        </InputAdornment>
+                      </>
+                    ) : (
+                      <InputAdornment position="start">
+                        <EmailIcon sx={{ color: "action.active", mr: 1 }} />
+                      </InputAdornment>
                     ),
                     sx: { borderRadius: 3, fontSize: 18 },
+                    inputMode: isPhone ? "numeric" : "text",
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
@@ -777,8 +802,8 @@ const Login = () => {
               forgotPasswordStep === 1
                 ? handleForgotPasswordSendOtp
                 : forgotPasswordStep === 2
-                  ? handleForgotPasswordVerifyOtp
-                  : handleResetPassword
+                ? handleForgotPasswordVerifyOtp
+                : handleResetPassword
             }
             variant="contained"
             disabled={forgotPasswordLoading}

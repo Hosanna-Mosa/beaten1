@@ -4,14 +4,14 @@ const crypto = require("crypto");
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-  host: 'smtp.hostinger.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // use your new password here
-  },
-});
+    host: "smtp.hostinger.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS, // use your new password here
+    },
+  });
 };
 
 // Generate OTP
@@ -46,7 +46,9 @@ const sendOTPEmail = async (
           ? "Admin Password Reset OTP - BEATEN"
           : "Password Reset OTP - BEATEN";
       heading = "Password Reset OTP";
-      message = `We received a request to reset your password for your ${userType === "admin" ? "admin" : ""} account. Use the following OTP to complete the password reset process:`;
+      message = `We received a request to reset your password for your ${
+        userType === "admin" ? "admin" : ""
+      } account. Use the following OTP to complete the password reset process:`;
     }
 
     const htmlContent = `
@@ -159,7 +161,9 @@ const sendOTPEmail = async (
     `;
 
     const mailOptions = {
-      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: email,
       subject: subject,
       html: htmlContent,
@@ -299,7 +303,9 @@ const sendContactFormEmail = async (contactData) => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN Contact Form" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN Contact Form" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: process.env.ADMIN_CONTACT_MAIL || "laptoptest7788@gmail.com", // Admin email
       subject: `[Contact Form] ${subject} - From ${name}`,
       html: htmlContent,
@@ -381,7 +387,9 @@ const sendPasswordResetSuccessEmail = async (email, userType = "user") => {
           
           <p>Hello,</p>
           
-          <p>Your ${userType === "admin" ? "admin" : ""} account password has been successfully reset.</p>
+          <p>Your ${
+            userType === "admin" ? "admin" : ""
+          } account password has been successfully reset.</p>
           
           <p>If you did not perform this action, please contact our support team immediately as your account may have been compromised.</p>
           
@@ -430,11 +438,15 @@ const sendOrderStatusEmail = async (email, status, orderId, userName) => {
       delivered: "Your order has been delivered!",
       cancelled: "Your order has been cancelled.",
     };
-    const subject = `Order #${orderId} Status Update: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+    const subject = `Order #${orderId} Status Update: ${
+      status.charAt(0).toUpperCase() + status.slice(1)
+    }`;
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9;">
         <h2 style="color: #1a1a1a;">Hi ${userName || ""},</h2>
-        <p>Your order <b>#${orderId}</b> status has been updated to <b>${status.charAt(0).toUpperCase() + status.slice(1)}</b>.</p>
+        <p>Your order <b>#${orderId}</b> status has been updated to <b>${
+      status.charAt(0).toUpperCase() + status.slice(1)
+    }</b>.</p>
         <p>${statusMessages[status] || "Order status updated."}</p>
         <p>Thank you for shopping with BEATEN!</p>
         <hr style="margin: 32px 0;" />
@@ -442,7 +454,9 @@ const sendOrderStatusEmail = async (email, status, orderId, userName) => {
       </div>
     `;
     const mailOptions = {
-      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: email,
       subject,
       html: htmlContent,
@@ -523,7 +537,9 @@ const sendReturnPlacedEmail = async (
       </div>
     `;
     const mailOptions = {
-      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: email,
       subject,
       html: htmlContent,
@@ -569,7 +585,9 @@ const sendReturnStatusEmail = async (
       </div>
     `;
     const mailOptions = {
-      from: `"BEATEN" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: email,
       subject,
       html: htmlContent,
@@ -703,7 +721,9 @@ const sendAdminOrderNotification = async (orderData) => {
             <p><strong>Shipping Address:</strong></p>
             <p style="margin-left: 20px;">
               ${shippingAddress?.address || "N/A"}<br>
-              ${shippingAddress?.city || ""}, ${shippingAddress?.state || ""} ${shippingAddress?.postalCode || ""}<br>
+              ${shippingAddress?.city || ""}, ${shippingAddress?.state || ""} ${
+      shippingAddress?.postalCode || ""
+    }<br>
               ${shippingAddress?.country || "India"}
             </p>
           </div>
@@ -716,7 +736,9 @@ const sendAdminOrderNotification = async (orderData) => {
               <div class="order-item">
                 <div>
                   <strong>${item.name}</strong><br>
-                  <small>Size: ${item.size || "N/A"} | Quantity: ${item.quantity}</small>
+                  <small>Size: ${item.size || "N/A"} | Quantity: ${
+                  item.quantity
+                }</small>
                 </div>
                 <div>₹${item.price}</div>
               </div>
@@ -750,7 +772,9 @@ const sendAdminOrderNotification = async (orderData) => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN Order System" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN Order System" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: process.env.ADMIN_ORDER_MAIL || "orders@beaten.in", // Admin email
       subject: `🛒 New Order #${orderId} - ${userName}`,
       html: htmlContent,
@@ -876,7 +900,9 @@ const sendAdminRegistrationNotification = async (userData) => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN Registration System" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN Registration System" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: process.env.EMAIL_USER || "laptoptest7788@gmail.com", // Admin email
       subject: `👤 New User Registration - ${userName}`,
       html: htmlContent,
@@ -1010,7 +1036,9 @@ const sendAdminOrderStatusNotification = async (orderData) => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN Order System" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN Order System" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: process.env.ADMIN_SHIPPING_MAIL || "laptoptest7788@gmail.com", // Admin email
       subject: `📦 Order Status Update #${orderId} - ${newStatus}`,
       html: htmlContent,
@@ -1146,7 +1174,9 @@ const sendAdminReturnNotification = async (returnData) => {
     `;
 
     const mailOptions = {
-      from: `"BEATEN Return System" <${process.env.EMAIL_USER || "laptoptest7788@gmail.com"}>`,
+      from: `"BEATEN Return System" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
       to: process.env.ADMIN_RETURN_MAIL || "laptoptest7788@gmail.com", // Admin email
       subject: `🔄 New Return Request - Order #${orderId}`,
       html: htmlContent,
@@ -1158,6 +1188,103 @@ const sendAdminReturnNotification = async (returnData) => {
   } catch (error) {
     console.error("Error sending admin return notification: ", error);
     return false; // Don't throw error as admin notification is not critical
+  }
+};
+
+// Send user notification email
+const sendUserNotificationEmail = async (email, message, link = null) => {
+  try {
+    const transporter = createTransporter();
+    const subject = "New Notification - BEATEN";
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>New Notification</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+          }
+          .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+          }
+          .notification-message {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #222;
+          }
+          .notification-link {
+            display: inline-block;
+            background-color: #1a1a1a;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">BEATEN</div>
+            <h2>New Notification</h2>
+          </div>
+          <div class="notification-message">${message}</div>
+          ${
+            link
+              ? `<div style='text-align:center;'><a class='notification-link' href='${link}'>View Details</a></div>`
+              : ""
+          }
+          <div class="footer">
+            <p>Best regards,<br>The BEATEN Team</p>
+            <p>This is an automated email. Please do not reply to this message.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    const mailOptions = {
+      from: `"BEATEN" <${
+        process.env.EMAIL_USER || "laptoptest7788@gmail.com"
+      }>`,
+      to: email,
+      subject: subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("User notification email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending user notification email:", error);
+    throw new Error("Failed to send user notification email");
   }
 };
 
@@ -1176,4 +1303,5 @@ module.exports = {
   sendAdminRegistrationNotification,
   sendAdminOrderStatusNotification,
   sendAdminReturnNotification,
+  sendUserNotificationEmail,
 };

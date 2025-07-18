@@ -134,18 +134,24 @@ const Orders = ({ mode }) => {
         axios.get(buildApiUrl(API_ENDPOINTS.ORDERS_MY_ORDERS), {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${process.env.REACT_APP_API_URL || "http://localhost:8000/api"}/user/returns`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        axios.get(
+          `${
+            process.env.REACT_APP_API_URL || "http://localhost:8000/api"
+          }/user/returns`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        ),
       ]);
       const ordersData = ordersRes.data.data || [];
       const returnsData = returnsRes.data.data || [];
       // Attach returnStatus to each order item if a matching return exists
-      ordersData.forEach(order => {
-        order.orderItems.forEach(item => {
-          const foundReturn = returnsData.find(r =>
-            r.orderId === order._id &&
-            (r.productId === item.product || r.productId === item._id)
+      ordersData.forEach((order) => {
+        order.orderItems.forEach((item) => {
+          const foundReturn = returnsData.find(
+            (r) =>
+              r.orderId === order._id &&
+              (r.productId === item.product || r.productId === item._id)
           );
           item.returnStatus = foundReturn ? foundReturn.status : undefined;
         });
@@ -265,7 +271,9 @@ const Orders = ({ mode }) => {
   };
 
   // Sort orders by createdAt descending (latest first)
-  const sortedOrders = [...orders].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const sortedOrders = [...orders].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
   return (
     <Container
@@ -454,7 +462,7 @@ const Orders = ({ mode }) => {
                             Return/Exchange
                           </Button>
                         )}
-                        {item.returnStatus === 'return_rejected' && (
+                        {item.returnStatus === "return_rejected" && (
                           <Chip
                             label="Return Rejected"
                             color="error"
@@ -462,7 +470,7 @@ const Orders = ({ mode }) => {
                             sx={{ ml: 1, fontWeight: 600 }}
                           />
                         )}
-                        {item.returnStatus === 'approved' && (
+                        {item.returnStatus === "approved" && (
                           <Chip
                             label="Return Accepted"
                             color="success"
@@ -903,7 +911,7 @@ const Orders = ({ mode }) => {
                         >
                           {item.name}
                         </Typography>
-                        {item.returnStatus === 'return_rejected' && (
+                        {item.returnStatus === "return_rejected" && (
                           <Chip
                             label="Return Rejected"
                             color="error"
@@ -911,7 +919,7 @@ const Orders = ({ mode }) => {
                             sx={{ ml: 1, fontWeight: 600 }}
                           />
                         )}
-                        {item.returnStatus === 'approved' && (
+                        {item.returnStatus === "approved" && (
                           <Chip
                             label="Return Accepted"
                             color="success"
@@ -1194,10 +1202,10 @@ const Orders = ({ mode }) => {
                   selectedOrder.status === "delivered"
                     ? 4
                     : selectedOrder.status === "shipped"
-                      ? 2
-                      : selectedOrder.status === "processing"
-                        ? 1
-                        : 0
+                    ? 2
+                    : selectedOrder.status === "processing"
+                    ? 1
+                    : 0
                 }
                 orientation="vertical"
               >

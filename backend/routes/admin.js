@@ -18,6 +18,7 @@ const {
   adminPasswordChangeValidation,
 } = require("../middleware/validation");
 const { sendReturnStatusEmail } = require("../utils/emailService");
+const { broadcastMessage } = require("../controllers/messageController");
 
 // Public routes
 router.post("/register", adminRegisterValidation, register);
@@ -45,9 +46,8 @@ router.get("/dashboard", dashboardAnalytics);
 // List all returns
 router.get("/returns", protectAdmin, async (req, res) => {
   try {
-
     // Aggregate all returns from all users
-    const users = await User.find({}, 'email phone returns');
+    const users = await User.find({}, "email phone returns");
 
     const allReturns = [];
     users.forEach((user) => {
@@ -57,8 +57,7 @@ router.get("/returns", protectAdmin, async (req, res) => {
           userId: user._id,
 
           user: { email: user.email, phone: user.phone },
-          ...ret.toObject()
-
+          ...ret.toObject(),
         });
       });
     });
@@ -72,7 +71,9 @@ router.get("/returns", protectAdmin, async (req, res) => {
 router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
-    if (!["pending", "approved", "rejected", "return_rejected"].includes(status)) {
+    if (
+      !["pending", "approved", "rejected", "return_rejected"].includes(status)
+    ) {
       return res.status(400).json({ message: "Invalid status" });
     }
     // Find the user and return by return _id
@@ -81,7 +82,7 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
     const ret = user.returns.id(req.params.id);
     if (!ret) return res.status(404).json({ message: "Return not found" });
     ret.status = status;
-    if (status === 'return_rejected' && typeof rejectionReason === 'string') {
+    if (status === "return_rejected" && typeof rejectionReason === "string") {
       ret.rejectionReason = rejectionReason;
     }
     await user.save();
@@ -92,9 +93,13 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
       const product = await Product.findById(ret.productId);
       if (product) {
         // Increase stockQuantity by the returned quantity
-        product.stockQuantity = (product.stockQuantity || 0) + (ret.quantity || 1);
+        product.stockQuantity =
+          (product.stockQuantity || 0) + (ret.quantity || 1);
         // Decrease soldCount by the returned quantity, but not below 0
-        product.soldCount = Math.max(0, (product.soldCount || 0) - (ret.quantity || 1));
+        product.soldCount = Math.max(
+          0,
+          (product.soldCount || 0) - (ret.quantity || 1)
+        );
         await product.save();
       }
     }
@@ -114,19 +119,22 @@ router.patch("/returns/:id/status", protectAdmin, async (req, res) => {
 });
 
 // Mark return as received
-router.patch('/returns/:id/received', protectAdmin, async (req, res) => {
+router.patch("/returns/:id/received", protectAdmin, async (req, res) => {
   try {
     // Find the user and return by return _id
-    const user = await User.findOne({ 'returns._id': req.params.id });
-    if (!user) return res.status(404).json({ message: 'Return not found' });
+    const user = await User.findOne({ "returns._id": req.params.id });
+    if (!user) return res.status(404).json({ message: "Return not found" });
     const ret = user.returns.id(req.params.id);
-    if (!ret) return res.status(404).json({ message: 'Return not found' });
+    if (!ret) return res.status(404).json({ message: "Return not found" });
     ret.received = true;
     await user.save();
-    res.json({ success: true, message: 'Return marked as received' });
+    res.json({ success: true, message: "Return marked as received" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
+// Broadcast message to all users (admin only)
+router.post("/messages/broadcast", broadcastMessage);
 
 module.exports = router;

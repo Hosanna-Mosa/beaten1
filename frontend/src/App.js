@@ -20,6 +20,8 @@ import Shipping from "./pages/Shipping";
 import Returns from "./pages/Returns";
 import SizeGuide from "./pages/SizeGuide";
 import Payment from "./pages/Payment";
+import Messages from "./pages/Messages";
+import Notifications from "./pages/Notifications";
 
 // Import Roboto font from Google Fonts
 import "@fontsource/roboto/300.css";
@@ -271,6 +273,14 @@ const App = () => {
                       <Route
                         path="checkout"
                         element={<Checkout mode={mode} />}
+                      />
+                      <Route
+                        path="messages"
+                        element={<Messages mode={mode} />}
+                      />
+                      <Route
+                        path="notifications"
+                        element={<Notifications mode={mode} />}
                       />
 
                       {/* Previously Protected Routes - Now Public */}

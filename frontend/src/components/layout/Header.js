@@ -37,6 +37,13 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import HeroSearchBar from "../common/HeroSearchBar";
 import { keyframes } from "@mui/system";
+import axios from "axios";
+import {
+  API_ENDPOINTS,
+  getApiConfig,
+  handleApiResponse,
+  handleApiError,
+} from "../../utils/api";
 
 const shine = keyframes`
   0% { background-position: -200% 0; }
@@ -56,11 +63,11 @@ const mobilePages = {
   main: [
     { name: "HOME", path: "/" },
     {
-      name: "BEATEN EXCLUSIVE COLLECTION",
+      name: "BEATEN EXCLUSIVE",
       path: "/products?collection=Beaten%20Exclusive%20Collection",
     },
     {
-      name: "BEATEN SINGNATURE COLLECTION",
+      name: "BEATEN SINGNATURE",
       path: "/products?collection=Beaten%20Signature%20Collection",
     },
     { name: "BEATEN CLUB", path: "/premium" },
@@ -69,12 +76,12 @@ const mobilePages = {
     { name: "MY ACCOUNT", path: "/profile" },
     { name: "MY ORDERS", path: "/orders" },
     { name: "WISHLIST", path: "/wishlist" },
-    { name: "RETURN / EXCHANGE", path: "/return-exchange" },
+    { name: "RETURN / EXCHANGE", path: "/returns" },
   ],
   support: [
     { name: "ABOUT", path: "/about" },
     { name: "CONTACT", path: "/contact" },
-    { name: "NOTIFICATIONS", path: "/alerts" },
+    { name: "NOTIFICATIONS", path: "/notifications" },
   ],
 };
 
@@ -114,6 +121,27 @@ const Header = ({ mode, toggleColorMode }) => {
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUnreadCount(0);
+        return;
+      }
+      try {
+        const response = await axios(
+          getApiConfig(API_ENDPOINTS.USER_NOTIFICATIONS_UNREAD_COUNT)
+        );
+        const data = handleApiResponse(response);
+        setUnreadCount(data.count || 0);
+      } catch (err) {
+        setUnreadCount(0);
+      }
+    };
+    fetchUnreadCount();
+  }, []);
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -602,6 +630,20 @@ const Header = ({ mode, toggleColorMode }) => {
                 <CartIcon sx={{ fontSize: 26 }} />
               </Badge>
             </IconButton>
+
+            {/* Notifications Icon - only show on md and up */}
+            {user && (
+              <IconButton
+                color="inherit"
+                onClick={() => navigate("/notifications")}
+                sx={{ p: 1, display: { xs: "none", md: "flex" } }}
+              >
+                <Badge badgeContent={unreadCount} color="error">
+                  <NotificationsIcon sx={{ fontSize: 26 }} />
+                </Badge>
+              </IconButton>
+            )}
+
             {/* Dark/Light Mode Toggle - Desktop Only */}
             <Box
               sx={{

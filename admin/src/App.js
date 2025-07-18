@@ -21,11 +21,12 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
- import Customers from './pages/Customers';
+import Customers from "./pages/Customers";
 import Promotions from "./pages/Promotions";
 import Returns from "./pages/Returns";
 import DataEntry from "./pages/DataEntry";
 import FooterInfo from "./pages/FooterInfo";
+import Marketing from "./pages/Marketing";
 
 // Create theme
 const getInitialMode = () => {
@@ -98,6 +99,7 @@ function App() {
             <Route path="returns" element={<Returns />} />
             <Route path="data-entry" element={<DataEntry />} />
             <Route path="footer-info" element={<FooterInfo />} />
+            <Route path="marketing" element={<Marketing />} />
           </Route>
         </Routes>
 
