@@ -118,10 +118,25 @@ router.get("/returns", protect, async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Return the user's returns array
+    // Populate product info for each return
+    const Product = require("../models/Product");
+    const returnsWithProduct = await Promise.all(
+      (user.returns || []).map(async (ret) => {
+        let product = null;
+        try {
+          product = await Product.findById(ret.productId);
+        } catch (e) {}
+        return {
+          ...ret.toObject(),
+          productName: product ? product.name : "Product Name",
+          productImage: product ? product.image : "",
+        };
+      })
+    );
+
     res.json({
       success: true,
-      data: user.returns || [],
+      data: returnsWithProduct,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });

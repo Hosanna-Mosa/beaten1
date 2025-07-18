@@ -182,7 +182,19 @@ const Premium = ({ mode }) => {
           } catch (err) {
             // Optionally handle backend error
           }
-          // Redirect to profile page after successful subscription
+          // Fetch latest user profile and update context before navigating
+          try {
+            const profileRes = await axios.get(
+              `${BASE_URL}/user/profile`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (profileRes.data && profileRes.data.data) {
+              updateProfile && updateProfile(profileRes.data.data);
+            }
+          } catch (err) {
+            // Optionally handle profile fetch error
+          }
+          // Redirect to profile page after successful subscription and context update
           navigate("/profile");
         },
         prefill: {

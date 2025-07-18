@@ -413,69 +413,69 @@ const Profile = ({ mode }) => {
                 mb: 4,
               }}
             >
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<EditIcon />}
-                sx={{
-                  position: "absolute",
-                  top: 24,
-                  right: 24,
-                  borderRadius: 8,
-                  textTransform: "none",
-                  fontWeight: 500,
-                  boxShadow: 2,
-                }}
-                onClick={handleEditProfile}
-              >
-                Edit Profile
-              </Button>
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
                 Personal Information
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
-                      Name:
-                    </Typography>
-                    <Typography sx={{ ml: 1 }}>{profileUser.name}</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* Name */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, bgcolor: '#f8f9fa', borderRadius: 2, p: 1.5 }}>
+                  <PersonIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.98rem' }}>Name</Typography>
+                    <Typography sx={{ fontSize: '0.97rem', color: 'text.secondary' }}>{profileUser.name}</Typography>
                   </Box>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <CakeIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
-                      Date of Birth:
-                    </Typography>
-                    <Typography sx={{ ml: 1 }}>
-                      {formatDateOfBirth(profileUser.dob)}
-                    </Typography>
+                </Box>
+                {/* Date of Birth */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, bgcolor: '#f8f9fa', borderRadius: 2, p: 1.5 }}>
+                  <CakeIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.98rem' }}>Date of Birth</Typography>
+                    <Typography sx={{ fontSize: '0.97rem', color: 'text.secondary' }}>{formatDateOfBirth(profileUser.dob)}</Typography>
                   </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <PhoneIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
-                      Phone:
-                    </Typography>
-                    <Typography sx={{ ml: 1 }}>{profileUser.phone}</Typography>
+                </Box>
+                {/* Phone */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, bgcolor: '#f8f9fa', borderRadius: 2, p: 1.5 }}>
+                  <PhoneIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.98rem' }}>Phone</Typography>
+                    <Typography sx={{ fontSize: '0.97rem', color: 'text.secondary' }}>{profileUser.phone}</Typography>
                   </Box>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <EmailIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
-                      Email:
-                    </Typography>
-                    <Typography sx={{ ml: 1 }}>{profileUser.email}</Typography>
+                </Box>
+                {/* Email */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, bgcolor: '#f8f9fa', borderRadius: 2, p: 1.5 }}>
+                  <EmailIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.98rem' }}>Email</Typography>
+                    <Box sx={{ maxWidth: '220px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                      <Typography sx={{ fontSize: '0.97rem', color: 'text.secondary', display: 'inline-block' }}>{profileUser.email}</Typography>
+                    </Box>
                   </Box>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <PersonIcon sx={{ mr: 1, color: "primary.main" }} />
-                    <Typography sx={{ fontWeight: 500, minWidth: 90 }}>
-                      Gender:
-                    </Typography>
-                    <Typography sx={{ ml: 1 }}>{profileUser.gender}</Typography>
+                </Box>
+                {/* Gender */}
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, bgcolor: '#f8f9fa', borderRadius: 2, p: 1.5 }}>
+                  <PersonIcon sx={{ color: 'primary.main', mt: 0.5 }} />
+                  <Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.98rem' }}>Gender</Typography>
+                    <Typography sx={{ fontSize: '0.97rem', color: 'text.secondary' }}>{profileUser.gender}</Typography>
                   </Box>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
+              {/* Edit Profile button remains below */}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<EditIcon />}
+                    sx={{
+                      borderRadius: 8,
+                      textTransform: "none",
+                      fontWeight: 500,
+                      boxShadow: 2,
+                      mt: 2,
+                    }}
+                    onClick={handleEditProfile}
+                  >
+                    Edit Profile
+                  </Button>
             </Paper>
             {/* Addresses */}
             <Paper

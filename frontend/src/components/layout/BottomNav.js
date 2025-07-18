@@ -30,7 +30,7 @@ const bottomNavItems = [
     icon: (
       <Box 
         component="img" 
-        src="/Beaten/Artboard 3 copy.png" 
+        src="/Beaten/goldlogo.png" 
         alt="Beaten Logo" 
         className="bottom-nav-home-img"
         sx={{
@@ -75,8 +75,8 @@ const BottomNav = () => {
           icon: (
             <Box
               component="img"
-              src="/Beaten/Artboard3copy3.png"
-              alt="Beaten Logo"
+              src="/Beaten/goldlogo.png"
+              alt="Beaten Gold Logo"
               className="bottom-nav-home-img"
               sx={{
                 width: 50,
@@ -92,7 +92,22 @@ const BottomNav = () => {
       } else {
         return {
           ...item,
-          icon: null // or you can set a different image for non-premium
+          icon: (
+            <Box
+              component="img"
+              src="/Beaten/whitelogo.png"
+              alt="Beaten White Logo"
+              className="bottom-nav-home-img"
+              sx={{
+                width: 50,
+                height: 50,
+                objectFit: 'contain',
+                display: 'block',
+                mx: 'auto',
+              }}
+              onError={e => { e.target.onerror = null; e.target.src = "/Beaten/logo.png"; }}
+            />
+          )
         };
       }
     }
