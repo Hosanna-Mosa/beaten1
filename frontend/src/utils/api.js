@@ -1,3 +1,4 @@
+import axios from "axios";
 // API Configuration
 export const API_BASE_URL =
   process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -94,6 +95,27 @@ export const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
+// Create a central Axios instance
+export const axiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Remove the request interceptor that redirects to login if no token
+// Instead, just attach the Authorization header if the token exists
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Helper function to get full API URL with auth headers
 export const getApiConfig = (endpoint, method = "GET", data = null) => {
