@@ -244,7 +244,13 @@ const Header = ({ mode, toggleColorMode }) => {
             }}
           >
             <ListItemText
-              primary={page.name}
+              primary={
+                isPremium ? (
+                  <span className="gold-shine">{page.name}</span>
+                ) : (
+                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                )
+              }
               sx={{
                 textAlign: "left",
                 pl: 1,
@@ -252,7 +258,6 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
-                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -291,7 +296,13 @@ const Header = ({ mode, toggleColorMode }) => {
             }}
           >
             <ListItemText
-              primary={page.name}
+              primary={
+                isPremium ? (
+                  <span className="gold-shine">{page.name}</span>
+                ) : (
+                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                )
+              }
               sx={{
                 textAlign: "left",
                 pl: 1,
@@ -299,7 +310,6 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
-                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -338,7 +348,13 @@ const Header = ({ mode, toggleColorMode }) => {
             }}
           >
             <ListItemText
-              primary={page.name}
+              primary={
+                isPremium ? (
+                  <span className="gold-shine">{page.name}</span>
+                ) : (
+                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                )
+              }
               sx={{
                 textAlign: "left",
                 pl: 1,
@@ -346,7 +362,6 @@ const Header = ({ mode, toggleColorMode }) => {
                   fontWeight: location.pathname === page.path ? 600 : 400,
                   letterSpacing: "0.1em",
                   fontSize: "0.95rem",
-                  color: isPremium ? goldColor : "white",
                 },
               }}
             />
@@ -368,7 +383,13 @@ const Header = ({ mode, toggleColorMode }) => {
           }}
         >
           <ListItemText
-            primary="CART"
+            primary={
+              isPremium ? (
+                <span className="gold-shine">CART</span>
+              ) : (
+                <span style={{ color: "white", fontWeight: 600 }}>CART</span>
+              )
+            }
             sx={{
               textAlign: "left",
               pl: 1,
@@ -376,7 +397,6 @@ const Header = ({ mode, toggleColorMode }) => {
                 fontWeight: location.pathname === "/cart" ? 600 : 400,
                 letterSpacing: "0.1em",
                 fontSize: "0.95rem",
-                color: isPremium ? goldColor : "white",
               },
             }}
           />

@@ -440,6 +440,76 @@ const Home = ({ mode }) => {
     );
   };
 
+  // Touch swipe state for hero slides
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [touchEndX, setTouchEndX] = useState(null);
+  // Mouse drag state for hero slides
+  const [mouseDownX, setMouseDownX] = useState(null);
+  const [mouseUpX, setMouseUpX] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Handle swipe gesture for hero slides
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches.length === 1) {
+      setTouchStartX(e.touches[0].clientX);
+      setTouchEndX(null);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches.length === 1) {
+      setTouchEndX(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX !== null && touchEndX !== null) {
+      const distance = touchEndX - touchStartX;
+      if (Math.abs(distance) > 40) {
+        if (distance < 0) {
+          // Swipe left, next slide
+          setCurrentSlide((prev) => (prev + 1) % slides.length);
+        } else {
+          // Swipe right, previous slide
+          setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+        }
+      }
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Handle mouse drag for hero slides (desktop)
+  const handleMouseDown = (e) => {
+    setMouseDownX(e.clientX);
+    setIsDragging(true);
+    setMouseUpX(null);
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      setMouseUpX(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging && mouseDownX !== null && mouseUpX !== null) {
+      const distance = mouseUpX - mouseDownX;
+      if (Math.abs(distance) > 40) {
+        if (distance < 0) {
+          // Drag left, next slide
+          setCurrentSlide((prev) => (prev + 1) % slides.length);
+        } else {
+          // Drag right, previous slide
+          setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+        }
+      }
+    }
+    setIsDragging(false);
+    setMouseDownX(null);
+    setMouseUpX(null);
+  };
+
   return (
     <Box
       sx={{
@@ -459,6 +529,13 @@ const Home = ({ mode }) => {
           overflow: "hidden",
           bgcolor: "black",
         }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         {slides.map((slide, index) => (
           <Box
@@ -982,9 +1059,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1028,9 +1106,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1074,9 +1153,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1120,9 +1200,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1166,9 +1247,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1212,9 +1294,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1258,9 +1341,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
@@ -1304,9 +1388,10 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "130px" : "320px",
+                      height: isMobile ? "180px" : "420px",
                       objectFit: "inherit",
                       display: "block",
+                      borderRadius: isMobile ? "12px" : "18px",
                     }}
                   />
                   <Button
