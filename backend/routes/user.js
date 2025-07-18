@@ -8,6 +8,12 @@ const {
   sendAdminReturnNotification,
 } = require("../utils/emailService");
 const { manualSubscribe } = require("../controllers/userController");
+const {
+  getUserMessages,
+  getUserNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+} = require("../controllers/messageController");
 
 // GET /api/user/profile
 router.get("/profile", protect, async (req, res) => {
@@ -132,7 +138,7 @@ router.get("/users", async (req, res) => {
   try {
     const allUsers = await User.find();
     console.log(allUsers);
-    
+
     if (!allUsers) return res.status(404).json({ message: "Users not found" });
     res.json({
       success: true,
@@ -145,5 +151,16 @@ router.get("/users", async (req, res) => {
 
 // POST /api/user/manual-subscribe - Manual subscription endpoint
 router.post("/manual-subscribe", protect, manualSubscribe);
+
+// Get all messages for the logged-in user
+router.get("/messages", protect, getUserMessages);
+// Get all notifications for the logged-in user
+router.get("/notifications", protect, getUserNotifications);
+
+// Get unread notification count for the logged-in user
+router.get("/notifications/unread-count", protect, getUnreadNotificationCount);
+
+// Mark a notification as read for the logged-in user
+router.patch("/notifications/:id/read", protect, markNotificationAsRead);
 
 module.exports = router;

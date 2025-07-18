@@ -4,7 +4,9 @@ export const API_BASE_URL =
 
 // Helper function to build API URLs
 export const buildApiUrl = (endpoint) => {
-  return `${API_BASE_URL}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  return `${API_BASE_URL}${
+    endpoint.startsWith("/") ? endpoint : `/${endpoint}`
+  }`;
 };
 
 // Common API endpoints
@@ -42,6 +44,12 @@ export const API_ENDPOINTS = {
   USER_RETURNS: "/user/returns",
   USER_RETURN_SUBMIT: "/user/return",
   USER_MANUAL_SUBSCRIBE: "/user/manual-subscribe",
+
+  // Messages & Notifications
+  USER_MESSAGES: "/user/messages",
+  USER_NOTIFICATIONS: "/user/notifications",
+  USER_NOTIFICATION_MARK_READ: (id) => `/user/notifications/${id}/read`,
+  USER_NOTIFICATIONS_UNREAD_COUNT: "/user/notifications/unread-count",
 
   // Addresses
   USER_ADDRESSES: "/user/addresses",

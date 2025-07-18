@@ -21,13 +21,14 @@ import {
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import InfoIcon from "@mui/icons-material/Info";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
   { text: "Products", icon: <ProductsIcon />, path: "/products" },
   { text: "Orders", icon: <OrdersIcon />, path: "/orders" },
-  { text: 'Customers', icon: <CustomersIcon />, path: '/customers' },
+  { text: "Customers", icon: <CustomersIcon />, path: "/customers" },
   { text: "Coupons", icon: <PromotionsIcon />, path: "/promotions" },
   {
     text: "Returns",
@@ -43,6 +44,11 @@ const menuItems = [
     text: "Footer Info",
     icon: <InfoIcon />,
     path: "/footer-info",
+  },
+  {
+    text: "Marketing",
+    icon: <CampaignIcon />,
+    path: "/marketing",
   },
 ];
 
