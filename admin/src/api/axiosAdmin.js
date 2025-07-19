@@ -48,8 +48,22 @@ export const adminAuthAPI = {
 
 // Dashboard APIs
 export const dashboardAPI = {
-  // Get all dashboard analytics in one call
+  // Get all dashboard analytics in one call (Primary approach)
   getDashboardAnalytics: () => api.get("/admin/dashboard"),
+
+  // Section-wise APIs for granular loading and error handling
+  getSalesAnalytics: () => api.get("/admin/dashboard/sales"),
+  getOrdersAnalytics: () => api.get("/admin/dashboard/orders"),
+  getProductAnalytics: () => api.get("/admin/dashboard/products"),
+  getCustomerAnalytics: () => api.get("/admin/dashboard/customers"),
+  getSubscriptionAnalytics: () => api.get("/admin/dashboard/subscriptions"),
+
+  // Real-time updates for specific sections
+  getRealTimeOrders: () => api.get("/admin/dashboard/orders/realtime"),
+  getRealTimeSales: () => api.get("/admin/dashboard/sales/realtime"),
+
+  // Cached data for better performance
+  getCachedAnalytics: () => api.get("/admin/dashboard/cached"),
 };
 
 // Products APIs

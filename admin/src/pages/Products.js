@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Box,
   Paper,
@@ -107,6 +108,7 @@ const sortOptions = [
 ];
 
 function Products() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -159,6 +161,16 @@ function Products() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Check for URL parameters to automatically open add product dialog
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "add") {
+      setOpenDialog(true);
+      // Clear the URL parameter after opening the dialog
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Reset page when filters change
   useEffect(() => {

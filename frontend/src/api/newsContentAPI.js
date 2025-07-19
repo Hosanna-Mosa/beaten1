@@ -52,3 +52,12 @@ export const fetchCollectionImages = async (id) => {
     throw handleApiError(error);
   }
 };
+
+export const fetchMobileCollectionImages = async (id) => {
+  try {
+    const response = await axiosInstance.get(API_ENDPOINTS.MOBILE_COLLECTION_IMAGES(id));
+    return handleApiResponse(response);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+};

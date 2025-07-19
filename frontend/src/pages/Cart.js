@@ -88,7 +88,13 @@ const Cart = ({ mode }) => {
     if (!item.product || typeof item.product.price !== "number") return total;
     return total + item.product.price * item.quantity;
   }, 0);
-  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
+  const discount =
+    user?.isPremium && new Date(user.premiumExpiry) > new Date()
+      ? 249
+      : user?.subscription?.isSubscribed &&
+        new Date(user.subscription.subscriptionExpiry) > new Date()
+      ? 249
+      : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
 
@@ -189,7 +195,7 @@ const Cart = ({ mode }) => {
               fontWeight: 600,
               fontSize: "1.1rem",
               boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-              '&:hover': { background: matteColors[800] },
+              "&:hover": { background: matteColors[800] },
             }}
           >
             Continue Shopping
@@ -210,7 +216,6 @@ const Cart = ({ mode }) => {
           <Box>
             {cart.map((item, idx) =>
               !item.product || typeof item.product.price !== "number" ? null : (
-                
                 <Card
                   key={item.product._id + item.size + item.color}
                   sx={{
@@ -223,7 +228,7 @@ const Cart = ({ mode }) => {
                     boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                     background: matteColors[50],
                     transition: "box-shadow 0.2s",
-                    '&:hover': { boxShadow: "0 6px 24px rgba(0,0,0,0.10)" },
+                    "&:hover": { boxShadow: "0 6px 24px rgba(0,0,0,0.10)" },
                   }}
                 >
                   {/* Product Image */}
@@ -245,31 +250,62 @@ const Cart = ({ mode }) => {
                   />
                   {/* Product Details & Actions */}
                   <Box sx={{ flex: 1, width: "100%" }}>
-                    <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, alignItems: { sm: "center" }, justifyContent: "space-between" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { sm: "center" },
+                        justifyContent: "space-between",
+                      }}
+                    >
                       <Box>
-                        <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5 }}>
+                        <Typography
+                          variant="h6"
+                          fontWeight={700}
+                          sx={{ mb: 0.5 }}
+                        >
                           {item.product.name}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                          {item.product.category} {item.size && `| Size: ${item.size}`} {item.color && `| Color: ${item.color}`}
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ mb: 0.5 }}
+                        >
+                          {item.product.category}{" "}
+                          {item.size && `| Size: ${item.size}`}{" "}
+                          {item.color && `| Color: ${item.color}`}
                         </Typography>
-                        <Typography variant="body2" fontWeight={600} color="primary.main" sx={{ mb: 1 }}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          color="primary.main"
+                          sx={{ mb: 1 }}
+                        >
                           {formatPrice(item.product.price)} x {item.quantity}
                         </Typography>
                       </Box>
                       {/* Actions */}
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: { xs: 2, sm: 0 } }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: { xs: 2, sm: 0 },
+                        }}
+                      >
                         <Tooltip title="Decrease quantity">
                           <span>
                             <IconButton
                               size="small"
-                              onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                              onClick={() =>
+                                handleQuantityChange(item, item.quantity - 1)
+                              }
                               sx={{
                                 border: "1px solid #ddd",
                                 borderRadius: 2,
                                 background: "white",
                                 color: matteColors[900],
-                                '&:hover': { background: matteColors[100] },
+                                "&:hover": { background: matteColors[100] },
                                 p: 0.5,
                               }}
                               disabled={item.quantity <= 1}
@@ -294,13 +330,15 @@ const Cart = ({ mode }) => {
                         <Tooltip title="Increase quantity">
                           <IconButton
                             size="small"
-                            onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                            onClick={() =>
+                              handleQuantityChange(item, item.quantity + 1)
+                            }
                             sx={{
                               border: "1px solid #ddd",
                               borderRadius: 2,
                               background: "white",
                               color: matteColors[900],
-                              '&:hover': { background: matteColors[100] },
+                              "&:hover": { background: matteColors[100] },
                               p: 0.5,
                             }}
                           >
@@ -317,14 +355,20 @@ const Cart = ({ mode }) => {
                               background: "white",
                               color: matteColors.danger,
                               ml: 1,
-                              '&:hover': { background: matteColors[100] },
+                              "&:hover": { background: matteColors[100] },
                               p: 0.5,
                             }}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title={isInWishlist(item.product._id) ? "Remove from wishlist" : "Move to wishlist"}>
+                        <Tooltip
+                          title={
+                            isInWishlist(item.product._id)
+                              ? "Remove from wishlist"
+                              : "Move to wishlist"
+                          }
+                        >
                           <IconButton
                             size="small"
                             onClick={() => handleWishlistToggle(item)}
@@ -334,11 +378,15 @@ const Cart = ({ mode }) => {
                               background: "white",
                               color: matteColors.accent,
                               ml: 1,
-                              '&:hover': { background: matteColors[100] },
+                              "&:hover": { background: matteColors[100] },
                               p: 0.5,
                             }}
                           >
-                            {isInWishlist(item.product._id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                            {isInWishlist(item.product._id) ? (
+                              <FavoriteIcon />
+                            ) : (
+                              <FavoriteBorderIcon />
+                            )}
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -367,22 +415,39 @@ const Cart = ({ mode }) => {
               Order Summary
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Subtotal</Typography>
               <Typography>{formatPrice(subtotal)}</Typography>
             </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Shipping</Typography>
-              <Typography>{shipping === 0 ? "Free" : formatPrice(shipping)}</Typography>
+              <Typography>
+                {shipping === 0 ? "Free" : formatPrice(shipping)}
+              </Typography>
             </Box>
             {discount > 0 && (
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
                 <Typography color="success.main">Premium Discount</Typography>
-                <Typography color="success.main">- {formatPrice(discount)}</Typography>
+                <Typography color="success.main">
+                  - {formatPrice(discount)}
+                </Typography>
               </Box>
             )}
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
               <Typography variant="h6" fontWeight={700}>
                 Total
               </Typography>
@@ -404,7 +469,7 @@ const Cart = ({ mode }) => {
                 py: 1.2,
                 mb: 2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                '&:hover': { background: matteColors[800] },
+                "&:hover": { background: matteColors[800] },
               }}
             >
               Proceed to Checkout
@@ -421,7 +486,7 @@ const Cart = ({ mode }) => {
                 fontSize: "1.08rem",
                 py: 1.2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                '&:hover': { background: matteColors[100] },
+                "&:hover": { background: matteColors[100] },
               }}
             >
               Clear Cart
@@ -438,10 +503,17 @@ const Cart = ({ mode }) => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setWishlistDialog(false)} sx={{ borderRadius: 8 }}>
+          <Button
+            onClick={() => setWishlistDialog(false)}
+            sx={{ borderRadius: 8 }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleWishlistConfirm} color="primary" sx={{ borderRadius: 8, fontWeight: 600 }}>
+          <Button
+            onClick={handleWishlistConfirm}
+            color="primary"
+            sx={{ borderRadius: 8, fontWeight: 600 }}
+          >
             Move to Wishlist
           </Button>
         </DialogActions>

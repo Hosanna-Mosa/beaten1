@@ -15,7 +15,8 @@ const createOrder = async (req, res) => {
   try {
     console.log("camed to here");
     console.log("req.body", req.body);
-    const { orderItems, shippingAddress, paymentInfo, totalPrice, couponCode } = req.body;
+    const { orderItems, shippingAddress, paymentInfo, totalPrice, couponCode } =
+      req.body;
     if (!orderItems || orderItems.length === 0) {
       return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
@@ -33,6 +34,9 @@ const createOrder = async (req, res) => {
     let finalPrice = totalPrice;
     let appliedCoupon = null;
     let discountAmount = 0;
+    let subscriptionDiscountAmount = 0;
+    let subscriptionApplied = false;
+
     if (couponCode) {
       const Coupon = require("../models/Coupon");
       const coupon = await Coupon.findOne({ code: couponCode });
@@ -80,25 +84,40 @@ const createOrder = async (req, res) => {
       };
       // Optionally, increment usedCount here or after payment confirmation
     }
-    // Subscription discount (applied after coupon)
+
+    // Subscription discount (applied after coupon) - Fixed amount of 249
     if (
       user &&
       user.subscription &&
       user.subscription.isSubscribed &&
       user.subscription.subscriptionExpiry > new Date()
     ) {
-      finalPrice = Math.max(
-        0,
-        finalPrice - (user.subscription.subscriptionCost || 0)
-      );
+      subscriptionDiscountAmount = 249; // Fixed discount amount
+      finalPrice = Math.max(0, finalPrice - subscriptionDiscountAmount);
+      subscriptionApplied = true;
+
+      // Update user's subscription data to track the discount used
+      await require("../models/User").findByIdAndUpdate(req.user._id, {
+        $inc: { "subscription.discountsUsed": 1 }, // Track how many times discount was used
+        $set: { "subscription.lastDiscountUsed": new Date() },
+      });
     }
+
     const order = new Order({
       user: req.user._id,
       orderItems,
       shippingAddress,
-      paymentInfo,
+      paymentInfo: {
+        ...paymentInfo,
+        originalPrice: totalPrice, // Store original price before any discounts
+      },
       totalPrice: finalPrice,
       coupon: appliedCoupon,
+      subscriptionDiscount: {
+        applied: subscriptionApplied,
+        amount: subscriptionDiscountAmount,
+        subscriptionCost: user?.subscription?.subscriptionCost || 0,
+      },
     });
     const createdOrder = await order.save();
     // Send order confirmation email to user
@@ -111,7 +130,7 @@ const createOrder = async (req, res) => {
       );
     }
     const addressData = await Address.findById(shippingAddress);
-    
+
     // Send admin notification
     await sendAdminOrderNotification({
       orderId: order._id,
@@ -119,13 +138,13 @@ const createOrder = async (req, res) => {
       userEmail: populatedOrder.user.email,
       totalPrice: finalPrice,
       orderItems: orderItems,
-      shippingAddress:{
-        address:addressData.address,
-        city:addressData.city,
-        state:addressData.state,
-        postalCode:addressData.postalCode,
-        country:addressData.country,
-      }
+      shippingAddress: {
+        address: addressData.address,
+        city: addressData.city,
+        state: addressData.state,
+        postalCode: addressData.postalCode,
+        country: addressData.country,
+      },
     });
 
     res.status(STATUS_CODES.CREATED).json({
@@ -259,10 +278,14 @@ const updateOrderStatus = async (req, res) => {
     order.status = status;
 
     await order.save();
-    console.log("order status saved",status);
-    
+    console.log("order status saved", status);
+
     // If status is delivered, update soldCount and stockQuantity for each product
-    if ( status === "delivered" && order.orderItems &&  order.orderItems.length > 0) {
+    if (
+      status === "delivered" &&
+      order.orderItems &&
+      order.orderItems.length > 0
+    ) {
       const Product = require("../models/Product");
       console.log("order items", order.orderItems);
       for (const item of order.orderItems) {
@@ -273,16 +296,22 @@ const updateOrderStatus = async (req, res) => {
           // Increase soldCount by the quantity ordered
           product.soldCount = (product.soldCount || 0) + (item.quantity || 1);
           // Decrease stockQuantity by the quantity ordered, but not below 0
-          product.stockQuantity = Math.max(0, (product.stockQuantity || 0) - (item.quantity || 1));
+          product.stockQuantity = Math.max(
+            0,
+            (product.stockQuantity || 0) - (item.quantity || 1)
+          );
           await product.save();
           console.log("product saved");
-          
         }
       }
     }
 
     // If status is return_approved, update stockQuantity and soldCount for each product
-    if (status === "return_approved" && order.orderItems && order.orderItems.length > 0) {
+    if (
+      status === "return_approved" &&
+      order.orderItems &&
+      order.orderItems.length > 0
+    ) {
       const Product = require("../models/Product");
       console.log("order items for return", order.orderItems);
       for (const item of order.orderItems) {
@@ -291,9 +320,13 @@ const updateOrderStatus = async (req, res) => {
         const product = await Product.findById(item.product);
         if (product) {
           // Increase stockQuantity by the quantity returned
-          product.stockQuantity = (product.stockQuantity || 0) + (item.quantity || 1);
+          product.stockQuantity =
+            (product.stockQuantity || 0) + (item.quantity || 1);
           // Decrease soldCount by the quantity returned, but not below 0
-          product.soldCount = Math.max(0, (product.soldCount || 0) - (item.quantity || 1));
+          product.soldCount = Math.max(
+            0,
+            (product.soldCount || 0) - (item.quantity || 1)
+          );
           await product.save();
           console.log("product updated for return");
         }
@@ -359,6 +392,67 @@ const getMyOrderById = async (req, res) => {
   }
 };
 
+// @desc    Cancel order (user only)
+// @route   PUT /api/orders/:id/cancel
+// @access  Private
+const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    }).populate("user", "name email");
+
+    if (!order) {
+      return res.status(STATUS_CODES.NOT_FOUND).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Check if order can be cancelled (only pending, processing, or no status)
+    if (order.status && !["pending", "processing"].includes(order.status)) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Order cannot be cancelled at this stage",
+      });
+    }
+
+    // Update order status to cancelled
+    order.status = "cancelled";
+    await order.save();
+
+    // Send email notification to user
+    if (order.user && order.user.email) {
+      await sendOrderStatusEmail(
+        order.user.email,
+        "cancelled",
+        order._id,
+        order.user.name
+      );
+    }
+
+    // Send admin notification for order cancellation
+    await sendAdminOrderStatusNotification({
+      orderId: order._id,
+      userName: order.user.name,
+      userEmail: order.user.email,
+      oldStatus: order.status,
+      newStatus: "cancelled",
+    });
+
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: "Order cancelled successfully",
+      data: order,
+    });
+  } catch (error) {
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message || "Failed to cancel order",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -366,4 +460,5 @@ module.exports = {
   getOrderById,
   updateOrderStatus,
   getMyOrderById,
+  cancelOrder,
 };

@@ -51,6 +51,16 @@ const seedData = async () => {
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689813/hoodies_qonxcq.png",
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752689835/co-ord-sets_weogc8.png"
       ],
+      mobileCollectionsImages : [
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949350/1_uq0bcc.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949343/2_irem0r.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949334/3_qsq601.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949334/4_gvk6oa.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949350/5_ez30go.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949393/6_f48dw4.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949395/7_umrlur.png",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949923/8_dgoqs6.png",
+      ],
       newsContent:
        "Welcome to BEATEN! Enjoy our premium drops and secret sales. changed to cloud",
     });

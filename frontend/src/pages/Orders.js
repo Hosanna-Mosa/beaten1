@@ -33,6 +33,7 @@ import {
   ReceiptLong as InvoiceIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { useTheme, useMediaQuery } from "@mui/material";
 import { useEffect } from "react";
@@ -105,8 +106,8 @@ const statusStyles = {
 
 const getImageUrl = (img) => {
   if (!img) return PLACEHOLDER_IMAGE;
-  if (img.startsWith('http')) return img;
-  if (img.startsWith('photo-')) return `https://images.unsplash.com/${img}`;
+  if (img.startsWith("http")) return img;
+  if (img.startsWith("photo-")) return `https://images.unsplash.com/${img}`;
   return `/images/${img}`;
 };
 
@@ -204,6 +205,7 @@ const Orders = ({ mode }) => {
   };
 
   const handleOpenReturnDialog = (orderId, item, idx) => {
+    console.log("Opening return dialog for:", { orderId, item, idx });
     setReturnItem({ orderId, item, idx });
     setReturnReason("");
     setReturnComment("");
@@ -211,6 +213,7 @@ const Orders = ({ mode }) => {
   };
 
   const handleCloseReturnDialog = () => {
+    console.log("Closing return dialog");
     setReturnDialogOpen(false);
     setReturnItem(null);
   };
@@ -244,6 +247,39 @@ const Orders = ({ mode }) => {
       setSnackbarOpen(true);
       setReturnItem(null);
       console.log("Snackbar should open now");
+    }
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        `${
+          process.env.REACT_APP_API_URL || "http://localhost:8000/api"
+        }/orders/${orderId}/cancel`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        setSnackbarMsg("Order cancelled successfully!");
+        setSnackbarSeverity("success");
+        fetchOrdersAndReturns(); // Refresh orders
+      } else {
+        setSnackbarMsg(response.data.message || "Failed to cancel order.");
+        setSnackbarSeverity("error");
+      }
+    } catch (err) {
+      let msg = "Failed to cancel order.";
+      if (err.response && err.response.data && err.response.data.message) {
+        msg = err.response.data.message;
+      }
+      setSnackbarMsg(msg);
+      setSnackbarSeverity("error");
+    } finally {
+      setSnackbarOpen(true);
     }
   };
 
@@ -405,7 +441,9 @@ const Orders = ({ mode }) => {
                         }}
                       >
                         <Avatar
-                          src={getImageUrl(item.image || (item.product && item.product.image))}
+                          src={getImageUrl(
+                            item.image || (item.product && item.product.image)
+                          )}
                           alt={item.name}
                           sx={{
                             width: { xs: 72, md: 64 },
@@ -415,7 +453,10 @@ const Orders = ({ mode }) => {
                             border: "2px solid #e0e0e0",
                             boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                           }}
-                          onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = PLACEHOLDER_IMAGE;
+                          }}
                         />
                         <Typography
                           variant="body1"
@@ -432,40 +473,41 @@ const Orders = ({ mode }) => {
                         >
                           {item.name}
                         </Typography>
-                        {expandedOrders.includes(order._id) && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              ml: 1,
-                              mr: 1,
-                              borderRadius: 8,
-                              fontSize: "0.82rem",
-                              px: 1.2,
-                              py: 0.4,
-                              minWidth: 0,
-                              minHeight: 32,
-                              color: matteColors[900],
-                              borderColor: matteColors[900],
-                              backgroundColor: "white",
-                              textTransform: "none",
-                              boxShadow: "none",
-                              whiteSpace: "nowrap",
-                              "&:hover": {
-                                backgroundColor: matteColors[100],
-                                borderColor: matteColors[800],
-                                color: matteColors[800],
+                        {expandedOrders.includes(order._id) &&
+                          order.status === "delivered" && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                ml: 1,
+                                mr: 1,
+                                borderRadius: 8,
+                                fontSize: "0.82rem",
+                                px: 1.2,
+                                py: 0.4,
+                                minWidth: 0,
+                                minHeight: 32,
+                                color: matteColors[900],
+                                borderColor: matteColors[900],
+                                backgroundColor: "white",
+                                textTransform: "none",
                                 boxShadow: "none",
-                              },
-                            }}
-                            onClick={() =>
-                              handleOpenReturnDialog(order._id, item, idx)
-                            }
-                            disabled={item.returnStatus}
-                          >
-                            Return/Exchange
-                          </Button>
-                        )}
+                                whiteSpace: "nowrap",
+                                "&:hover": {
+                                  backgroundColor: matteColors[100],
+                                  borderColor: matteColors[800],
+                                  color: matteColors[800],
+                                  boxShadow: "none",
+                                },
+                              }}
+                              onClick={() =>
+                                handleOpenReturnDialog(order._id, item, idx)
+                              }
+                              disabled={item.returnStatus}
+                            >
+                              Return/Exchange
+                            </Button>
+                          )}
                         {item.returnStatus === "return_rejected" && (
                           <Chip
                             label="Return Rejected"
@@ -682,42 +724,77 @@ const Orders = ({ mode }) => {
                         >
                           Track Order
                         </Button>
-                        <Button
-                          variant="contained"
-                          startIcon={<ExchangeIcon />}
-                          sx={{
-                            backgroundColor: matteColors[900],
-                            color: "white",
-                            fontWeight: 600,
-                            minWidth: 170,
-                            py: { xs: 0.7, md: 1 },
-                            px: { xs: 2, md: 3 },
-                            fontSize: { xs: "0.92rem", md: "0.98rem" },
-                            borderRadius: 10,
-                            minHeight: { xs: 36, md: 42 },
-                            textTransform: "none",
-                            alignSelf: { xs: "stretch", md: "center" },
-                            whiteSpace: "nowrap",
-                            transition: "all 0.3s ease",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                            "&:hover": {
-                              backgroundColor: matteColors[800],
-                              transform: "translateY(-2px)",
-                              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                            },
-                          }}
-                          onClick={() =>
-                            handleOpenReturnDialog(
-                              order._id,
-                              order.orderItems[0],
-                              0
-                            )
-                          }
-                          disabled={order.orderItems[0].returnStatus}
-                          fullWidth={isMobile}
-                        >
-                          Return
-                        </Button>
+                        {(order.status === "pending" ||
+                          order.status === "processing" ||
+                          !order.status) && (
+                          <Button
+                            variant="contained"
+                            startIcon={<CloseIcon />}
+                            sx={{
+                              backgroundColor: "#d32f2f",
+                              color: "white",
+                              fontWeight: 600,
+                              minWidth: 120,
+                              py: { xs: 0.7, md: 1 },
+                              px: { xs: 2, md: 3 },
+                              fontSize: { xs: "0.92rem", md: "0.98rem" },
+                              borderRadius: 10,
+                              minHeight: { xs: 36, md: 42 },
+                              textTransform: "none",
+                              alignSelf: { xs: "stretch", md: "center" },
+                              whiteSpace: "nowrap",
+                              transition: "all 0.3s ease",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                              "&:hover": {
+                                backgroundColor: "#b71c1c",
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                              },
+                            }}
+                            onClick={() => handleCancelOrder(order._id)}
+                            fullWidth={isMobile}
+                          >
+                            Cancel Order
+                          </Button>
+                        )}
+                        {order.status === "delivered" && (
+                          <Button
+                            variant="contained"
+                            startIcon={<ExchangeIcon />}
+                            sx={{
+                              backgroundColor: matteColors[900],
+                              color: "white",
+                              fontWeight: 600,
+                              minWidth: 170,
+                              py: { xs: 0.7, md: 1 },
+                              px: { xs: 2, md: 3 },
+                              fontSize: { xs: "0.92rem", md: "0.98rem" },
+                              borderRadius: 10,
+                              minHeight: { xs: 36, md: 42 },
+                              textTransform: "none",
+                              alignSelf: { xs: "stretch", md: "center" },
+                              whiteSpace: "nowrap",
+                              transition: "all 0.3s ease",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                              "&:hover": {
+                                backgroundColor: matteColors[800],
+                                transform: "translateY(-2px)",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                              },
+                            }}
+                            onClick={() =>
+                              handleOpenReturnDialog(
+                                order._id,
+                                order.orderItems[0],
+                                0
+                              )
+                            }
+                            disabled={order.orderItems[0].returnStatus}
+                            fullWidth={isMobile}
+                          >
+                            Return
+                          </Button>
+                        )}
                       </Box>
                     </>
                   )}
@@ -892,7 +969,9 @@ const Orders = ({ mode }) => {
                         sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
                         <Avatar
-                          src={getImageUrl(item.image || (item.product && item.product.image))}
+                          src={getImageUrl(
+                            item.image || (item.product && item.product.image)
+                          )}
                           alt={item.name}
                           sx={{
                             width: { xs: 64, md: 56 },
@@ -901,7 +980,10 @@ const Orders = ({ mode }) => {
                             bgcolor: "#fafafa",
                             border: "1px solid #eee",
                           }}
-                          onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = PLACEHOLDER_IMAGE;
+                          }}
                         />
                         <Typography
                           variant="body2"
@@ -998,41 +1080,75 @@ const Orders = ({ mode }) => {
                     >
                       Track Order
                     </Button>
-                    <Button
-                      variant="contained"
-                      startIcon={<ExchangeIcon />}
-                      sx={{
-                        backgroundColor: matteColors[900],
-                        color: "white",
-                        fontWeight: 600,
-                        minWidth: 170,
-                        py: { xs: 0.7, md: 1 },
-                        px: { xs: 2, md: 3 },
-                        fontSize: { xs: "0.92rem", md: "0.98rem" },
-                        borderRadius: 10,
-                        minHeight: { xs: 36, md: 42 },
-                        textTransform: "none",
-                        alignSelf: "center",
-                        whiteSpace: "nowrap",
-                        transition: "all 0.3s ease",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                        "&:hover": {
-                          backgroundColor: matteColors[800],
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                        },
-                      }}
-                      onClick={() =>
-                        handleOpenReturnDialog(
-                          order._id,
-                          order.orderItems[0],
-                          0
-                        )
-                      }
-                      disabled={order.orderItems[0].returnStatus}
-                    >
-                      Return
-                    </Button>
+                    {(order.status === "pending" ||
+                      order.status === "processing" ||
+                      !order.status) && (
+                      <Button
+                        variant="contained"
+                        startIcon={<CloseIcon />}
+                        sx={{
+                          backgroundColor: "#d32f2f",
+                          color: "white",
+                          fontWeight: 600,
+                          minWidth: 120,
+                          py: { xs: 0.7, md: 1 },
+                          px: { xs: 2, md: 3 },
+                          fontSize: { xs: "0.92rem", md: "0.98rem" },
+                          borderRadius: 10,
+                          minHeight: { xs: 36, md: 42 },
+                          textTransform: "none",
+                          alignSelf: "center",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.3s ease",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                          "&:hover": {
+                            backgroundColor: "#b71c1c",
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          },
+                        }}
+                        onClick={() => handleCancelOrder(order._id)}
+                      >
+                        Cancel Order
+                      </Button>
+                    )}
+                    {order.status === "delivered" && (
+                      <Button
+                        variant="contained"
+                        startIcon={<ExchangeIcon />}
+                        sx={{
+                          backgroundColor: matteColors[900],
+                          color: "white",
+                          fontWeight: 600,
+                          minWidth: 170,
+                          py: { xs: 0.7, md: 1 },
+                          px: { xs: 2, md: 3 },
+                          fontSize: { xs: "0.92rem", md: "0.98rem" },
+                          borderRadius: 10,
+                          minHeight: { xs: 36, md: 42 },
+                          textTransform: "none",
+                          alignSelf: "center",
+                          whiteSpace: "nowrap",
+                          transition: "all 0.3s ease",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                          "&:hover": {
+                            backgroundColor: matteColors[800],
+                            transform: "translateY(-2px)",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                          },
+                        }}
+                        onClick={() =>
+                          handleOpenReturnDialog(
+                            order._id,
+                            order.orderItems[0],
+                            0
+                          )
+                        }
+                        disabled={order.orderItems[0].returnStatus}
+                      >
+                        Return
+                      </Button>
+                    )}
                   </Box>
                 </Paper>
               )}
@@ -1091,7 +1207,9 @@ const Orders = ({ mode }) => {
                   sx={{ display: "flex", alignItems: "center", gap: 2, mb: 1 }}
                 >
                   <Avatar
-                    src={getImageUrl(item.image || (item.product && item.product.image))}
+                    src={getImageUrl(
+                      item.image || (item.product && item.product.image)
+                    )}
                     alt={item.name}
                     sx={{
                       width: { xs: 56, md: 48 },
@@ -1100,7 +1218,10 @@ const Orders = ({ mode }) => {
                       bgcolor: "#fafafa",
                       border: "1px solid #eee",
                     }}
-                    onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = PLACEHOLDER_IMAGE;
+                    }}
                   />
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -1319,6 +1440,7 @@ const Orders = ({ mode }) => {
         maxWidth="xs"
         fullWidth
       >
+        {console.log("Return dialog open state:", returnDialogOpen)}
         <form onSubmit={handleSubmitReturn}>
           <DialogTitle>Return - {returnItem?.item?.name}</DialogTitle>
           <DialogContent dividers>
@@ -1346,16 +1468,62 @@ const Orders = ({ mode }) => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseReturnDialog} color="primary">
+            <Button
+              onClick={handleCloseReturnDialog}
+              variant="outlined"
+              sx={{
+                borderColor: matteColors[900],
+                color: matteColors[900],
+                fontWeight: 600,
+                borderRadius: 10,
+                py: { xs: 0.7, md: 1 },
+                px: { xs: 2, md: 3 },
+                fontSize: { xs: "0.92rem", md: "0.98rem" },
+                minHeight: { xs: 36, md: 42 },
+                textTransform: "none",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: matteColors[100],
+                  borderColor: matteColors[800],
+                  color: matteColors[800],
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
+                },
+              }}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="contained"
-              color="primary"
+              sx={{
+                backgroundColor: matteColors[900],
+                color: "white",
+                fontWeight: 600,
+                borderRadius: 10,
+                py: { xs: 0.7, md: 1 },
+                px: { xs: 2, md: 3 },
+                fontSize: { xs: "0.92rem", md: "0.98rem" },
+                minHeight: { xs: 36, md: 42 },
+                textTransform: "none",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: matteColors[800],
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                },
+                "&:disabled": {
+                  backgroundColor: matteColors[600],
+                  color: "white",
+                  transform: "none",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                },
+              }}
               disabled={!returnReason}
             >
-              Submit
+              Submit Return
             </Button>
           </DialogActions>
         </form>

@@ -75,6 +75,14 @@ const userSchema = new mongoose.Schema(
         enum: ["yearly", "monthly", ""],
         default: "",
       },
+      discountsUsed: {
+        type: Number,
+        default: 0,
+      },
+      lastDiscountUsed: {
+        type: Date,
+        default: null,
+      },
     },
     addressBook: [
       {

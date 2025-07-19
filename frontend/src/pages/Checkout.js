@@ -75,7 +75,13 @@ const Checkout = ({ mode = "dark" }) => {
     (total, item) => total + item.product.price * item.quantity,
     0
   );
-  const discount = (user?.isPremium && new Date(user.premiumExpiry) > new Date()) ? 250 : 0;
+  const discount =
+    user?.isPremium && new Date(user.premiumExpiry) > new Date()
+      ? 249
+      : user?.subscription?.isSubscribed &&
+        new Date(user.subscription.subscriptionExpiry) > new Date()
+      ? 249
+      : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount + shipping;
   const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
@@ -109,7 +115,7 @@ const Checkout = ({ mode = "dark" }) => {
     try {
       const response = await axios.get(`${BASE_URL}/coupons`);
       const coupons = response.data.data || [];
-      setPublicCoupons(coupons.filter(c => c.type === 'public'));
+      setPublicCoupons(coupons.filter((c) => c.type === "public"));
     } catch (err) {
       // Optionally handle error
     }
@@ -397,7 +403,8 @@ const Checkout = ({ mode = "dark" }) => {
                             {address.address}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
-                            {address.city}, {address.state} - {address.postalCode}
+                            {address.city}, {address.state} -{" "}
+                            {address.postalCode}
                           </Typography>
                           <Typography variant="body2" color="text.secondary">
                             Phone: {address.phone}
@@ -564,7 +571,9 @@ const Checkout = ({ mode = "dark" }) => {
               fullWidth
               label="Name"
               value={newAddress.name}
-              onChange={e => setNewAddress({ ...newAddress, name: e.target.value })}
+              onChange={(e) =>
+                setNewAddress({ ...newAddress, name: e.target.value })
+              }
               sx={{ mb: 2 }}
             />
             <TextField
