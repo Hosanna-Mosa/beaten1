@@ -30,6 +30,11 @@ router.delete("/:id/mobile-slide-images", dataEntryController.deleteMobileSlideI
 // Collection images
 router.get("/:id/collection-images", dataEntryController.getCollectionImages);
 router.put("/:id/collection-images", dataEntryController.updateCollectionImages);
+
+// Mobile Collection images
+router.get("/:id/mobile-collection-images", dataEntryController.getMobileCollectionImages);
+router.put("/:id/mobile-collection-images", dataEntryController.updateMobileCollectionImages);
+
 // router.delete("/:id/mobile-slide-images", dataEntryController.deleteMobileSlideImages);
 
 // NewsContent endpoints

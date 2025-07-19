@@ -38,7 +38,12 @@ import {
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
-import { fetchSlideImages , fetchMobileSlideImages , fetchCollectionImages } from "../api/newsContentAPI";
+import {
+  fetchSlideImages,
+  fetchMobileSlideImages,
+  fetchCollectionImages,
+  fetchMobileCollectionImages,
+} from "../api/newsContentAPI";
 
 const matteColors = {
   900: "#1a1a1a", // Deepest matte black
@@ -97,6 +102,7 @@ const Home = ({ mode }) => {
   const [heroSlides, setHeroSlides] = useState([]);
   const [mobileHeroSlides, setMobileHeroSlides] = useState([]);
   const [categoryImages, setCategoryImages] = useState([]);
+  const [mobileCategoryImages, setMobileCategoryImages] = useState([]);
 
   // Use imported hero slides data
   const slides = isMobile ? mobileHeroSlides : heroSlides;
@@ -170,9 +176,6 @@ const Home = ({ mode }) => {
             new Date(subscription.subscriptionExpiry) > new Date();
 
           setIsSubscribed(isCurrentlySubscribed);
-          console.log("User profile:", profile);
-          console.log("User subscription status:", isCurrentlySubscribed);
-          console.log("Subscription details:", subscription);
         }
       } catch (err) {
         console.error("Error fetching user profile:", err);
@@ -195,7 +198,6 @@ const Home = ({ mode }) => {
         const response = await axios.get(buildApiUrl(API_ENDPOINTS.PRODUCTS));
 
         if (response.data && response.data.data) {
-          console.log("response.data.data", response.data.data);
           setAllProducts(response.data.data);
         } else {
           setAllProducts([]);
@@ -216,8 +218,6 @@ const Home = ({ mode }) => {
   // Process products into categories when allProducts changes
   useEffect(() => {
     if (allProducts.length > 0) {
-      console.log("Processing products:", allProducts.length);
-
       // Get best sellers (products with highest soldCount)
       const sortedBySales = [...allProducts].sort(
         (a, b) => (b.soldCount || 0) - (a.soldCount || 0)
@@ -285,19 +285,6 @@ const Home = ({ mode }) => {
         ...jacketsProducts.slice(0, 1),
       ];
       setShopByCategory(categoryMix);
-
-      // Log the results for debugging
-      // console.log("Category counts:", {
-      //   tShirts: tShirtsProducts.length,
-      //   shirts: shirtsProducts.length,
-      //   oversizedTShirts: oversizedTShirtsProducts.length,
-      //   bottomWear: bottomWearProducts.length,
-      //   cargoPants: cargoPantsProducts.length,
-      //   jackets: jacketsProducts.length,
-      //   hoodies: hoodiesProducts.length,
-      //   coOrdSets: coOrdSetsProducts.length,
-      //   bestSellers: sortedBySales.length,
-      // });
     }
   }, [allProducts]);
 
@@ -319,7 +306,9 @@ const Home = ({ mode }) => {
       try {
         const data = await fetchMobileSlideImages(DATA_ENTRY_ID);
         // Assuming data.slideImages is an array of image URLs
-        setMobileHeroSlides((data.mobileSlideImages || []).map((img) => ({ image: img })));
+        setMobileHeroSlides(
+          (data.mobileSlideImages || []).map((img) => ({ image: img }))
+        );
       } catch (err) {
         setMobileHeroSlides([]);
       }
@@ -329,17 +318,29 @@ const Home = ({ mode }) => {
 
   useEffect(() => {
     const getCategoryImages = async () => {
-      
-    try {
-      const data = await fetchCollectionImages(DATA_ENTRY_ID);
-      setCategoryImages(data.collectionsImages);
-    } catch (err) {
-      setCategoryImages([]);
-    }
-  };
+      try {
+        const data = await fetchCollectionImages(DATA_ENTRY_ID);
+        setCategoryImages(data.collectionsImages);
+      } catch (err) {
+        setCategoryImages([]);
+      }
+    };
     getCategoryImages();
   }, []);
 
+  useEffect(() => {
+    const getMobileCategoryImages = async () => {
+      try {
+        const data = await fetchMobileCollectionImages(DATA_ENTRY_ID);
+        console.log(data);
+        
+        setMobileCategoryImages(data.mobileCollectionsImages);
+      } catch (err) {
+        setMobileCategoryImages([]);
+      }
+    };
+    getMobileCategoryImages();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -1055,7 +1056,7 @@ const Home = ({ mode }) => {
               {section.key === "t-shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/1.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[0] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1102,7 +1103,7 @@ const Home = ({ mode }) => {
               ) : section.key === "shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/2.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[1] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1149,7 +1150,7 @@ const Home = ({ mode }) => {
               ) : section.key === "oversized-t-shirts" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/3.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[2] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1196,7 +1197,7 @@ const Home = ({ mode }) => {
               ) : section.key === "bottom-wear" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/4.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[3] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1243,7 +1244,7 @@ const Home = ({ mode }) => {
               ) : section.key === "cargo-pants" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/5.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[4] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1290,7 +1291,7 @@ const Home = ({ mode }) => {
               ) : section.key === "jackets" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/6.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[5] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1337,7 +1338,7 @@ const Home = ({ mode }) => {
               ) : section.key === "hoodies" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/7.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[6] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1384,7 +1385,7 @@ const Home = ({ mode }) => {
               ) : section.key === "co-ord-sets" ? (
                 <>
                   <img
-                    src={isMobile ? "/images/8.png" : section.image}
+                    src={isMobile ? mobileCategoryImages[7] : section.image}
                     alt={section.name}
                     style={{
                       width: "100%",
@@ -1541,8 +1542,6 @@ const Home = ({ mode }) => {
                 }
 
                 return categoryProducts.slice(0, 5).map((product, index) => {
-                  console.log(product.image, product.name);
-
                   return (
                     <Box
                       key={product._id || index}

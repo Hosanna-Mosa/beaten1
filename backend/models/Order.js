@@ -31,6 +31,7 @@ const orderSchema = new mongoose.Schema(
       id: { type: String },
       status: { type: String },
       method: { type: String },
+      originalPrice: { type: Number }, // Store original price before discounts
     },
     totalPrice: { type: Number, required: true },
     coupon: {
@@ -38,6 +39,11 @@ const orderSchema = new mongoose.Schema(
       discountType: { type: String, enum: ["percentage", "flat"] },
       discount: { type: Number },
       discountAmount: { type: Number }, // The amount discounted from total
+    },
+    subscriptionDiscount: {
+      applied: { type: Boolean, default: false },
+      amount: { type: Number, default: 0 }, // Amount deducted due to subscription
+      subscriptionCost: { type: Number, default: 0 }, // User's subscription cost (249)
     },
     status: {
       type: String,

@@ -88,7 +88,12 @@ const Payment = ({ mode = "dark" }) => {
 
   // Calculate totals
   const discount =
-    user?.isPremium && new Date(user.premiumExpiry) > new Date() ? 250 : 0;
+    user?.isPremium && new Date(user.premiumExpiry) > new Date()
+      ? 249
+      : user?.subscription?.isSubscribed &&
+        new Date(user.subscription.subscriptionExpiry) > new Date()
+      ? 249
+      : 0;
   const shipping = subtotal > 0 ? 100 : 0;
   const total = subtotal - discount - couponDiscount + shipping;
 
@@ -113,7 +118,7 @@ const Payment = ({ mode = "dark" }) => {
         }
       );
 
-     if (response.data.success) {
+      if (response.data.success) {
         const couponData = response.data.data;
         let discountAmount = 0;
         if (couponData.discountType === "flat") {
@@ -222,7 +227,9 @@ const Payment = ({ mode = "dark" }) => {
         amount: Math.round(total * 100),
         currency: "INR",
         name: "PK Trends",
-        description: `Order for ${cart.map((item) => item.product.name).join(", ")}`,
+        description: `Order for ${cart
+          .map((item) => item.product.name)
+          .join(", ")}`,
         handler: async function (response) {
           // Create order after successful payment
           const success = await createOrder("razorpay");
@@ -378,7 +385,7 @@ const Payment = ({ mode = "dark" }) => {
                 <TextField
                   label="Coupon Code"
                   value={coupon}
-                  onChange={e => setCoupon(e.target.value)}
+                  onChange={(e) => setCoupon(e.target.value)}
                   size="small"
                   sx={{ mr: 2, width: 180 }}
                   disabled={couponApplied}
@@ -389,10 +396,20 @@ const Payment = ({ mode = "dark" }) => {
                   onClick={handleApplyCoupon}
                   disabled={couponApplied || validatingCoupon}
                 >
-                  {validatingCoupon ? <CircularProgress size={20} /> : couponApplied ? "Applied" : "Apply"}
+                  {validatingCoupon ? (
+                    <CircularProgress size={20} />
+                  ) : couponApplied ? (
+                    "Applied"
+                  ) : (
+                    "Apply"
+                  )}
                 </Button>
                 {couponApplied && (
-                  <IconButton onClick={handleRemoveCoupon} size="small" sx={{ ml: 1 }}>
+                  <IconButton
+                    onClick={handleRemoveCoupon}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  >
                     <Chip label="Remove" color="error" size="small" />
                   </IconButton>
                 )}
@@ -411,22 +428,25 @@ const Payment = ({ mode = "dark" }) => {
                     <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                       <Chip
                         label={appliedCoupon.isPersonal ? "Personal" : ""}
-                        color={appliedCoupon.isPersonal ? "primary" : "secondary"}
+                        color={
+                          appliedCoupon.isPersonal ? "primary" : "secondary"
+                        }
                         size="small"
                         sx={{ mr: 1 }}
                       />
                       <Typography variant="body2">
-                        {appliedCoupon.discountType === 'flat'
+                        {appliedCoupon.discountType === "flat"
                           ? `Flat ₹${appliedCoupon.discount} off`
-                          : `${appliedCoupon.discount}% off`} - ₹
-                        {appliedCoupon.discountAmount.toFixed(2)} saved
+                          : `${appliedCoupon.discount}% off`}{" "}
+                        - ₹{appliedCoupon.discountAmount.toFixed(2)} saved
                       </Typography>
                     </Box>
-                    {appliedCoupon.isPersonal && appliedCoupon.recipientName && (
-                      <Typography variant="caption" color="text.secondary">
-                        For: {appliedCoupon.recipientName}
-                      </Typography>
-                    )}
+                    {appliedCoupon.isPersonal &&
+                      appliedCoupon.recipientName && (
+                        <Typography variant="caption" color="text.secondary">
+                          For: {appliedCoupon.recipientName}
+                        </Typography>
+                      )}
                   </Box>
                 </Alert>
               )}
@@ -460,7 +480,11 @@ const Payment = ({ mode = "dark" }) => {
                     sx={{ p: 2, mb: 1, bgcolor: "#f5f5f5" }}
                   >
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {coupon.code} - {coupon.discountType === 'flat' ? `Flat ₹${coupon.discount}` : `${coupon.discount}%`} off
+                      {coupon.code} -{" "}
+                      {coupon.discountType === "flat"
+                        ? `Flat ₹${coupon.discount}`
+                        : `${coupon.discount}%`}{" "}
+                      off
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       Min Purchase: ₹{coupon.minPurchase}
@@ -633,56 +657,108 @@ const Payment = ({ mode = "dark" }) => {
               </Box>
             ))}
             <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Subtotal</Typography>
               <Typography>{formatPrice(subtotal)}</Typography>
             </Box>
             {user?.isPremium && (
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
                 <Typography>Premium Discount</Typography>
                 <Typography color="success.main">
                   -{formatPrice(discount)}
                 </Typography>
               </Box>
             )}
-            {/* Remove autoFlatDiscount from UI */}
+            {user?.subscription?.isSubscribed &&
+              new Date(user.subscription.subscriptionExpiry) > new Date() && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
+                  <Typography>Subscription Discount</Typography>
+                  <Typography color="success.main">
+                    -{formatPrice(discount)}
+                  </Typography>
+                </Box>
+              )}
             {couponDiscount > 0 && !appliedCoupon && (
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
                 <Typography>Coupon Discount</Typography>
                 <Typography color="success.main">
                   -{formatPrice(couponDiscount)}
                 </Typography>
               </Box>
             )}
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+            >
               <Typography>Shipping</Typography>
               <Typography>{formatPrice(shipping)}</Typography>
             </Box>
             {paymentMethod === "cod" && (
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
+              >
                 <Typography>COD Charge</Typography>
                 <Typography color="warning.main">+₹50</Typography>
               </Box>
             )}
             <Divider sx={{ my: 2 }} />
             {appliedCoupon ? (
-              <Box sx={{ display: "flex", flexDirection: 'column', mb: 2 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: 'center' }}>
-                  <Typography variant="h6" fontWeight={700} sx={{ textDecoration: 'line-through', color: 'text.secondary', fontSize: '1.1rem' }}>
+              <Box sx={{ display: "flex", flexDirection: "column", mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    fontWeight={700}
+                    sx={{
+                      textDecoration: "line-through",
+                      color: "text.secondary",
+                      fontSize: "1.1rem",
+                    }}
+                  >
                     {formatPrice(subtotal - discount + shipping)}
                   </Typography>
                   <Typography variant="h6" color="primary" fontWeight={700}>
-                    {formatPrice(subtotal - discount - couponDiscount + shipping + (paymentMethod === 'cod' ? 50 : 0))}
+                    {formatPrice(
+                      subtotal -
+                        discount -
+                        couponDiscount +
+                        shipping +
+                        (paymentMethod === "cod" ? 50 : 0)
+                    )}
                   </Typography>
                 </Box>
-                <Box sx={{ display: "flex", justifyContent: "flex-end", alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                  }}
+                >
                   <Typography variant="caption" color="success.main">
                     Coupon discount: -{formatPrice(couponDiscount)}
                   </Typography>
                 </Box>
               </Box>
             ) : (
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+              <Box
+                sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
+              >
                 <Typography variant="h6" fontWeight={700}>
                   Total
                 </Typography>

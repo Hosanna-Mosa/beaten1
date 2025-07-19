@@ -262,6 +262,25 @@ const dashboardAnalytics = async (req, res) => {
     const totalRevenue = orders
       .filter((o) => (o.status || "").toLowerCase() === "delivered")
       .reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+
+    // Subscription analytics
+    const users = await User.find({}, "subscription");
+    const now = new Date();
+    const beatenClubMembers = users.filter(
+      (user) =>
+        user.subscription &&
+        user.subscription.isSubscribed &&
+        user.subscription.subscriptionExpiry &&
+        new Date(user.subscription.subscriptionExpiry) > now
+    ).length;
+
+    const totalSavings = users.reduce((total, user) => {
+      if (user.subscription && user.subscription.discountsUsed) {
+        return total + user.subscription.discountsUsed * 249;
+      }
+      return total;
+    }, 0);
+
     // Category distribution
     const categoryStats = await Product.aggregate([
       { $unwind: "$categories" },
@@ -275,7 +294,9 @@ const dashboardAnalytics = async (req, res) => {
     const recentActivities = recentOrders.map((order) => ({
       id: order._id,
       type: "order",
-      message: `Order #${order._id.toString().slice(-6)} placed by ${order.user?.name || "Unknown"}`,
+      message: `Order #${order._id.toString().slice(-6)} placed by ${
+        order.user?.name || "Unknown"
+      }`,
       time: order.createdAt,
       amount: order.totalPrice,
     }));
@@ -286,18 +307,218 @@ const dashboardAnalytics = async (req, res) => {
         totalOrders,
         totalProducts,
         totalRevenue,
+        beatenClub: beatenClubMembers,
+        totalSavings: totalSavings,
         categoryStats,
         recentActivities,
       },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching dashboard analytics",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Error fetching dashboard analytics",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get real-time orders data
+// @route   GET /api/admin/dashboard/orders/realtime
+// @access  Private (Admin only)
+const realTimeOrders = async (req, res) => {
+  try {
+    // Get orders by status for real-time updates
+    const newOrders = await Order.countDocuments({ status: "pending" });
+    const processingOrders = await Order.countDocuments({
+      status: "processing",
+    });
+    const deliveredOrders = await Order.countDocuments({ status: "delivered" });
+    const cancelledOrders = await Order.countDocuments({ status: "cancelled" });
+    const totalOrders = await Order.countDocuments();
+
+    // Get today's orders
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayOrders = await Order.countDocuments({
+      createdAt: { $gte: today },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        newOrders,
+        processingOrders,
+        deliveredOrders,
+        cancelledOrders,
+        totalOrders,
+        todayOrders,
+        lastUpdated: new Date(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching real-time orders data",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get real-time sales data
+// @route   GET /api/admin/dashboard/sales/realtime
+// @access  Private (Admin only)
+const realTimeSales = async (req, res) => {
+  try {
+    // Calculate today's sales
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayOrders = await Order.find({
+      createdAt: { $gte: today },
+    });
+    const todaySales = todayOrders.reduce(
+      (sum, order) => sum + (order.totalPrice || 0),
+      0
+    );
+
+    // Calculate monthly sales
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const monthlyOrders = await Order.find({
+      createdAt: { $gte: firstDayOfMonth },
+      status: "delivered",
+    });
+    const monthlySales = monthlyOrders.reduce(
+      (sum, order) => sum + (order.totalPrice || 0),
+      0
+    );
+
+    // Calculate total revenue
+    const allDeliveredOrders = await Order.find({ status: "delivered" });
+    const totalRevenue = allDeliveredOrders.reduce(
+      (sum, order) => sum + (order.totalPrice || 0),
+      0
+    );
+
+    // Calculate GST (assuming 18% GST)
+    const gst = totalRevenue * 0.18;
+    const paid = totalRevenue - gst;
+
+    res.json({
+      success: true,
+      data: {
+        todaySales,
+        monthlySales,
+        totalRevenue,
+        paid,
+        gst,
+        lastUpdated: new Date(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching real-time sales data",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get subscription analytics (real-time)
+// @route   GET /api/admin/dashboard/subscriptions
+// @access  Private (Admin only)
+const subscriptionAnalytics = async (req, res) => {
+  try {
+    // Get all users with subscription data
+    const users = await User.find({}, "subscription");
+
+    // Calculate Beaten Club members (active subscriptions)
+    const now = new Date();
+    const beatenClubMembers = users.filter(
+      (user) =>
+        user.subscription &&
+        user.subscription.isSubscribed &&
+        user.subscription.subscriptionExpiry &&
+        new Date(user.subscription.subscriptionExpiry) > now
+    ).length;
+
+    // Calculate total savings from discounts used
+    const totalSavings = users.reduce((total, user) => {
+      if (user.subscription && user.subscription.discountsUsed) {
+        // Each discount used is worth ₹249 (as per the subscription model)
+        return total + user.subscription.discountsUsed * 249;
+      }
+      return total;
+    }, 0);
+
+    // Additional subscription statistics
+    const totalSubscriptions = users.filter(
+      (user) => user.subscription && user.subscription.isSubscribed
+    ).length;
+
+    const expiredSubscriptions = users.filter(
+      (user) =>
+        user.subscription &&
+        user.subscription.isSubscribed &&
+        user.subscription.subscriptionExpiry &&
+        new Date(user.subscription.subscriptionExpiry) <= now
+    ).length;
+
+    const activeSubscriptions = beatenClubMembers; // Same as beatenClubMembers
+
+    res.json({
+      success: true,
+      data: {
+        beatenClub: beatenClubMembers,
+        totalSavings: totalSavings,
+        totalSubscriptions: totalSubscriptions,
+        expiredSubscriptions: expiredSubscriptions,
+        activeSubscriptions: activeSubscriptions,
+        lastUpdated: new Date(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching subscription analytics",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get cached dashboard analytics
+// @route   GET /api/admin/dashboard/cached
+// @access  Private (Admin only)
+const cachedAnalytics = async (req, res) => {
+  try {
+    // Return cached/static data for fallback
+    res.json({
+      success: true,
+      data: {
+        totalUsers: 0,
+        totalOrders: 0,
+        totalProducts: 0,
+        totalRevenue: 0,
+        todaySales: 25840,
+        monthlySales: 215780,
+        paid: 190340,
+        gst: 190340,
+        newOrders: 12,
+        processingOrders: 8,
+        deliveredOrders: 172,
+        cancelledOrders: 4,
+        beatenClub: 250,
+        totalSavings: 62350,
+        categoryStats: [],
+        recentActivities: [],
+        isCached: true,
+        lastUpdated: new Date(),
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching cached analytics",
+      error: error.message,
+    });
   }
 };
 
@@ -309,4 +530,8 @@ module.exports = {
   changePassword,
   logout,
   dashboardAnalytics,
+  realTimeOrders,
+  realTimeSales,
+  subscriptionAnalytics,
+  cachedAnalytics,
 };

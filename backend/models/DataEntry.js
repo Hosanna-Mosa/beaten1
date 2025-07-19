@@ -21,6 +21,11 @@ const DataEntrySchema = new mongoose.Schema(
       required: true,
       default: [],
     },
+    mobileCollectionsImages: {
+      type: [String],
+      required: true,
+      default: [],
+    },
   },
   { timestamps: true }
 );

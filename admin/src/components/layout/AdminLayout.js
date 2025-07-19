@@ -40,7 +40,7 @@ const drawerWidth = 280;
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/admin/dashboard" },
   { text: "Orders", icon: <OrdersIcon />, path: "/admin/orders" },
-  { text: 'Customers', icon: <CustomersIcon />, path: '/admin/customers' },
+  { text: "Customers", icon: <CustomersIcon />, path: "/admin/customers" },
   { text: "Products", icon: <ProductsIcon />, path: "/admin/products" },
   { text: "Promotions", icon: <PromotionsIcon />, path: "/admin/promotions" },
 ];
@@ -52,7 +52,6 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
-  const [notificationsAnchor, setNotificationsAnchor] = React.useState(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -62,13 +61,8 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleNotificationsOpen = (event) => {
-    setNotificationsAnchor(event.currentTarget);
-  };
-
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setNotificationsAnchor(null);
   };
 
   const handleLogout = () => {
@@ -196,36 +190,6 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {/* Desktop Theme Toggle */}
-          <Tooltip
-            title={
-              mode === "dark" ? "Switch to light mode" : "Switch to dark mode"
-            }
-          >
-            <span>
-              <IconButton
-                color="inherit"
-                onClick={toggleTheme}
-                sx={{ display: { xs: "none", md: "inline-flex" }, mr: 1 }}
-              >
-                {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
-              </IconButton>
-            </span>
-          </Tooltip>
-
-          {/* Notifications */}
-          <Tooltip title="Notifications">
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationsOpen}
-              sx={{ mr: 1 }}
-            >
-              <Badge badgeContent={3} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
-
           {/* Settings */}
           <Tooltip title="Settings">
             <IconButton
@@ -326,41 +290,6 @@ const AdminLayout = ({ children, toggleTheme, mode }) => {
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Logout</ListItemText>
-        </MenuItem>
-      </Menu>
-
-      {/* Notifications Menu */}
-      <Menu
-        anchorEl={notificationsAnchor}
-        open={Boolean(notificationsAnchor)}
-        onClose={handleMenuClose}
-        PaperProps={{
-          sx: {
-            mt: 1.5,
-            minWidth: 360,
-            maxHeight: 400,
-            borderRadius: 2,
-            boxShadow: theme.shadows[3],
-          },
-        }}
-      >
-        <MenuItem>
-          <ListItemText
-            primary="New order received"
-            secondary="Order #12345 has been placed"
-          />
-        </MenuItem>
-        <MenuItem>
-          <ListItemText
-            primary="Low stock alert"
-            secondary="Product 'Blue T-Shirt' is running low"
-          />
-        </MenuItem>
-        <MenuItem>
-          <ListItemText
-            primary="System update"
-            secondary="New features have been deployed"
-          />
         </MenuItem>
       </Menu>
     </Box>

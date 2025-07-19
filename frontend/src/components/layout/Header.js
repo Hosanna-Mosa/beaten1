@@ -238,6 +238,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: isPremium ? goldColor : "white",
+              paddingTop: 0,
+
+              minHeight: "auto",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -248,7 +251,9 @@ const Header = ({ mode, toggleColorMode }) => {
                 isPremium ? (
                   <span className="gold-shine">{page.name}</span>
                 ) : (
-                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                  <span style={{ color: "white", fontWeight: 600 }}>
+                    {page.name}
+                  </span>
                 )
               }
               sx={{
@@ -264,20 +269,26 @@ const Header = ({ mode, toggleColorMode }) => {
           </ListItem>
         ))}
 
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
+        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 1 }} />
 
         {/* Account Section */}
-        <ListItem sx={{ py: 1 }}>
+        <ListItem sx={{ m: 0, p: 0, minHeight: 0 }}>
           <ListItemText
             primary="ACCOUNT"
             sx={{
               textAlign: "left",
               pl: 1,
+              //  pt: 0.5,
+              pb: 0.5,
+              m: 0,
               "& .MuiListItemText-primary": {
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
                 color: isPremium ? goldColor : "rgba(255, 255, 255, 0.5)",
                 textTransform: "uppercase",
+                paddingTop: 0,
+                paddingBottom: 0,
+                margin: 0,
               },
             }}
           />
@@ -290,6 +301,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: isPremium ? goldColor : "white",
+              paddingTop: 0,
+              paddingBottom: 0,
+              minHeight: "auto",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -300,7 +314,9 @@ const Header = ({ mode, toggleColorMode }) => {
                 isPremium ? (
                   <span className="gold-shine">{page.name}</span>
                 ) : (
-                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                  <span style={{ color: "white", fontWeight: 600 }}>
+                    {page.name}
+                  </span>
                 )
               }
               sx={{
@@ -316,20 +332,26 @@ const Header = ({ mode, toggleColorMode }) => {
           </ListItem>
         ))}
 
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
+        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 1 }} />
 
         {/* Support Section */}
-        <ListItem sx={{ py: 1 }}>
+        <ListItem sx={{ m: 0, p: 0, minHeight: 0 }}>
           <ListItemText
             primary="SUPPORT"
             sx={{
               textAlign: "left",
               pl: 1,
+              pt: 0.5,
+              pb: 0.5,
+              m: 0,
               "& .MuiListItemText-primary": {
                 fontSize: "0.7rem",
                 letterSpacing: "0.2em",
                 color: isPremium ? goldColor : "rgba(255, 255, 255, 0.5)",
                 textTransform: "uppercase",
+                paddingTop: 0,
+                paddingBottom: 0,
+                margin: 0,
               },
             }}
           />
@@ -342,6 +364,9 @@ const Header = ({ mode, toggleColorMode }) => {
             onClick={handleDrawerClose}
             sx={{
               color: isPremium ? goldColor : "white",
+              paddingTop: 0,
+              //paddingBottom: 0,
+              minHeight: "auto",
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.1)",
               },
@@ -352,7 +377,9 @@ const Header = ({ mode, toggleColorMode }) => {
                 isPremium ? (
                   <span className="gold-shine">{page.name}</span>
                 ) : (
-                  <span style={{ color: "white", fontWeight: 600 }}>{page.name}</span>
+                  <span style={{ color: "white", fontWeight: 600 }}>
+                    {page.name}
+                  </span>
                 )
               }
               sx={{
@@ -368,7 +395,7 @@ const Header = ({ mode, toggleColorMode }) => {
           </ListItem>
         ))}
 
-        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 2 }} />
+        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 1 }} />
 
         {/* Cart Link */}
         <ListItem
@@ -377,6 +404,9 @@ const Header = ({ mode, toggleColorMode }) => {
           onClick={handleDrawerClose}
           sx={{
             color: isPremium ? goldColor : "white",
+            paddingTop: 0,
+            // paddingBottom: 0,
+            minHeight: "auto",
             "&:hover": {
               backgroundColor: "rgba(255, 255, 255, 0.1)",
             },
@@ -401,31 +431,48 @@ const Header = ({ mode, toggleColorMode }) => {
             }}
           />
         </ListItem>
+
+        <Divider sx={{ borderColor: "rgba(255, 255, 255, 0.1)", my: 1 }} />
+
+        {/* Light/Dark Mode Toggler - Mobile Drawer */}
+        <ListItem
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "black",
+            gap: 1,
+            paddingTop: 0,
+            paddingBottom: 0,
+            minHeight: "auto",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Brightness7Icon
+            sx={{ color: mode === "light" ? "#ffd600" : "#888", mr: 1 }}
+          />
+          <Typography
+            variant="body2"
+            sx={{
+              color: "white",
+              fontWeight: 600,
+              minWidth: 80,
+              textAlign: "center",
+            }}
+          >
+            {mode === "dark" ? "Dark Mode" : "Light Mode"}
+          </Typography>
+          <Switch
+            checked={mode === "dark"}
+            onChange={toggleColorMode}
+            color="default"
+            inputProps={{ "aria-label": "toggle dark mode" }}
+          />
+          <Brightness4Icon
+            sx={{ color: mode === "dark" ? "#ffd600" : "#888", ml: 1 }}
+          />
+        </ListItem>
       </List>
-      {/* Light/Dark Mode Toggler - Mobile Drawer */}
-      <Box
-        sx={{
-          width: "100%",
-          py: 2,
-          display: "flex",
-          alignItems: "center",
-          ml: 2,
-          bgcolor: "black",
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Brightness7Icon
-          sx={{ color: mode === "light" ? "#ffd600" : "#888", mr: 1 }}
-        />
-        <Switch
-          checked={mode === "dark"}
-          onChange={toggleColorMode}
-          color="default"
-        />
-        <Brightness4Icon
-          sx={{ color: mode === "dark" ? "#ffd600" : "#888", ml: 1 }}
-        />
-      </Box>
     </Box>
   );
 
@@ -520,9 +567,7 @@ const Header = ({ mode, toggleColorMode }) => {
               }}
             >
               <img
-                src={
-                  isPremium ? "/Beaten/Artboard-6.png" : "/Beaten/logo.png"
-                }
+                src={isPremium ? "/Beaten/Artboard-6.png" : "/Beaten/logo.png"}
                 alt="Beaten Logo"
                 style={{
                   width: "6em",
@@ -829,8 +874,8 @@ const Header = ({ mode, toggleColorMode }) => {
             zIndex: 9999,
           },
           "& .MuiDrawer-paper": {
-            width: "100vw",
-            maxWidth: "100vw",
+            width: "80vw",
+            maxWidth: "80vw",
             zIndex: 10000,
             position: "fixed",
             top: 0,
@@ -843,8 +888,8 @@ const Header = ({ mode, toggleColorMode }) => {
         }}
         PaperProps={{
           sx: {
-            width: "100vw",
-            maxWidth: "100vw",
+            width: "75vw",
+            maxWidth: "75vw",
             zIndex: 10000,
             position: "fixed",
             top: 0,

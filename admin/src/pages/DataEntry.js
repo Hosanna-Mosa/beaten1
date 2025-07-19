@@ -73,6 +73,26 @@ const DataEntry = () => {
   const [collectionAdding, setCollectionAdding] = useState(false);
   const [collectionUpdating, setCollectionUpdating] = useState(false);
 
+  // Mobile Collection images state
+  const [mobileCollectionsImages, setMobileCollectionsImages] = useState([]);
+  const [mobileCollectionLoading, setMobileCollectionLoading] = useState(true);
+  const [mobileCollectionError, setMobileCollectionError] = useState(null);
+  const [mobileCollectionEditDialogOpen, setMobileCollectionEditDialogOpen] =
+    useState(false);
+  const [mobileCollectionAddDialogOpen, setMobileCollectionAddDialogOpen] =
+    useState(false);
+  const [mobileCollectionSelectedImage, setMobileCollectionSelectedImage] =
+    useState(null);
+  const [mobileCollectionNewImageFile, setMobileCollectionNewImageFile] =
+    useState(null);
+  const [mobileCollectionNewImagePreview, setMobileCollectionNewImagePreview] =
+    useState(null);
+  const [mobileCollectionAdding, setMobileCollectionAdding] = useState(false);
+  const [mobileCollectionUpdating, setMobileCollectionUpdating] =
+    useState(false);
+  const [mobileCollectionEditIndex, setMobileCollectionEditIndex] =
+    useState(null);
+
   useEffect(() => {
     const getImages = async () => {
       try {
@@ -143,6 +163,27 @@ const DataEntry = () => {
       }
     };
     getCollectionImages();
+  }, []);
+
+  // Fetch mobile collection images on mount
+  useEffect(() => {
+    const getMobileCollectionImages = async () => {
+      try {
+        setMobileCollectionLoading(true);
+        setMobileCollectionError(null);
+        const response = await axios.get(
+          `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/mobile-collection-images`
+        );
+        setMobileCollectionsImages(response.data.mobileCollectionsImages || []);
+      } catch (err) {
+        setMobileCollectionError(
+          err.message || "Failed to load mobile collection images"
+        );
+      } finally {
+        setMobileCollectionLoading(false);
+      }
+    };
+    getMobileCollectionImages();
   }, []);
 
   const handleDeleteImage = async (index) => {
@@ -594,6 +635,169 @@ const DataEntry = () => {
     }
   };
 
+  // Mobile Collection: Add
+  const handleMobileCollectionAddDialogOpen = () => {
+    setMobileCollectionAddDialogOpen(true);
+    setMobileCollectionNewImageFile(null);
+    setMobileCollectionNewImagePreview(null);
+  };
+
+  const handleMobileCollectionAddDialogClose = () => {
+    setMobileCollectionAddDialogOpen(false);
+    setMobileCollectionNewImageFile(null);
+    setMobileCollectionNewImagePreview(null);
+  };
+
+  const handleMobileCollectionAddDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setMobileCollectionNewImageFile(file);
+      setMobileCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleMobileCollectionAddFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMobileCollectionNewImageFile(file);
+      setMobileCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleMobileCollectionAddDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleMobileCollectionAddImage = async () => {
+    if (!mobileCollectionNewImageFile) return;
+    setMobileCollectionAdding(true);
+    try {
+      // 1. Upload image to backend
+      const formData = new FormData();
+      formData.append("image", mobileCollectionNewImageFile);
+      const uploadRes = await axios.post(
+        `${API_BASE_URL}/upload/image`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      const imageUrl = uploadRes.data.imageUrl;
+      // 2. Add to mobileCollectionsImages array
+      const updatedImages = [...mobileCollectionsImages, imageUrl];
+      setMobileCollectionsImages(updatedImages);
+      // 3. Persist to backend
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/mobile-collection-images`,
+        { mobileCollectionsImages: updatedImages }
+      );
+      handleMobileCollectionAddDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to add mobile collection image: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setMobileCollectionAdding(false);
+    }
+  };
+
+  // Mobile Collection: Edit
+  const handleMobileCollectionEditImage = (index) => {
+    setMobileCollectionEditIndex(index);
+    setMobileCollectionSelectedImage(mobileCollectionsImages[index]);
+    setMobileCollectionNewImageFile(null);
+    setMobileCollectionNewImagePreview(null);
+    setMobileCollectionEditDialogOpen(true);
+  };
+
+  const handleMobileCollectionEditDialogClose = () => {
+    setMobileCollectionEditDialogOpen(false);
+    setMobileCollectionEditIndex(null);
+    setMobileCollectionSelectedImage(null);
+    setMobileCollectionNewImageFile(null);
+    setMobileCollectionNewImagePreview(null);
+  };
+
+  const handleMobileCollectionDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setMobileCollectionNewImageFile(file);
+      setMobileCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleMobileCollectionFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setMobileCollectionNewImageFile(file);
+      setMobileCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleMobileCollectionDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleMobileCollectionUpdateImage = async () => {
+    if (!mobileCollectionNewImageFile) return;
+    setMobileCollectionUpdating(true);
+    try {
+      // 1. Upload image to backend
+      const formData = new FormData();
+      formData.append("image", mobileCollectionNewImageFile);
+      const uploadRes = await axios.post(
+        `${API_BASE_URL}/upload/image`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      const imageUrl = uploadRes.data.imageUrl;
+      // 2. Update mobileCollectionsImages array
+      const updatedImages = mobileCollectionsImages.map((img, i) =>
+        i === mobileCollectionEditIndex ? imageUrl : img
+      );
+      setMobileCollectionsImages(updatedImages);
+      // 3. Persist to backend
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/mobile-collection-images`,
+        { mobileCollectionsImages: updatedImages }
+      );
+      handleMobileCollectionEditDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to update mobile collection image: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setMobileCollectionUpdating(false);
+    }
+  };
+
+  // Mobile Collection: Delete
+  const handleMobileCollectionDeleteImage = async (index) => {
+    if (mobileCollectionsImages.length <= 1) {
+      alert("At least one image is required.");
+      return;
+    }
+    const updatedImages = mobileCollectionsImages.filter((_, i) => i !== index);
+    setMobileCollectionsImages(updatedImages);
+    try {
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/mobile-collection-images`,
+        { mobileCollectionsImages: updatedImages }
+      );
+    } catch (err) {
+      alert(
+        "Failed to update mobile collection images: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
+  };
+
   const handleNewsContentChange = (e) => {
     setNewsContent(e.target.value);
     setNewsChanged(true);
@@ -929,6 +1133,59 @@ const DataEntry = () => {
           </List>
         )}
       </Paper>
+
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Mobile Collection Images
+        </Typography>
+        {/* <Button
+          variant="outlined"
+          color="primary"
+          sx={{ mb: 2 }}
+          onClick={handleMobileCollectionAddDialogOpen}
+        >
+          Add Image
+        </Button> */}
+        {mobileCollectionLoading ? (
+          <Typography>Loading images...</Typography>
+        ) : mobileCollectionError ? (
+          <Typography color="error">{mobileCollectionError}</Typography>
+        ) : (
+          <List>
+            {mobileCollectionsImages.map((img, idx) => (
+              <ListItem key={idx}>
+                <img
+                  src={img}
+                  alt={`mobile-collection-${idx}`}
+                  style={{
+                    width: 60,
+                    height: 40,
+                    objectFit: "cover",
+                    marginRight: 12,
+                    borderRadius: 4,
+                    border: "1px solid #eee",
+                  }}
+                />
+                <ListItemSecondaryAction>
+                  <Button
+                    onClick={() => handleMobileCollectionEditImage(idx)}
+                    size="small"
+                  >
+                    Edit
+                  </Button>
+                  {/* <IconButton
+                    edge="end"
+                    color="error"
+                    onClick={() => handleMobileCollectionDeleteImage(idx)}
+                  >
+                    <DeleteIcon />
+                  </IconButton> */}
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Paper>
       {/* Add Collection Image Dialog */}
       <Dialog
         open={collectionAddDialogOpen}
@@ -1254,6 +1511,174 @@ const DataEntry = () => {
             disabled={!addImagePreview || adding}
           >
             {adding ? "Uploading..." : "Upload Image"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mobile Collection Add Image Dialog */}
+      <Dialog
+        open={mobileCollectionAddDialogOpen}
+        onClose={handleMobileCollectionAddDialogClose}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Add Mobile Collection Image</DialogTitle>
+        <DialogContent>
+          <Box
+            onDrop={handleMobileCollectionAddDrop}
+            onDragOver={handleMobileCollectionAddDragOver}
+            sx={{
+              border: "2px dashed #aaa",
+              borderRadius: 6,
+              p: 2,
+              textAlign: "center",
+              mb: 2,
+              background: "#fafafa",
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              document
+                .getElementById("mobile-collection-add-file-input")
+                .click()
+            }
+          >
+            <input
+              id="mobile-collection-add-file-input"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleMobileCollectionAddFileChange}
+            />
+            {mobileCollectionNewImagePreview ? (
+              <img
+                src={mobileCollectionNewImagePreview}
+                alt="preview"
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                Drag & drop a new image here, or click to select
+              </Typography>
+            )}
+            {/* Mobile recommended size */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size (Mobile): <b>375 x 200 px</b>
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleMobileCollectionAddDialogClose}>Cancel</Button>
+          <Button
+            onClick={handleMobileCollectionAddImage}
+            variant="contained"
+            color="primary"
+            disabled={
+              !mobileCollectionNewImagePreview || mobileCollectionAdding
+            }
+          >
+            {mobileCollectionAdding ? "Uploading..." : "Upload Image"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Mobile Collection Edit Image Dialog */}
+      <Dialog
+        open={mobileCollectionEditDialogOpen}
+        onClose={handleMobileCollectionEditDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Edit Mobile Collection Image</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2, textAlign: "center" }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Current Image
+            </Typography>
+            {mobileCollectionSelectedImage && (
+              <img
+                src={mobileCollectionSelectedImage}
+                alt="current"
+                style={{
+                  width: 400,
+                  height: 200,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            )}
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          {/* Bottom: Drag and drop */}
+          <Box
+            onDrop={handleMobileCollectionDrop}
+            onDragOver={handleMobileCollectionDragOver}
+            sx={{
+              border: "2px dashed #aaa",
+              borderRadius: 6,
+              p: 2,
+              textAlign: "center",
+              mb: 2,
+              background: "#fafafa",
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              document.getElementById("mobile-collection-file-input").click()
+            }
+          >
+            <input
+              id="mobile-collection-file-input"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleMobileCollectionFileChange}
+            />
+            {mobileCollectionNewImagePreview ? (
+              <img
+                src={mobileCollectionNewImagePreview}
+                alt="preview"
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                Drag & drop a new image here, or click to select
+              </Typography>
+            )}
+            {/* Mobile recommended size */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size (Mobile): <b>375 x 200 px</b>
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleMobileCollectionEditDialogClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleMobileCollectionUpdateImage}
+            variant="contained"
+            color="primary"
+            disabled={
+              !mobileCollectionNewImagePreview || mobileCollectionUpdating
+            }
+          >
+            {mobileCollectionUpdating ? "Updating..." : "Update Image"}
           </Button>
         </DialogActions>
       </Dialog>

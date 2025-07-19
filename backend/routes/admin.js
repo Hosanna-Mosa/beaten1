@@ -8,6 +8,10 @@ const {
   changePassword,
   logout,
   dashboardAnalytics,
+  realTimeOrders,
+  realTimeSales,
+  subscriptionAnalytics,
+  cachedAnalytics,
 } = require("../controllers/adminController");
 const User = require("../models/User");
 const { protectAdmin } = require("../middleware/auth");
@@ -42,6 +46,46 @@ router.post("/logout", protectAdmin, logout);
 
 // Dashboard analytics endpoint
 router.get("/dashboard", dashboardAnalytics);
+
+// Section-wise dashboard endpoints
+router.get("/dashboard/sales", realTimeSales);
+router.get("/dashboard/orders", realTimeOrders);
+router.get("/dashboard/products", async (req, res) => {
+  try {
+    const totalProducts = await require("../models/Product").countDocuments();
+    res.json({
+      success: true,
+      data: { totalProducts },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching product analytics",
+      error: error.message,
+    });
+  }
+});
+router.get("/dashboard/customers", async (req, res) => {
+  try {
+    const totalCustomers = await User.countDocuments();
+    res.json({
+      success: true,
+      data: { totalCustomers },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching customer analytics",
+      error: error.message,
+    });
+  }
+});
+router.get("/dashboard/subscriptions", subscriptionAnalytics);
+
+// Real-time dashboard endpoints
+router.get("/dashboard/orders/realtime", realTimeOrders);
+router.get("/dashboard/sales/realtime", realTimeSales);
+router.get("/dashboard/cached", cachedAnalytics);
 
 // List all returns
 router.get("/returns", protectAdmin, async (req, res) => {

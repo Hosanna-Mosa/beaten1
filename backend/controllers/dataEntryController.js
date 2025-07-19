@@ -221,6 +221,43 @@ exports.updateCollectionImages = async (req, res) => {
   }
 };
 
+exports.getMobileCollectionImages = async (req, res) => {
+  try {
+    const dataEntry = await DataEntry.find();
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    console.log("camed to mobile collection images get");
+    //console.log("mobile collection images", dataEntry[0].mobileCollectionsImages);
+    
+      res.status(200).json({ mobileCollectionsImages: dataEntry[0].mobileCollectionsImages });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update only slideImages
+exports.updateMobileCollectionImages = async (req, res) => {
+  try {
+    const { mobileCollectionsImages } = req.body;
+    // const dataEntry = await DataEntry.findByIdAndUpdate(
+    //   req.params.id,
+    //   { slideImages },
+    //   { new: true }
+    // );
+    const dataEntry = await DataEntry.findOneAndUpdate({}, { mobileCollectionsImages }, { new: true });
+    
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    console.log("mobile collections updated succesfully");
+    
+    res.status(200).json({ mobileCollectionsImages: dataEntry.mobileCollectionsImages });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Delete all slideImages
 // exports.deleteMobileSlideImages = async (req, res) => {
 //   try {
