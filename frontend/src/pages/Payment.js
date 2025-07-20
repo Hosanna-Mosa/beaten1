@@ -62,6 +62,30 @@ const Payment = ({ mode = "dark" }) => {
   const [validatingCoupon, setValidatingCoupon] = useState(false);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [showOffers, setShowOffers] = useState(false);
+
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        cardBackground: "#2d2d2d",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: "#1a1a1a",
+      textSecondary: "#666666",
+      cardBackground: "#ffffff",
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
   // Remove autoFlatDiscount state
 
   useEffect(() => {
@@ -322,12 +346,22 @@ const Payment = ({ mode = "dark" }) => {
 
   if (orderPlaced) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Paper sx={{ p: 4, textAlign: "center" }}>
-          <Typography variant="h5" gutterBottom>
+      <Container maxWidth="sm" sx={{ 
+        py: 4,
+        bgcolor: mode === "dark" ? "#181818" : "#fff",
+        color: mode === "dark" ? "#fff" : "#181818",
+      }}>
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: "center",
+          background: cardColors.cardBackground,
+          border: cardColors.border,
+          boxShadow: cardColors.shadow,
+        }}>
+          <Typography variant="h5" gutterBottom sx={{ color: cardColors.text }}>
             Order Placed Successfully!
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" paragraph sx={{ color: cardColors.textSecondary }}>
             Thank you for shopping with us.
           </Typography>
           <Button
@@ -368,17 +402,23 @@ const Payment = ({ mode = "dark" }) => {
       </Alert> */}
       <Grid container spacing={4}>
         <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3, mb: 2 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ 
+            p: 3, 
+            mb: 2,
+            background: cardColors.cardBackground,
+            border: cardColors.border,
+            boxShadow: cardColors.shadow,
+          }}>
+            <Typography variant="h6" gutterBottom sx={{ color: cardColors.text }}>
               Payment Method
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <Typography variant="body2" sx={{ mb: 2, color: cardColors.textSecondary }}>
               Choose your preferred payment method
             </Typography>
 
             {/* Coupon Section */}
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom sx={{ color: cardColors.text }}>
                 Apply Coupon
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -387,7 +427,27 @@ const Payment = ({ mode = "dark" }) => {
                   value={coupon}
                   onChange={(e) => setCoupon(e.target.value)}
                   size="small"
-                  sx={{ mr: 2, width: 180 }}
+                  sx={{ 
+                    mr: 2, 
+                    width: 180,
+                    "& .MuiInputLabel-root": {
+                      color: mode === "dark" ? "#cccccc" : "inherit",
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                      },
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      color: mode === "dark" ? "#ffffff" : "inherit",
+                    },
+                  }}
                   disabled={couponApplied}
                 />
                 <Button
@@ -455,7 +515,7 @@ const Payment = ({ mode = "dark" }) => {
             <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
               <IconButton
                 color="primary"
-                sx={{ mr: 1 }}
+                  sx={{ mr: 1, color: mode === "dark" ? "#FFD700" : "primary.main" }}
                 onClick={handleViewOffers}
               >
                 <RemoveRedEyeIcon />
@@ -463,7 +523,11 @@ const Payment = ({ mode = "dark" }) => {
               <Button
                 variant="text"
                 color="primary"
-                sx={{ textTransform: "none", fontWeight: 600 }}
+                  sx={{ 
+                    textTransform: "none", 
+                    fontWeight: 600,
+                    color: mode === "dark" ? "#FFD700" : "primary.main"
+                  }}
                 onClick={handleViewOffers}
               >
                 View Available Offers
@@ -471,22 +535,27 @@ const Payment = ({ mode = "dark" }) => {
             </Box>
             {showOffers && availableCoupons.length > 0 && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: cardColors.text }}>
                   Coupons
                 </Typography>
                 {availableCoupons.map((coupon) => (
                   <Paper
                     key={coupon.code}
-                    sx={{ p: 2, mb: 1, bgcolor: "#f5f5f5" }}
+                    sx={{ 
+                      p: 2, 
+                      mb: 1, 
+                      bgcolor: mode === "dark" ? "#1a1a1a" : "#f5f5f5",
+                      border: mode === "dark" ? "1px solid rgba(255,255,255,0.1)" : "none",
+                    }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: cardColors.text }}>
                       {coupon.code} -{" "}
                       {coupon.discountType === "flat"
                         ? `Flat ₹${coupon.discount}`
                         : `${coupon.discount}%`}{" "}
                       off
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ color: cardColors.textSecondary }}>
                       Min Purchase: ₹{coupon.minPurchase}
                     </Typography>
                   </Paper>
@@ -504,11 +573,13 @@ const Payment = ({ mode = "dark" }) => {
                     p: 2,
                     mb: 2,
                     borderColor:
-                      paymentMethod === "razorpay" ? "primary.main" : "divider",
+                      paymentMethod === "razorpay" 
+                        ? (mode === "dark" ? "#FFD700" : "primary.main") 
+                        : (mode === "dark" ? "rgba(255,255,255,0.2)" : "divider"),
                     backgroundColor:
                       paymentMethod === "razorpay"
-                        ? "primary.50"
-                        : "background.paper",
+                        ? (mode === "dark" ? "#1a1a1a" : "primary.50")
+                        : (mode === "dark" ? "#2d2d2d" : "background.paper"),
                     boxShadow: paymentMethod === "razorpay" ? 2 : 0,
                   }}
                 >
@@ -517,32 +588,32 @@ const Payment = ({ mode = "dark" }) => {
                     control={<Radio />}
                     label={
                       <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: cardColors.text }}>
                           <CreditCardIcon
-                            sx={{ mr: 1, verticalAlign: "middle" }}
+                            sx={{ mr: 1, verticalAlign: "middle", color: mode === "dark" ? "#FFD700" : "inherit" }}
                           />{" "}
                           Online Payment (Credit/Debit Card)
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
                           Pay securely with Razorpay
                         </Typography>
                         <Box
                           sx={{ display: "flex", alignItems: "center", mt: 1 }}
                         >
-                          <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                          <Typography variant="caption" color="text.secondary">
+                          <PaymentsIcon fontSize="small" sx={{ mr: 1, color: mode === "dark" ? "#FFD700" : "inherit" }} />
+                          <Typography variant="caption" sx={{ color: cardColors.textSecondary }}>
                             Instant payment confirmation
                           </Typography>
                         </Box>
                         <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <PaymentsIcon fontSize="small" sx={{ mr: 1 }} />
-                          <Typography variant="caption" color="text.secondary">
+                          <PaymentsIcon fontSize="small" sx={{ mr: 1, color: mode === "dark" ? "#FFD700" : "inherit" }} />
+                          <Typography variant="caption" sx={{ color: cardColors.textSecondary }}>
                             Secure SSL encryption
                           </Typography>
                         </Box>
                         <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <CreditCardIcon fontSize="small" sx={{ mr: 1 }} />
-                          <Typography variant="caption" color="text.secondary">
+                          <CreditCardIcon fontSize="small" sx={{ mr: 1, color: mode === "dark" ? "#FFD700" : "inherit" }} />
+                          <Typography variant="caption" sx={{ color: cardColors.textSecondary }}>
                             Multiple card options accepted
                           </Typography>
                         </Box>
@@ -556,11 +627,13 @@ const Payment = ({ mode = "dark" }) => {
                     p: 2,
                     mb: 2,
                     borderColor:
-                      paymentMethod === "cod" ? "primary.main" : "divider",
+                      paymentMethod === "cod" 
+                        ? (mode === "dark" ? "#FFD700" : "primary.main") 
+                        : (mode === "dark" ? "rgba(255,255,255,0.2)" : "divider"),
                     backgroundColor:
                       paymentMethod === "cod"
-                        ? "primary.50"
-                        : "background.paper",
+                        ? (mode === "dark" ? "#1a1a1a" : "primary.50")
+                        : (mode === "dark" ? "#2d2d2d" : "background.paper"),
                     boxShadow: paymentMethod === "cod" ? 2 : 0,
                   }}
                 >
@@ -569,25 +642,25 @@ const Payment = ({ mode = "dark" }) => {
                     control={<Radio />}
                     label={
                       <Box>
-                        <Typography variant="subtitle1" fontWeight="bold">
+                        <Typography variant="subtitle1" fontWeight="bold" sx={{ color: cardColors.text }}>
                           <PaymentsIcon
-                            sx={{ mr: 1, verticalAlign: "middle" }}
+                            sx={{ mr: 1, verticalAlign: "middle", color: mode === "dark" ? "#FFD700" : "inherit" }}
                           />{" "}
                           Cash on Delivery (COD)
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
                           Pay when you receive your order
                         </Typography>
                         <Typography
                           variant="caption"
-                          color="text.secondary"
+                          sx={{ color: cardColors.textSecondary }}
                           display="block"
                         >
                           • No upfront payment required
                         </Typography>
                         <Typography
                           variant="caption"
-                          color="text.secondary"
+                          sx={{ color: cardColors.textSecondary }}
                           display="block"
                         >
                           • Pay with cash or card on delivery
@@ -638,8 +711,13 @@ const Payment = ({ mode = "dark" }) => {
           </Paper>
         </Grid>
         <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ 
+            p: 3,
+            background: cardColors.cardBackground,
+            border: cardColors.border,
+            boxShadow: cardColors.shadow,
+          }}>
+            <Typography variant="h6" gutterBottom sx={{ color: cardColors.text }}>
               Order Summary
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -648,10 +726,10 @@ const Payment = ({ mode = "dark" }) => {
                 key={item.product._id}
                 sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
               >
-                <Typography>
+                <Typography sx={{ color: cardColors.text }}>
                   {item.product.name} x{item.quantity}
                 </Typography>
-                <Typography>
+                <Typography sx={{ color: cardColors.text }}>
                   {formatPrice(item.product.price * item.quantity)}
                 </Typography>
               </Box>
@@ -660,8 +738,8 @@ const Payment = ({ mode = "dark" }) => {
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography>Subtotal</Typography>
-              <Typography>{formatPrice(subtotal)}</Typography>
+              <Typography sx={{ color: cardColors.text }}>Subtotal</Typography>
+              <Typography sx={{ color: cardColors.text }}>{formatPrice(subtotal)}</Typography>
             </Box>
             {user?.isPremium && (
               <Box
@@ -682,7 +760,7 @@ const Payment = ({ mode = "dark" }) => {
                     mb: 1,
                   }}
                 >
-                  <Typography>Subscription Discount</Typography>
+                  <Typography sx={{ color: cardColors.text }}>Subscription Discount</Typography>
                   <Typography color="success.main">
                     -{formatPrice(discount)}
                   </Typography>
@@ -701,14 +779,14 @@ const Payment = ({ mode = "dark" }) => {
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography>Shipping</Typography>
-              <Typography>{formatPrice(shipping)}</Typography>
+              <Typography sx={{ color: cardColors.text }}>Shipping</Typography>
+              <Typography sx={{ color: cardColors.text }}>{formatPrice(shipping)}</Typography>
             </Box>
             {paymentMethod === "cod" && (
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
               >
-                <Typography>COD Charge</Typography>
+                <Typography sx={{ color: cardColors.text }}>COD Charge</Typography>
                 <Typography color="warning.main">+₹50</Typography>
               </Box>
             )}
@@ -759,10 +837,10 @@ const Payment = ({ mode = "dark" }) => {
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
               >
-                <Typography variant="h6" fontWeight={700}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: cardColors.text }}>
                   Total
                 </Typography>
-                <Typography variant="h6" color="primary" fontWeight={700}>
+                <Typography variant="h6" fontWeight={700} sx={{ color: mode === "dark" ? "#FFD700" : "primary.main" }}>
                   {formatPrice(paymentMethod === "cod" ? total + 50 : total)}
                 </Typography>
               </Box>

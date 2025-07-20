@@ -26,6 +26,7 @@ import {
   IconButton,
   Chip,
   Drawer,
+  Dialog,
   useMediaQuery,
   useTheme,
   Accordion,
@@ -491,7 +492,11 @@ const Products = ({ mode }) => {
           aria-controls="gender-panel-content"
           id="gender-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Gender ({filters.gender.length})
           </Typography>
         </AccordionSummary>
@@ -514,7 +519,8 @@ const Products = ({ mode }) => {
                 sx={{
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.875rem",
-                    color: "text.secondary",
+                    color: "#000000",
+                    fontWeight: 500,
                   },
                 }}
               />
@@ -538,7 +544,11 @@ const Products = ({ mode }) => {
           aria-controls="category-panel-content"
           id="category-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Categories ({filters.category.length + filters.subCategory.length})
           </Typography>
         </AccordionSummary>
@@ -573,23 +583,23 @@ const Products = ({ mode }) => {
 
             {/* MEN Section */}
             <Box sx={{ mt: 1 }}>
-              <Typography
-                sx={{
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "text.primary",
-                  mb: 1,
-                }}
-              >
-                MEN
-              </Typography>
+                          <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                color: "#000000",
+                mb: 1,
+              }}
+            >
+              MEN
+            </Typography>
               {Object.entries(categories["MEN"]).map(([mainCat, subCats]) => (
                 <Box key={mainCat} sx={{ ml: 2, mb: 2 }}>
                   <Typography
                     sx={{
                       fontSize: "0.875rem",
                       fontWeight: 500,
-                      color: "text.secondary",
+                      color: "#000000",
                       mb: 0.5,
                     }}
                   >
@@ -620,7 +630,8 @@ const Products = ({ mode }) => {
                         sx={{
                           "& .MuiFormControlLabel-label": {
                             fontSize: "0.875rem",
-                            color: "text.secondary",
+                            color: "#000000",
+                            fontWeight: 500,
                           },
                         }}
                       />
@@ -632,23 +643,23 @@ const Products = ({ mode }) => {
 
             {/* WOMEN Section */}
             <Box sx={{ mt: 2 }}>
-              <Typography
-                sx={{
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  color: "text.primary",
-                  mb: 1,
-                }}
-              >
-                WOMEN
-              </Typography>
+                          <Typography
+              sx={{
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                color: "#000000",
+                mb: 1,
+              }}
+            >
+              WOMEN
+            </Typography>
               {Object.entries(categories["WOMEN"]).map(([mainCat, subCats]) => (
                 <Box key={mainCat} sx={{ ml: 2, mb: 2 }}>
                   <Typography
                     sx={{
                       fontSize: "0.875rem",
                       fontWeight: 500,
-                      color: "text.secondary",
+                      color: "#000000",
                       mb: 0.5,
                     }}
                   >
@@ -679,7 +690,8 @@ const Products = ({ mode }) => {
                         sx={{
                           "& .MuiFormControlLabel-label": {
                             fontSize: "0.875rem",
-                            color: "text.secondary",
+                            color: "#000000",
+                            fontWeight: 500,
                           },
                         }}
                       />
@@ -707,7 +719,11 @@ const Products = ({ mode }) => {
           aria-controls="collection-panel-content"
           id="collection-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Collections ({filters.collectionName.length})
           </Typography>
         </AccordionSummary>
@@ -734,7 +750,8 @@ const Products = ({ mode }) => {
                 sx={{
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.875rem",
-                    color: "text.secondary",
+                    color: "#000000",
+                    fontWeight: 500,
                   },
                 }}
               />
@@ -811,7 +828,11 @@ const Products = ({ mode }) => {
           aria-controls="size-panel-content"
           id="size-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Size ({filters.size.length})
           </Typography>
         </AccordionSummary>
@@ -836,7 +857,8 @@ const Products = ({ mode }) => {
                 sx={{
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.875rem",
-                    color: "text.secondary",
+                    color: "#000000",
+                    fontWeight: 500,
                   },
                 }}
               />
@@ -858,7 +880,11 @@ const Products = ({ mode }) => {
           aria-controls="fit-panel-content"
           id="fit-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Fit ({filters.fit.length})
           </Typography>
         </AccordionSummary>
@@ -883,7 +909,8 @@ const Products = ({ mode }) => {
                 sx={{
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.875rem",
-                    color: "text.secondary",
+                    color: "#000000",
+                    fontWeight: 500,
                   },
                 }}
               />
@@ -907,7 +934,11 @@ const Products = ({ mode }) => {
           aria-controls="color-panel-content"
           id="color-panel-header"
         >
-          <Typography sx={{ fontWeight: 500, fontSize: "0.9rem" }}>
+          <Typography sx={{ 
+            fontWeight: 500, 
+            fontSize: "0.9rem",
+            color: "#000000",
+          }}>
             Color ({filters.color.length})
           </Typography>
         </AccordionSummary>
@@ -943,7 +974,8 @@ const Products = ({ mode }) => {
                 sx={{
                   "& .MuiFormControlLabel-label": {
                     fontSize: "0.875rem",
-                    color: "text.secondary",
+                    color: mode === "dark" ? "#e0e0e0" : "#333333",
+                    fontWeight: 500,
                   },
                 }}
               />
@@ -1292,7 +1324,21 @@ const Products = ({ mode }) => {
                     value={filters.sort}
                     onChange={(e) => handleFilterChange("sort", e.target.value)}
                     displayEmpty
-                    sx={{ fontSize: "0.875rem" }}
+                    sx={{ 
+                      fontSize: "0.875rem",
+                      "& .MuiSelect-select": {
+                        color: mode === "dark" ? "#fff" : "inherit",
+                      },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.23)",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.87)",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: mode === "dark" ? "#fff" : "#1976d2",
+                      },
+                    }}
                   >
                     <MenuItem value="newest">Newest First</MenuItem>
                     <MenuItem value="price_asc">Price: Low to High</MenuItem>
@@ -1303,7 +1349,7 @@ const Products = ({ mode }) => {
                 <Box
                   sx={{
                     display: "flex",
-                    border: "1px solid #ddd",
+                    border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "#ddd"}`,
                     borderRadius: 1,
                   }}
                 >
@@ -1311,7 +1357,13 @@ const Products = ({ mode }) => {
                     size="small"
                     onClick={() => setViewMode("grid")}
                     color={viewMode === "grid" ? "primary" : "default"}
-                    sx={{ borderRadius: 0 }}
+                    sx={{ 
+                      borderRadius: 0,
+                      color: mode === "dark" ? "#fff" : "inherit",
+                      "&:hover": {
+                        backgroundColor: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.04)",
+                      },
+                    }}
                   >
                     <ViewModuleIcon />
                   </IconButton>
@@ -1319,7 +1371,13 @@ const Products = ({ mode }) => {
                     size="small"
                     onClick={() => setViewMode("list")}
                     color={viewMode === "list" ? "primary" : "default"}
-                    sx={{ borderRadius: 0 }}
+                    sx={{ 
+                      borderRadius: 0,
+                      color: mode === "dark" ? "#fff" : "inherit",
+                      "&:hover": {
+                        backgroundColor: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.04)",
+                      },
+                    }}
                   >
                     <ViewListIcon />
                   </IconButton>
@@ -1582,94 +1640,154 @@ const Products = ({ mode }) => {
           </Grid>
         </Grid>
 
-        {/* Mobile Filter Drawer */}
-        <Drawer
-          anchor="right"
+        {/* Mobile Sort Popup Dialog */}
+        <Dialog
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          variant="temporary"
-          sx={{
-            display: { xs: "block", md: "none" },
-            "& .MuiDrawer-paper": {
-              width: "100%",
-              maxWidth: 320,
-              boxSizing: "border-box",
-              bgcolor: "background.paper",
-              borderLeft: "1px solid rgba(0, 0, 0, 0.12)",
-              top: 80,
-              height: "calc(100vh - 80px)",
-            },
-          }}
           PaperProps={{
             sx: {
               position: "fixed",
-              top: 80,
-              right: 0,
-              height: "calc(100vh - 80px)",
-              overflow: "hidden",
+              bottom: 100, // Position above the bottom navigation
+              right: 20,
+              margin: 0,
+              width: 280,
+              maxWidth: "calc(100vw - 40px)",
+              borderRadius: "12px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+              bgcolor: mode === "dark" ? "#2d2d2d" : "#fff",
+              border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"}`,
+              transform: drawerOpen ? "scale(1) translateY(0)" : "scale(0.8) translateY(20px)",
+              opacity: drawerOpen ? 1 : 0,
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              transformOrigin: "bottom right",
             },
           }}
+          BackdropProps={{
+            sx: {
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              opacity: drawerOpen ? 1 : 0,
+              transition: "opacity 0.3s ease",
+            },
+          }}
+          TransitionProps={{
+            timeout: 300,
+            enter: true,
+            exit: true,
+          }}
         >
-          <Box
-            sx={{
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {/* Drawer Header */}
+          <Box sx={{ p: 2 }}>
+            {/* Dialog Header */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                p: 2,
-                borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
-                position: "sticky",
-                top: 0,
-                bgcolor: "background.paper",
-                zIndex: 1,
+                mb: 2,
               }}
             >
               <Typography
                 variant="h6"
-                sx={{ fontSize: "1.1rem", fontWeight: 600 }}
+                sx={{ 
+                  fontSize: "1rem", 
+                  fontWeight: 600,
+                  color: mode === "dark" ? "#fff" : "#000",
+                }}
               >
                 Sort
               </Typography>
-              <IconButton onClick={() => setDrawerOpen(false)} size="small">
-                <CloseIcon />
+              <IconButton 
+                onClick={() => setDrawerOpen(false)} 
+                size="small"
+                sx={{
+                  color: mode === "dark" ? "#fff" : "#000",
+                  "&:hover": {
+                    bgcolor: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.04)",
+                  },
+                }}
+              >
+                <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
 
-            {/* Only Sort Dropdown for Mobile Drawer */}
-            <Box
-              sx={{
-                flex: 1,
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                p: 3,
-              }}
-            >
-              <FormControl size="small" sx={{ minWidth: 200 }}>
+            {/* Sort Dropdown */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  mb: 1,
+                  color: mode === "dark" ? "#ccc" : "#666",
+                  fontSize: "0.875rem",
+                }}
+              >
+                Sort By
+              </Typography>
+              <FormControl fullWidth size="small">
                 <Select
                   value={filters.sort}
-                  onChange={(e) => handleFilterChange("sort", e.target.value)}
+                  onChange={(e) => {
+                    handleFilterChange("sort", e.target.value);
+                    setDrawerOpen(false); // Close dialog after selection
+                  }}
                   displayEmpty
-                  sx={{ fontSize: "1rem" }}
+                  sx={{
+                    fontSize: "0.875rem",
+                    backgroundColor: mode === "dark" ? "#404040" : "#f5f5f5",
+                    border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "#ddd"}`,
+                    borderRadius: "8px",
+                    "& .MuiSelect-select": {
+                      color: mode === "dark" ? "#fff" : "#000",
+                      padding: "8px 12px",
+                      fontWeight: 500,
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
+                    "&:hover": {
+                      backgroundColor: mode === "dark" ? "#505050" : "#e8e8e8",
+                      borderColor: mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "#bbb",
+                    },
+                    "&.Mui-focused": {
+                      backgroundColor: mode === "dark" ? "#505050" : "#e8e8e8",
+                      borderColor: mode === "dark" ? "#FFD700" : "#1976d2",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: mode === "dark" ? "#2d2d2d" : "#fff",
+                        border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "#ddd"}`,
+                        boxShadow: mode === "dark" ? "0 4px 20px rgba(0,0,0,0.5)" : "0 4px 20px rgba(0,0,0,0.15)",
+                        "& .MuiMenuItem-root": {
+                          color: mode === "dark" ? "#fff" : "#000",
+                          fontSize: "0.875rem",
+                          padding: "8px 12px",
+                          "&:hover": {
+                            backgroundColor: mode === "dark" ? "#404040" : "#f5f5f5",
+                          },
+                          "&.Mui-selected": {
+                            backgroundColor: mode === "dark" ? "#FFD700" : "#e3f2fd",
+                            color: mode === "dark" ? "#000" : "#1976d2",
+                            "&:hover": {
+                              backgroundColor: mode === "dark" ? "#FFC700" : "#e3f2fd",
+                            },
+                          },
+                        },
+                      },
+                    },
+                  }}
                 >
-                  <MenuItem value="newest">Newest</MenuItem>
+                  <MenuItem value="newest">Newest First</MenuItem>
                   <MenuItem value="price_asc">Price: Low to High</MenuItem>
                   <MenuItem value="price_desc">Price: High to Low</MenuItem>
                   <MenuItem value="popular">Most Popular</MenuItem>
                 </Select>
               </FormControl>
             </Box>
+
+
           </Box>
-        </Drawer>
+        </Dialog>
       </Container>
       {isMobile && !drawerOpen && mobileFilterFab}
     </Box>

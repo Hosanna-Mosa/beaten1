@@ -4,12 +4,10 @@ const crypto = require("crypto");
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 465,
-    secure: true,
+    service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // use your new password here
+      pass: process.env.EMAIL_PASS,
     },
   });
 };

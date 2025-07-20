@@ -122,6 +122,30 @@ const Returns = ({ mode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        cardBackground: "#2d2d2d",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: "#1a1a1a",
+      textSecondary: "#666666",
+      cardBackground: "#ffffff",
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
+
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
@@ -228,7 +252,13 @@ const Returns = ({ mode }) => {
     >
       <Typography
         variant="h3"
-        sx={{ fontWeight: 900, mb: 4, textAlign: "center", letterSpacing: 1 }}
+        sx={{ 
+          fontWeight: 900, 
+          mb: 4, 
+          textAlign: "center", 
+          letterSpacing: 1,
+          color: mode === "dark" ? "#fff" : "inherit"
+        }}
       >
         My Returns
       </Typography>
@@ -237,18 +267,27 @@ const Returns = ({ mode }) => {
           variant="outlined"
           onClick={fetchReturns}
           startIcon={<RefreshIcon />}
-          sx={{ borderRadius: 3, fontWeight: 600, px: 3 }}
+          sx={{ 
+            borderRadius: 3, 
+            fontWeight: 600, 
+            px: 3,
+            borderColor: mode === "dark" ? "#fff" : "inherit",
+            color: mode === "dark" ? "#fff" : "inherit",
+            "&:hover": {
+              backgroundColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "inherit",
+            },
+          }}
         >
           Refresh Returns
         </Button>
       </Box>
       {sortedReturns.length === 0 ? (
         <Box sx={{ textAlign: "center", mt: 8 }}>
-          <ReturnIcon sx={{ fontSize: 60, color: "#bdbdbd", mb: 2 }} />
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+          <ReturnIcon sx={{ fontSize: 60, color: mode === "dark" ? "#666666" : "#bdbdbd", mb: 2 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: mode === "dark" ? "#fff" : "inherit" }}>
             No Returns Found
           </Typography>
-          <Typography variant="body1" sx={{ color: "text.secondary" }}>
+          <Typography variant="body1" sx={{ color: mode === "dark" ? "#cccccc" : "text.secondary" }}>
             You have not requested any returns yet.
           </Typography>
         </Box>
@@ -282,13 +321,14 @@ const Returns = ({ mode }) => {
                   sx={{
                     borderRadius: 3,
                     p: { xs: 2.5, sm: 4 },
-                    boxShadow: '0 2px 12px rgba(60,60,60,0.07)',
+                    boxShadow: cardColors.shadow,
+                    background: cardColors.cardBackground,
+                    border: cardColors.border,
                     minHeight: 220,
                     mb: 2,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 2.5,
-                    bgcolor: '#fff',
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
@@ -300,14 +340,14 @@ const Returns = ({ mode }) => {
                         onError={e => { e.target.onerror = null; e.target.src = PLACEHOLDER_IMAGE; }}
                       />
                       <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '1.1rem', color: cardColors.text }}>
                           {ret.productName || 'Product Name'}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          Order: <b>{ret.orderId}</b>
+                        <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
+                          Order: <b style={{ color: cardColors.text }}>{ret.orderId}</b>
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          Return ID: <b>{ret._id}</b>
+                        <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
+                          Return ID: <b style={{ color: cardColors.text }}>{ret._id}</b>
                         </Typography>
                       </Box>
                     </Box>
@@ -320,14 +360,14 @@ const Returns = ({ mode }) => {
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap', mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarTodayIcon fontSize="small" />
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      <CalendarTodayIcon fontSize="small" sx={{ color: mode === "dark" ? "#FFD700" : "inherit" }} />
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: cardColors.text }}>
                         Requested: {ret.date ? new Date(ret.date).toLocaleDateString() : ''}
                       </Typography>
                     </Box>
                   </Box>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, mb: 0.5 }}>
-                    Reason: <span style={{ fontWeight: 700 }}>{ret.reason}</span>
+                  <Typography variant="body2" sx={{ color: cardColors.textSecondary, fontWeight: 600, mb: 0.5 }}>
+                    Reason: <span style={{ fontWeight: 700, color: cardColors.text }}>{ret.reason}</span>
                   </Typography>
                   { (ret.status === 'rejected' || ret.status === 'return_rejected') && ret.rejectionReason && (
                     <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600, mb: 0.5 }}>
@@ -335,10 +375,45 @@ const Returns = ({ mode }) => {
                     </Typography>
                   )}
                   <Box sx={{ mt: 3 }}>
-                    <Stepper activeStep={stepIndex} alternativeLabel>
+                    <Stepper 
+                      activeStep={stepIndex} 
+                      alternativeLabel
+                      sx={{
+                        '& .MuiStepLabel-root': {
+                          color: mode === "dark" ? "#cccccc" : cardColors.textSecondary,
+                        },
+                        '& .MuiStepLabel-root.Mui-active': {
+                          color: mode === "dark" ? "#FFD700" : "primary.main",
+                        },
+                        '& .MuiStepLabel-root.Mui-completed': {
+                          color: mode === "dark" ? "#4CAF50" : "success.main",
+                        },
+                        '& .MuiStepIcon-root': {
+                          color: mode === "dark" ? "#cccccc" : cardColors.textSecondary,
+                        },
+                        '& .MuiStepIcon-root.Mui-active': {
+                          color: mode === "dark" ? "#FFD700" : "primary.main",
+                        },
+                        '& .MuiStepIcon-root.Mui-completed': {
+                          color: mode === "dark" ? "#4CAF50" : "success.main",
+                        },
+                        '& .MuiStepLabel-label': {
+                          color: mode === "dark" ? "#cccccc" : cardColors.textSecondary,
+                          fontWeight: 600,
+                        },
+                        '& .MuiStepLabel-label.Mui-active': {
+                          color: mode === "dark" ? "#FFD700" : "primary.main",
+                        },
+                        '& .MuiStepLabel-label.Mui-completed': {
+                          color: mode === "dark" ? "#4CAF50" : "success.main",
+                        },
+                      }}
+                    >
                       {steps.map((label) => (
                         <Step key={label}>
-                          <StepLabel>{label}</StepLabel>
+                          <StepLabel>
+                            {label}
+                          </StepLabel>
                         </Step>
                       ))}
                     </Stepper>
@@ -351,8 +426,20 @@ const Returns = ({ mode }) => {
       )}
 
       {/* Order Details Dialog */}
-      <Dialog open={orderDialogOpen} onClose={handleCloseOrderDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Order Details</DialogTitle>
+      <Dialog 
+        open={orderDialogOpen} 
+        onClose={handleCloseOrderDialog} 
+        maxWidth="md" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: cardColors.cardBackground,
+            border: cardColors.border,
+            boxShadow: cardColors.shadow,
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: cardColors.text }}>Order Details</DialogTitle>
         <DialogContent dividers>
           {orderLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -362,13 +449,13 @@ const Returns = ({ mode }) => {
             <Alert severity="error">{orderError}</Alert>
           ) : orderDetails ? (
             <Box>
-              <Typography variant="h6" sx={{ mb: 2 }}>Order #{orderDetails._id}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Placed on: {new Date(orderDetails.createdAt).toLocaleDateString()}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Total: ₹{orderDetails.totalPrice}</Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>Payment Type: {orderDetails.paymentInfo?.method?.toUpperCase() || 'N/A'}</Typography>
-              <Typography variant="body2" sx={{ mb: 2 }}>Status: <Chip label={orderDetails.orderStatus} color={getStatusColor(orderDetails.orderStatus)} size="small" /></Typography>
+              <Typography variant="h6" sx={{ mb: 2, color: cardColors.text }}>Order #{orderDetails._id}</Typography>
+              <Typography variant="body2" sx={{ mb: 1, color: cardColors.textSecondary }}>Placed on: {new Date(orderDetails.createdAt).toLocaleDateString()}</Typography>
+              <Typography variant="body2" sx={{ mb: 1, color: cardColors.textSecondary }}>Total: ₹{orderDetails.totalPrice}</Typography>
+              <Typography variant="body2" sx={{ mb: 1, color: cardColors.textSecondary }}>Payment Type: {orderDetails.paymentInfo?.method?.toUpperCase() || 'N/A'}</Typography>
+              <Typography variant="body2" sx={{ mb: 2, color: cardColors.textSecondary }}>Status: <Chip label={orderDetails.orderStatus} color={getStatusColor(orderDetails.orderStatus)} size="small" /></Typography>
               <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Order Items:</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: cardColors.text }}>Order Items:</Typography>
               <List>
                 {orderDetails.orderItems.map((item, idx) => (
                   <ListItem key={idx} alignItems="flex-start">
@@ -376,20 +463,33 @@ const Returns = ({ mode }) => {
                       <Avatar src={item.image || PLACEHOLDER_IMAGE} alt={item.name} />
                     </ListItemAvatar>
                     <ListItemText
-                      primary={item.name}
-                      secondary={`Qty: ${item.qty} | Price: ₹${item.price}`}
+                      primary={<span style={{ color: cardColors.text }}>{item.name}</span>}
+                      secondary={<span style={{ color: cardColors.textSecondary }}>{`Qty: ${item.qty} | Price: ₹${item.price}`}</span>}
                     />
                   </ListItem>
                 ))}
               </List>
               <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Delivery Address:</Typography>
-              <Typography variant="body2">{orderDetails.shippingAddress?.address}, {orderDetails.shippingAddress?.city}, {orderDetails.shippingAddress?.state}, {orderDetails.shippingAddress?.country}, {orderDetails.shippingAddress?.postalCode}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1, color: cardColors.text }}>Delivery Address:</Typography>
+              <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>{orderDetails.shippingAddress?.address}, {orderDetails.shippingAddress?.city}, {orderDetails.shippingAddress?.state}, {orderDetails.shippingAddress?.country}, {orderDetails.shippingAddress?.postalCode}</Typography>
             </Box>
           ) : null}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseOrderDialog} color="primary" variant="contained">Close</Button>
+          <Button 
+            onClick={handleCloseOrderDialog} 
+            color="primary" 
+            variant="contained"
+            sx={{
+              backgroundColor: mode === "dark" ? "#FFD700" : "primary.main",
+              color: mode === "dark" ? "#000" : "white",
+              "&:hover": {
+                backgroundColor: mode === "dark" ? "#FFC700" : "primary.dark",
+              },
+            }}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

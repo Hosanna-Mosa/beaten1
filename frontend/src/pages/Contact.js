@@ -48,21 +48,45 @@ const Contact = ({ mode }) => {
     100: "#f5f5f5", // Off-white
   };
 
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        icon: "#ffffff",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: matteColors[900],
+      textSecondary: matteColors[700],
+      icon: matteColors[900],
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
+
   const contactInfo = [
     {
-      icon: <EmailIcon sx={{ fontSize: 40, color: matteColors[900] }} />,
+      icon: <EmailIcon sx={{ fontSize: 40, color: cardColors.icon }} />,
       title: "Email",
       content: "customersupport@beaten.in",
       link: "mailto:customersupport@beaten.in",
     },
     {
-      icon: <PhoneIcon sx={{ fontSize: 40, color: matteColors[900] }} />,
+      icon: <PhoneIcon sx={{ fontSize: 40, color: cardColors.icon }} />,
       title: "Phone",
       content: "+91-7799120325",
       link: "tel:+917799120325",
     },
     {
-      icon: <LocationIcon sx={{ fontSize: 40, color: matteColors[900] }} />,
+      icon: <LocationIcon sx={{ fontSize: 40, color: cardColors.icon }} />,
       title: "Address",
       content:
         "Beaten Apparels, Plot No: 91, Block B, Siddarth Enclave, Beeramguda, Hyderabad, 5020319.",
@@ -190,13 +214,12 @@ const Contact = ({ mode }) => {
                 sx={{
                   p: { xs: 2, md: 4 },
                   borderRadius: "16px",
-                  background:
-                    "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  background: cardColors.background,
+                  boxShadow: cardColors.shadow,
+                  border: cardColors.border,
                   mb: { xs: 1, md: 0 },
                   display: "flex",
                   alignItems: "center",
-
                   gap: 2,
                 }}
               >
@@ -204,7 +227,7 @@ const Contact = ({ mode }) => {
                   {React.cloneElement(info.icon, {
                     fontSize: "medium",
                     sx: {
-                      color: matteColors[900],
+                      color: cardColors.icon,
                       fontSize: { xs: 28, md: 40 },
                     },
                   })}
@@ -215,7 +238,7 @@ const Contact = ({ mode }) => {
                     gutterBottom
                     sx={{
                       fontWeight: 600,
-                      color: matteColors[900],
+                      color: cardColors.text,
                       fontSize: { xs: "1.08rem", md: "1.25rem" },
                       mb: 0.5,
                     }}
@@ -234,12 +257,12 @@ const Contact = ({ mode }) => {
                     }
                     sx={{
                       lineHeight: 1.5,
-                      color: matteColors[700],
+                      color: cardColors.textSecondary,
                       textDecoration: "none",
                       display: "block",
                       fontSize: { xs: "0.98rem", md: "1.08rem" },
                       "&:hover": {
-                        color: matteColors[900],
+                        color: cardColors.text,
                       },
                     }}
                   >
@@ -258,7 +281,7 @@ const Contact = ({ mode }) => {
             gutterBottom
             sx={{
               fontWeight: 700,
-              color: matteColors[900],
+              color: mode === "dark" ? "#ffffff" : matteColors[900],
               mb: { xs: 2, md: 4 },
               textAlign: "center",
               fontSize: { xs: "1.18rem", md: "1.5rem" },
@@ -273,9 +296,9 @@ const Contact = ({ mode }) => {
                 sx={{
                   p: { xs: 3, md: 4 },
                   borderRadius: "16px",
-                  background:
-                    "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  background: cardColors.background,
+                  boxShadow: cardColors.shadow,
+                  border: cardColors.border,
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
@@ -287,7 +310,7 @@ const Contact = ({ mode }) => {
                   gutterBottom
                   sx={{
                     fontWeight: 700,
-                    color: matteColors[900],
+                    color: cardColors.text,
                     mb: 3,
                     fontSize: { xs: "1.2rem", md: "1.4rem" },
                   }}
@@ -301,7 +324,7 @@ const Contact = ({ mode }) => {
                     variant="h6"
                     sx={{
                       fontWeight: 600,
-                      color: matteColors[900],
+                      color: cardColors.text,
                       mb: 1,
                       fontSize: { xs: "1.1rem", md: "1.2rem" },
                     }}
@@ -313,13 +336,13 @@ const Contact = ({ mode }) => {
                     sx={{
                       lineHeight: 1.7,
                       fontSize: { xs: "1.01rem", md: "1.1rem" },
-                      color: matteColors[700],
+                      color: cardColors.textSecondary,
                       display: "flex",
                       alignItems: "center",
                       gap: 1,
                     }}
                   >
-                    <TimeIcon sx={{ color: matteColors[900], fontSize: 20 }} />
+                    <TimeIcon sx={{ color: cardColors.icon, fontSize: 20 }} />
                     24/7 - 365 Days
                   </Typography>
                 </Box>
@@ -330,7 +353,7 @@ const Contact = ({ mode }) => {
                     variant="h6"
                     sx={{
                       fontWeight: 600,
-                      color: matteColors[900],
+                      color: cardColors.text,
                       mb: 1,
                       fontSize: { xs: "1.1rem", md: "1.2rem" },
                     }}
@@ -342,10 +365,10 @@ const Contact = ({ mode }) => {
                     sx={{
                       lineHeight: 1.7,
                       fontSize: { xs: "1.01rem", md: "1.1rem" },
-                      color: matteColors[700],
+                      color: cardColors.textSecondary,
                     }}
                   >
-                    <strong style={{ color: matteColors[900] }}>
+                    <strong style={{ color: cardColors.text }}>
                       Monday - Saturday:
                     </strong>
                     <br />
@@ -362,7 +385,7 @@ const Contact = ({ mode }) => {
                     sx={{
                       lineHeight: 1.7,
                       fontSize: { xs: "0.95rem", md: "1rem" },
-                      color: matteColors[700],
+                      color: cardColors.textSecondary,
                       fontStyle: "italic",
                     }}
                   >
@@ -380,9 +403,9 @@ const Contact = ({ mode }) => {
                 sx={{
                   p: { xs: 3, md: 4 },
                   borderRadius: "16px",
-                  background:
-                    "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                  background: cardColors.background,
+                  boxShadow: cardColors.shadow,
+                  border: cardColors.border,
                   height: "100%",
                 }}
               >
@@ -401,8 +424,14 @@ const Contact = ({ mode }) => {
                           "& .MuiOutlinedInput-root": {
                             fontSize: { xs: "1.05rem", md: "1rem" },
                             "&:hover fieldset": {
-                              borderColor: matteColors[900],
+                              borderColor: mode === "dark" ? "#ffffff" : matteColors[900],
                             },
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: mode === "dark" ? "#cccccc" : "inherit",
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: mode === "dark" ? "#ffffff" : "inherit",
                           },
                         }}
                       />
@@ -421,8 +450,14 @@ const Contact = ({ mode }) => {
                           "& .MuiOutlinedInput-root": {
                             fontSize: { xs: "1.05rem", md: "1rem" },
                             "&:hover fieldset": {
-                              borderColor: matteColors[900],
+                              borderColor: mode === "dark" ? "#ffffff" : matteColors[900],
                             },
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: mode === "dark" ? "#cccccc" : "inherit",
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: mode === "dark" ? "#ffffff" : "inherit",
                           },
                         }}
                       />
@@ -440,8 +475,14 @@ const Contact = ({ mode }) => {
                           "& .MuiOutlinedInput-root": {
                             fontSize: { xs: "1.05rem", md: "1rem" },
                             "&:hover fieldset": {
-                              borderColor: matteColors[900],
+                              borderColor: mode === "dark" ? "#ffffff" : matteColors[900],
                             },
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: mode === "dark" ? "#cccccc" : "inherit",
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: mode === "dark" ? "#ffffff" : "inherit",
                           },
                         }}
                       />
@@ -461,8 +502,14 @@ const Contact = ({ mode }) => {
                           "& .MuiOutlinedInput-root": {
                             fontSize: { xs: "1.05rem", md: "1rem" },
                             "&:hover fieldset": {
-                              borderColor: matteColors[900],
+                              borderColor: mode === "dark" ? "#ffffff" : matteColors[900],
                             },
+                          },
+                          "& .MuiInputLabel-root": {
+                            color: mode === "dark" ? "#cccccc" : "inherit",
+                          },
+                          "& .MuiOutlinedInput-input": {
+                            color: mode === "dark" ? "#ffffff" : "inherit",
                           },
                         }}
                       />

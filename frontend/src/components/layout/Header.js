@@ -695,12 +695,12 @@ const Header = ({ mode, toggleColorMode }) => {
               </Badge>
             </IconButton>
 
-            {/* Notifications Icon - only show on md and up */}
+            {/* Notifications Icon - show on all screen sizes */}
             {user && (
               <IconButton
                 color="inherit"
                 onClick={() => navigate("/notifications")}
-                sx={{ p: 1, display: { xs: "none", md: "flex" } }}
+                sx={{ p: 1 }}
               >
                 <Badge badgeContent={unreadCount} color="error">
                   <NotificationsIcon sx={{ fontSize: 26 }} />
