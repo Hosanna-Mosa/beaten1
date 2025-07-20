@@ -71,7 +71,7 @@ const collections = [
 // Add a royalty-free human PNG image URL
 const humanPng = 'https://pngimg.com/uploads/businessman/businessman_PNG6567.png'; // Example PNG with transparency
 
-const Collections = () => {
+const Collections = ({ mode = 'light' }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -85,33 +85,39 @@ const Collections = () => {
       }}
     >
       {/* Hero Section */}
-      <Box sx={{ mb: { xs: 4, md: 8 } }}>
-        <Typography
-          variant="h1"
-          sx={{
-            fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
-            fontWeight: 700,
+      <Box sx={{ mb: { xs: 4, md: 8 }, position: 'relative', zIndex: 1000, bgcolor: 'transparent', opacity: 1 }}>
+        <Box
+          style={{
+            color: mode === 'dark' ? '#fff' : '#222',
+            fontSize: '2.5rem',
+            fontWeight: 900,
             textAlign: 'center',
-            mb: { xs: 1.5, md: 2 },
-            letterSpacing: { xs: '-0.02em', md: '-0.03em' }
+            marginBottom: '1.5rem',
+            letterSpacing: '-0.02em',
+            lineHeight: 1.2,
+            opacity: 1,
+            zIndex: 1001,
+            position: 'relative',
+            textShadow: mode === 'dark' ? '0 2px 12px #000' : 'none',
           }}
         >
           Our Collections
-        </Typography>
-        <Typography
-          variant="h5"
-          color="text.secondary"
-          sx={{
+        </Box>
+        <Box
+          style={{
+            color: mode === 'dark' ? '#fafafa' : '#666',
             textAlign: 'center',
-            maxWidth: '800px',
-            mx: 'auto',
-            mb: { xs: 3, md: 4 },
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-            px: { xs: 2, md: 0 }
+            maxWidth: 800,
+            margin: '0 auto 2rem auto',
+            fontSize: '1.25rem',
+            fontWeight: 400,
+            opacity: 1,
+            zIndex: 1001,
+            position: 'relative',
           }}
         >
           Discover our carefully curated collections, each telling its own unique story
-        </Typography>
+        </Box>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -124,7 +130,9 @@ const Collections = () => {
               borderRadius: { xs: '0px', md: '0px' },
               height: { xs: '110px', sm: '130px', md: '150px' },
               p: 0,
-              background: 'linear-gradient(90deg, #111 60%, #444 100%)',
+              background: mode === 'dark'
+                ? 'linear-gradient(90deg, #111 60%, #444 100%)'
+                : '#fff',
             }}
           >
             <CardActionArea 
@@ -178,12 +186,12 @@ const Collections = () => {
                   variant="h4"
                   sx={{
                     fontWeight: 800,
-                    textShadow: '0 2px 8px rgba(0,0,0,0.45)',
                     fontSize: { xs: '1.35rem', sm: '1.7rem', md: '2.1rem' },
                     lineHeight: 1.1,
                     letterSpacing: '-0.01em',
                     px: 1,
-                    color: '#fff',
+                    color: mode === 'dark' ? '#fff' : '#000',
+                    textShadow: mode === 'dark' ? '0 2px 8px rgba(0,0,0,0.45)' : 'none',
                     textAlign: 'left',
                     maxWidth: { xs: '60%', sm: '60%', md: '60%' },
                     overflow: 'hidden',

@@ -387,7 +387,20 @@ const ProductDetail = ({ mode }) => {
               </Typography>
 
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Rating value={averageRating} precision={0.5} readOnly />
+                <Rating 
+                  value={averageRating} 
+                  precision={0.5} 
+                  readOnly 
+                  sx={mode === "dark" ? {
+                    color: "#FFD700", // gold for filled stars
+                    '& .MuiRating-iconEmpty': {
+                      color: "#555", // dim for empty stars
+                    },
+                    '& .MuiRating-iconHover': {
+                      color: "#FFF700", // lighter gold on hover
+                    },
+                  } : {}}
+                />
                 <Typography
                   sx={{ ml: 1, color: mode === "dark" ? "#fff" : "inherit" }}
                 >

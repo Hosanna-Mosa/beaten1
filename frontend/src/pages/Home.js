@@ -776,68 +776,71 @@ const Home = ({ mode }) => {
                   </Box>
                 ))}
                 {/* SEE MORE Card */}
-                <Box
-                  sx={{
-                    flex: { xs: "0 0 50%", md: "unset" },
-                    minWidth: { xs: "50%", md: "unset" },
-                    maxWidth: { xs: "50%", md: "unset" },
-                    p: 0,
-                    display: "flex",
-                  }}
-                >
-                  <Card
-                    elevation={0}
+                {isMobile && (
+                  <Box
                     sx={{
-                      borderRadius: 0,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      minHeight: { xs: 240, md: 300 },
-                      width: "100%",
-                      bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                      border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
-                      "&:hover": {
-                        boxShadow: 4,
-                        transform: "translateY(-8px) scale(1.04)",
-                        bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
-                      },
+                      flex: { xs: "0 0 50%", md: "unset" },
+                      minWidth: { xs: "50%", md: "unset" },
+                      maxWidth: { xs: "50%", md: "unset" },
+                      p: 0,
+                      display: { xs: "flex", md: "none" },
                     }}
-                    onClick={() => navigate("/products?sort=shop-by-category")}
                   >
-                    <Box
+                    <Card
+                      elevation={0}
                       sx={{
-                        position: "relative",
-                        width: "100%",
-                        pt: "140%",
+                        borderRadius: 0,
                         overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                        gap: 2,
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        minHeight: { xs: 240, md: 300 },
+                        width: "100%",
+                        bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                        border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                        display: { xs: "block", md: "none" },
+                        "&:hover": {
+                          boxShadow: 4,
+                          transform: "translateY(-8px) scale(1.04)",
+                          bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                        },
                       }}
+                      onClick={() => navigate("/products?sort=shop-by-category")}
                     >
-                      <ArrowForwardIcon 
-                        sx={{ 
-                          fontSize: { xs: 48, md: 64 },
-                          color: mode === "dark" ? "#fff" : "#666",
-                          transform: "rotate(-45deg)",
-                        }} 
-                      />
-                      <Typography
-                        variant="h6"
+                      <Box
                         sx={{
-                          fontWeight: 700,
-                          fontSize: { xs: "1.1rem", md: "1.3rem" },
-                          color: mode === "dark" ? "#fff" : "#333",
-                          textAlign: "center",
+                          position: "relative",
+                          width: "100%",
+                          pt: "140%",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "column",
+                          gap: 2,
                         }}
                       >
-                        SEE MORE
-                      </Typography>
-                    </Box>
-                  </Card>
-                </Box>
+                        <ArrowForwardIcon 
+                          sx={{ 
+                            fontSize: { xs: 48, md: 64 },
+                            color: mode === "dark" ? "#fff" : "#666",
+                            transform: "rotate(-45deg)",
+                          }} 
+                        />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: { xs: "1.1rem", md: "1.3rem" },
+                            color: mode === "dark" ? "#fff" : "#333",
+                            textAlign: "center",
+                          }}
+                        >
+                          SEE MORE
+                        </Typography>
+                      </Box>
+                    </Card>
+                  </Box>
+                )}
               </>
             )}
           </Box>
@@ -1012,68 +1015,71 @@ const Home = ({ mode }) => {
                   </Box>
                 ))}
                 {/* SEE MORE Card for Best Sellers */}
-                <Box
-                  sx={{
-                    flex: { xs: "0 0 50%", md: "unset" },
-                    minWidth: { xs: "50%", md: "unset" },
-                    maxWidth: { xs: "50%", md: "unset" },
-                    p: 0,
-                    display: "flex",
-                  }}
-                >
-                  <Card
-                    elevation={0}
+                {isMobile && (
+                  <Box
                     sx={{
-                      borderRadius: 0,
-                      overflow: "hidden",
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      minHeight: { xs: 240, md: 300 },
-                      width: "100%",
-                      bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                      border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
-                      "&:hover": {
-                        boxShadow: 4,
-                        transform: "translateY(-8px) scale(1.04)",
-                        bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
-                      },
+                      flex: { xs: "0 0 50%", md: "unset" },
+                      minWidth: { xs: "50%", md: "unset" },
+                      maxWidth: { xs: "50%", md: "unset" },
+                      p: 0,
+                      display: { xs: "flex", md: "none" },
                     }}
-                    onClick={() => navigate("/products?sort=best-sellers")}
                   >
-                    <Box
+                    <Card
+                      elevation={0}
                       sx={{
-                        position: "relative",
-                        width: "100%",
-                        pt: "140%",
+                        borderRadius: 0,
                         overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexDirection: "column",
-                        gap: 2,
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        minHeight: { xs: 240, md: 300 },
+                        width: "100%",
+                        bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                        border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                        display: { xs: "block", md: "none" },
+                        "&:hover": {
+                          boxShadow: 4,
+                          transform: "translateY(-8px) scale(1.04)",
+                          bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                        },
                       }}
+                      onClick={() => navigate("/products?sort=best-sellers")}
                     >
-                      <ArrowForwardIcon 
-                        sx={{ 
-                          fontSize: { xs: 48, md: 64 },
-                          color: mode === "dark" ? "#fff" : "#666",
-                          transform: "rotate(-45deg)",
-                        }} 
-                      />
-                      <Typography
-                        variant="h6"
+                      <Box
                         sx={{
-                          fontWeight: 700,
-                          fontSize: { xs: "1.1rem", md: "1.3rem" },
-                          color: mode === "dark" ? "#fff" : "#333",
-                          textAlign: "center",
+                          position: "relative",
+                          width: "100%",
+                          pt: "140%",
+                          overflow: "hidden",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexDirection: "column",
+                          gap: 2,
                         }}
                       >
-                        SEE MORE
-                      </Typography>
-                    </Box>
-                  </Card>
-                </Box>
+                        <ArrowForwardIcon 
+                          sx={{ 
+                            fontSize: { xs: 48, md: 64 },
+                            color: mode === "dark" ? "#fff" : "#666",
+                            transform: "rotate(-45deg)",
+                          }} 
+                        />
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: { xs: "1.1rem", md: "1.3rem" },
+                            color: mode === "dark" ? "#fff" : "#333",
+                            textAlign: "center",
+                          }}
+                        >
+                          SEE MORE
+                        </Typography>
+                      </Box>
+                    </Card>
+                  </Box>
+                )}
               </>
             )}
           </Box>
@@ -1773,72 +1779,75 @@ const Home = ({ mode }) => {
                       );
                     })}
                     {/* SEE MORE Card for each category */}
-                    <Box
-                      sx={{
-                        flex: { xs: "0 0 50%", md: "unset" },
-                        minWidth: { xs: "50%", md: "unset" },
-                        maxWidth: { xs: "50%", md: "unset" },
-                        p: 0,
-                        display: "flex",
-                      }}
-                    >
-                      <Card
-                        elevation={0}
+                    {isMobile && (
+                      <Box
                         sx={{
-                          borderRadius: 0,
-                          overflow: "hidden",
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          minHeight: { xs: 240, md: 300 },
-                          width: "100%",
-                          bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                          border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
-                          "&:hover": {
-                            boxShadow: 4,
-                            transform: "translateY(-8px) scale(1.04)",
-                            bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
-                          },
+                          flex: { xs: "0 0 50%", md: "unset" },
+                          minWidth: { xs: "50%", md: "unset" },
+                          maxWidth: { xs: "50%", md: "unset" },
+                          p: 0,
+                          display: { xs: "flex", md: "none" },
                         }}
-                        onClick={() =>
-                          navigate(
-                            `/products?category=${encodeURIComponent(section.key)}`
-                          )
-                        }
                       >
-                        <Box
+                        <Card
+                          elevation={0}
                           sx={{
-                            position: "relative",
-                            width: "100%",
-                            pt: "160%",
+                            borderRadius: 0,
                             overflow: "hidden",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexDirection: "column",
-                            gap: 2,
+                            cursor: "pointer",
+                            transition: "all 0.3s ease",
+                            minHeight: { xs: 240, md: 300 },
+                            width: "100%",
+                            bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                            border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                            display: { xs: "block", md: "none" },
+                            "&:hover": {
+                              boxShadow: 4,
+                              transform: "translateY(-8px) scale(1.04)",
+                              bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                            },
                           }}
+                          onClick={() =>
+                            navigate(
+                              `/products?category=${encodeURIComponent(section.key)}`
+                            )
+                          }
                         >
-                          <ArrowForwardIcon 
-                            sx={{ 
-                              fontSize: { xs: 48, md: 64 },
-                              color: mode === "dark" ? "#fff" : "#666",
-                              transform: "rotate(-45deg)",
-                            }} 
-                          />
-                          <Typography
-                            variant="h6"
+                          <Box
                             sx={{
-                              fontWeight: 700,
-                              fontSize: { xs: "1.1rem", md: "1.3rem" },
-                              color: mode === "dark" ? "#fff" : "#333",
-                              textAlign: "center",
+                              position: "relative",
+                              width: "100%",
+                              pt: "160%",
+                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexDirection: "column",
+                              gap: 2,
                             }}
                           >
-                            SEE MORE
-                          </Typography>
-                        </Box>
-                      </Card>
-                    </Box>
+                            <ArrowForwardIcon 
+                              sx={{ 
+                                fontSize: { xs: 48, md: 64 },
+                                color: mode === "dark" ? "#fff" : "#666",
+                                transform: "rotate(-45deg)",
+                              }} 
+                            />
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: 700,
+                                fontSize: { xs: "1.1rem", md: "1.3rem" },
+                                color: mode === "dark" ? "#fff" : "#333",
+                                textAlign: "center",
+                              }}
+                            >
+                              SEE MORE
+                            </Typography>
+                          </Box>
+                        </Card>
+                      </Box>
+                    )}
                   </>
                 );
               })()}

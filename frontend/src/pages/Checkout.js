@@ -377,7 +377,10 @@ const Checkout = ({ mode = "dark" }) => {
           <Step key={label}>
             <StepLabel
               sx={{
-                color: mode === "dark" ? "#fff" : "#181818",
+                color: mode === "dark" ? "#FFD700" : "#181818",
+                '& .MuiStepLabel-label': {
+                  color: mode === "dark" ? "#FFD700" : "#181818",
+                },
               }}
             >
               {label}
