@@ -7,6 +7,7 @@ const productRoutes = require("./products");
 const adminRoutes = require("./admin");
 const userRoutes = require("./user");
 const dataEntryRoutes = require("./dataEntry");
+const reviewRoutes = require("./reviews");
 
 const orderRoutes = require("./orders");
 const addressRoutes = require("./address");
@@ -22,6 +23,7 @@ router.use("/upload", require("./upload"));
 router.use("/user", userRoutes);
 router.use(require("./coupons"));
 router.use("/data-entry", dataEntryRoutes);
+router.use("/reviews", reviewRoutes);
 
 router.use("/orders", orderRoutes);
 router.use("/user/addresses", addressRoutes);

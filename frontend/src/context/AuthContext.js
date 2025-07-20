@@ -187,8 +187,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const isAuthenticated = !!user;
+
   const value = {
     user,
+    isAuthenticated,
     loading,
     error,
     register,
