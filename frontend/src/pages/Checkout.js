@@ -70,6 +70,30 @@ const Checkout = ({ mode = "dark" }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        cardBackground: "#2d2d2d",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: "#1a1a1a",
+      textSecondary: "#666666",
+      cardBackground: "#ffffff",
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
+
   // Calculate totals
   const subtotal = cart.reduce(
     (total, item) => total + item.product.price * item.quantity,
@@ -273,11 +297,17 @@ const Checkout = ({ mode = "dark" }) => {
           transition: "background 0.3s, color 0.3s",
         }}
       >
-        <Paper sx={{ p: 4, textAlign: "center" }}>
-          <Typography variant="h4" gutterBottom>
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: "center",
+          background: cardColors.cardBackground,
+          border: cardColors.border,
+          boxShadow: cardColors.shadow,
+        }}>
+          <Typography variant="h4" gutterBottom sx={{ color: cardColors.text }}>
             Order Placed Successfully!
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" paragraph sx={{ color: cardColors.textSecondary }}>
             Thank you for shopping with BEATEN. We'll send you an email with the
             order details.
           </Typography>
@@ -306,11 +336,17 @@ const Checkout = ({ mode = "dark" }) => {
           transition: "background 0.3s, color 0.3s",
         }}
       >
-        <Paper sx={{ p: 4, textAlign: "center" }}>
-          <Typography variant="h4" gutterBottom>
+        <Paper sx={{ 
+          p: 4, 
+          textAlign: "center",
+          background: cardColors.cardBackground,
+          border: cardColors.border,
+          boxShadow: cardColors.shadow,
+        }}>
+          <Typography variant="h4" gutterBottom sx={{ color: cardColors.text }}>
             Your Cart is Empty
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" paragraph sx={{ color: cardColors.textSecondary }}>
             Please add some items to your cart before proceeding to checkout.
           </Typography>
           <Button
@@ -360,14 +396,20 @@ const Checkout = ({ mode = "dark" }) => {
         {/* Main Content */}
         <Grid item xs={12} md={8}>
           {activeStep === 0 && (
-            <Paper sx={{ p: 3 }}>
+            <Paper sx={{ 
+              p: 3,
+              background: cardColors.cardBackground,
+              border: cardColors.border,
+              boxShadow: cardColors.shadow,
+            }}>
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}
               >
-                <Typography variant="h6">Shipping Address</Typography>
+                <Typography variant="h6" sx={{ color: cardColors.text }}>Shipping Address</Typography>
                 <Button
                   startIcon={<AddIcon />}
                   onClick={() => setAddressDialog(true)}
+                  sx={{ color: mode === "dark" ? "#fff" : "primary.main" }}
                 >
                   Add New Address
                 </Button>
@@ -386,9 +428,10 @@ const Checkout = ({ mode = "dark" }) => {
                       border: "1px solid",
                       borderColor:
                         selectedAddress === address._id
-                          ? "primary.main"
-                          : "divider",
+                          ? mode === "dark" ? "#FFD700" : "primary.main"
+                          : mode === "dark" ? "rgba(255,255,255,0.2)" : "divider",
                       position: "relative",
+                      background: mode === "dark" ? "#1a1a1a" : "#fff",
                     }}
                   >
                     <FormControlLabel
@@ -396,21 +439,21 @@ const Checkout = ({ mode = "dark" }) => {
                       control={<Radio />}
                       label={
                         <Box>
-                          <Typography variant="subtitle1">
+                          <Typography variant="subtitle1" sx={{ color: cardColors.text }}>
                             {address.name}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
                             {address.address}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
                             {address.city}, {address.state} -{" "}
                             {address.postalCode}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body2" sx={{ color: cardColors.textSecondary }}>
                             Phone: {address.phone}
                           </Typography>
                           {address.label && (
-                            <Typography variant="caption" color="primary">
+                            <Typography variant="caption" sx={{ color: mode === "dark" ? "#FFD700" : "primary.main" }}>
                               {address.label}
                             </Typography>
                           )}
@@ -441,6 +484,7 @@ const Checkout = ({ mode = "dark" }) => {
                           });
                           setAddressDialog(true);
                         }}
+                        sx={{ color: mode === "dark" ? "#fff" : "inherit" }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -480,8 +524,13 @@ const Checkout = ({ mode = "dark" }) => {
 
         {/* Order Summary */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
+          <Paper sx={{ 
+            p: 3,
+            background: cardColors.cardBackground,
+            border: cardColors.border,
+            boxShadow: cardColors.shadow,
+          }}>
+            <Typography variant="h6" gutterBottom sx={{ color: cardColors.text }}>
               Order Summary
             </Typography>
             <Box sx={{ my: 2 }}>
@@ -492,8 +541,8 @@ const Checkout = ({ mode = "dark" }) => {
                   mb: 1,
                 }}
               >
-                <Typography>Subtotal</Typography>
-                <Typography>{formatPrice(subtotal)}</Typography>
+                <Typography sx={{ color: cardColors.text }}>Subtotal</Typography>
+                <Typography sx={{ color: cardColors.text }}>{formatPrice(subtotal)}</Typography>
               </Box>
               {user?.isPremium && (
                 <Box
@@ -503,7 +552,7 @@ const Checkout = ({ mode = "dark" }) => {
                     mb: 1,
                   }}
                 >
-                  <Typography>Premium Discount</Typography>
+                <Typography sx={{ color: cardColors.text }}>Premium Discount</Typography>
                   <Typography color="success.main">
                     -{formatPrice(discount)}
                   </Typography>
@@ -516,8 +565,8 @@ const Checkout = ({ mode = "dark" }) => {
                   mb: 1,
                 }}
               >
-                <Typography>Shipping</Typography>
-                <Typography>{formatPrice(shipping)}</Typography>
+                <Typography sx={{ color: cardColors.text }}>Shipping</Typography>
+                <Typography sx={{ color: cardColors.text }}>{formatPrice(shipping)}</Typography>
               </Box>
               <Divider sx={{ my: 2 }} />
               <Box
@@ -527,8 +576,8 @@ const Checkout = ({ mode = "dark" }) => {
                   mb: 2,
                 }}
               >
-                <Typography variant="h6">Total</Typography>
-                <Typography variant="h6" color="primary">
+                <Typography variant="h6" sx={{ color: cardColors.text }}>Total</Typography>
+                <Typography variant="h6" sx={{ color: mode === "dark" ? "#FFD700" : "primary.main" }}>
                   {formatPrice(total)}
                 </Typography>
               </Box>
@@ -556,10 +605,13 @@ const Checkout = ({ mode = "dark" }) => {
           sx: {
             mt: 14, // Increased gap below navbar
             position: "relative",
+            background: cardColors.cardBackground,
+            border: cardColors.border,
+            boxShadow: cardColors.shadow,
           },
         }}
       >
-        <DialogTitle>Add New Address</DialogTitle>
+        <DialogTitle sx={{ color: cardColors.text }}>Add New Address</DialogTitle>
         <DialogContent
           sx={{
             maxHeight: "60vh", // Make dialog content scrollable if too tall
@@ -574,7 +626,26 @@ const Checkout = ({ mode = "dark" }) => {
               onChange={(e) =>
                 setNewAddress({ ...newAddress, name: e.target.value })
               }
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                "& .MuiInputLabel-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                  },
+                },
+                "& .MuiOutlinedInput-input": {
+                  color: mode === "dark" ? "#ffffff" : "inherit",
+                },
+              }}
             />
             <TextField
               fullWidth
@@ -583,7 +654,29 @@ const Checkout = ({ mode = "dark" }) => {
               onChange={(e) =>
                 setNewAddress({ ...newAddress, phone: e.target.value })
               }
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                "& .MuiInputLabel-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                  },
+                },
+                "& .MuiOutlinedInput-input": {
+                  color: mode === "dark" ? "#ffffff" : "inherit",
+                },
+                "& .MuiFormHelperText-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+              }}
               helperText="Enter 10-digit number starting with 6-9"
             />
             <TextField
@@ -593,7 +686,26 @@ const Checkout = ({ mode = "dark" }) => {
               onChange={(e) =>
                 setNewAddress({ ...newAddress, street: e.target.value })
               }
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 2,
+                "& .MuiInputLabel-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                  },
+                },
+                "& .MuiOutlinedInput-input": {
+                  color: mode === "dark" ? "#ffffff" : "inherit",
+                },
+              }}
             />
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
@@ -604,6 +716,25 @@ const Checkout = ({ mode = "dark" }) => {
                   onChange={(e) =>
                     setNewAddress({ ...newAddress, city: e.target.value })
                   }
+                  sx={{
+                    "& .MuiInputLabel-root": {
+                      color: mode === "dark" ? "#cccccc" : "inherit",
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                      },
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      color: mode === "dark" ? "#ffffff" : "inherit",
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -614,6 +745,25 @@ const Checkout = ({ mode = "dark" }) => {
                   onChange={(e) =>
                     setNewAddress({ ...newAddress, state: e.target.value })
                   }
+                  sx={{
+                    "& .MuiInputLabel-root": {
+                      color: mode === "dark" ? "#cccccc" : "inherit",
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                      },
+                    },
+                    "& .MuiOutlinedInput-input": {
+                      color: mode === "dark" ? "#ffffff" : "inherit",
+                    },
+                  }}
                 />
               </Grid>
             </Grid>
@@ -624,7 +774,30 @@ const Checkout = ({ mode = "dark" }) => {
               onChange={(e) =>
                 setNewAddress({ ...newAddress, pincode: e.target.value })
               }
-              sx={{ mt: 2, mb: 2 }}
+              sx={{ 
+                mt: 2, 
+                mb: 2,
+                "& .MuiInputLabel-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: mode === "dark" ? "rgba(255,255,255,0.3)" : "inherit",
+                  },
+                  "&:hover fieldset": {
+                    borderColor: mode === "dark" ? "#ffffff" : "inherit",
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: mode === "dark" ? "#FFD700" : "inherit",
+                  },
+                },
+                "& .MuiOutlinedInput-input": {
+                  color: mode === "dark" ? "#ffffff" : "inherit",
+                },
+                "& .MuiFormHelperText-root": {
+                  color: mode === "dark" ? "#cccccc" : "inherit",
+                },
+              }}
               helperText="Enter 6-digit pincode"
             />
             <FormControlLabel
@@ -637,15 +810,42 @@ const Checkout = ({ mode = "dark" }) => {
                       isDefault: e.target.checked,
                     })
                   }
+                  sx={{
+                    color: mode === "dark" ? "#FFD700" : "primary.main",
+                    "&.Mui-checked": {
+                      color: mode === "dark" ? "#FFD700" : "primary.main",
+                    },
+                  }}
                 />
               }
               label="Set as default address"
+              sx={{ 
+                color: cardColors.text,
+                "& .MuiFormControlLabel-label": {
+                  color: cardColors.text,
+                },
+              }}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddressDialog(false)}>Cancel</Button>
-          <Button onClick={handleAddressSubmit} color="primary">
+          <Button 
+            onClick={() => setAddressDialog(false)}
+            sx={{ color: cardColors.text }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleAddressSubmit} 
+            color="primary"
+            sx={{ 
+              color: mode === "dark" ? "#fff" : "primary.main",
+              backgroundColor: mode === "dark" ? "#FFD700" : "primary.main",
+              "&:hover": {
+                backgroundColor: mode === "dark" ? "#FFC700" : "primary.dark",
+              },
+            }}
+          >
             Save Addresses
           </Button>
         </DialogActions>

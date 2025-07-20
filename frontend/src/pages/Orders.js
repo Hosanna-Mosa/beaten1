@@ -128,6 +128,30 @@ const Orders = ({ mode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        cardBackground: "#2d2d2d",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: "#1a1a1a",
+      textSecondary: "#666666",
+      cardBackground: "#ffffff",
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
+
   const [orders, setOrders] = useState([]);
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -330,17 +354,27 @@ const Orders = ({ mode }) => {
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2, gap: 2 }}>
-        <Button variant="outlined" onClick={fetchOrdersAndReturns}>
+        <Button 
+          variant="outlined" 
+          onClick={fetchOrdersAndReturns}
+          sx={{
+            borderColor: mode === "dark" ? "#fff" : "inherit",
+            color: mode === "dark" ? "#fff" : "inherit",
+            "&:hover": {
+              backgroundColor: mode === "dark" ? "rgba(255,255,255,0.1)" : "inherit",
+            },
+          }}
+        >
           Refresh Orders
         </Button>
         <Button
           variant="contained"
           onClick={() => navigate("/returns")}
           sx={{
-            bgcolor: matteColors[900],
-            color: "white",
+            bgcolor: mode === "dark" ? "#FFD700" : matteColors[900],
+            color: mode === "dark" ? "#000" : "white",
             "&:hover": {
-              bgcolor: matteColors[800],
+              bgcolor: mode === "dark" ? "#FFC700" : matteColors[800],
             },
           }}
         >
@@ -349,7 +383,12 @@ const Orders = ({ mode }) => {
       </Box>
       <Typography
         variant="h4"
-        sx={{ fontWeight: 800, mb: 3, textAlign: "center" }}
+        sx={{ 
+          fontWeight: 800, 
+          mb: 3, 
+          textAlign: "center",
+          color: mode === "dark" ? "#fff" : "inherit"
+        }}
       >
         My Orders
       </Typography>
@@ -373,7 +412,9 @@ const Orders = ({ mode }) => {
                   sx={{
                     p: { xs: 2, sm: 3 },
                     borderRadius: 3,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                    boxShadow: cardColors.shadow,
+                    background: cardColors.cardBackground,
+                    border: cardColors.border,
                     mb: 2,
                     display: "flex",
                     flexDirection: "column",
@@ -413,7 +454,7 @@ const Orders = ({ mode }) => {
                   {/* Order Date at the top */}
                   <Typography
                     variant="body2"
-                    sx={{ color: "text.secondary", fontWeight: 600, mb: 1 }}
+                    sx={{ color: cardColors.textSecondary, fontWeight: 600, mb: 1 }}
                   >
                     Placed on: {new Date(order.createdAt).toLocaleDateString()}
                   </Typography>
@@ -462,7 +503,7 @@ const Orders = ({ mode }) => {
                           variant="body1"
                           sx={{
                             fontWeight: 500,
-                            color: "text.primary",
+                            color: cardColors.text,
                             flex: 1,
                             minWidth: 0,
                             pr: 1,
@@ -487,16 +528,16 @@ const Orders = ({ mode }) => {
                                 py: 0.4,
                                 minWidth: 0,
                                 minHeight: 32,
-                                color: matteColors[900],
-                                borderColor: matteColors[900],
-                                backgroundColor: "white",
+                                color: mode === "dark" ? "#fff" : matteColors[900],
+                                borderColor: mode === "dark" ? "#fff" : matteColors[900],
+                                backgroundColor: mode === "dark" ? "transparent" : "white",
                                 textTransform: "none",
                                 boxShadow: "none",
                                 whiteSpace: "nowrap",
                                 "&:hover": {
-                                  backgroundColor: matteColors[100],
-                                  borderColor: matteColors[800],
-                                  color: matteColors[800],
+                                  backgroundColor: mode === "dark" ? "rgba(255,255,255,0.1)" : matteColors[100],
+                                  borderColor: mode === "dark" ? "#FFD700" : matteColors[800],
+                                  color: mode === "dark" ? "#FFD700" : matteColors[800],
                                   boxShadow: "none",
                                 },
                               }}
@@ -536,7 +577,7 @@ const Orders = ({ mode }) => {
                           variant="subtitle2"
                           sx={{
                             fontWeight: 700,
-                            color: "text.secondary",
+                            color: cardColors.textSecondary,
                             mb: 0.5,
                           }}
                         >
@@ -544,13 +585,13 @@ const Orders = ({ mode }) => {
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{ color: "text.secondary", mb: 0.5 }}
+                          sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                         >
-                          Total: <b>₹{order.totalPrice}</b>
+                          Total: <b style={{ color: cardColors.text }}>₹{order.totalPrice}</b>
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{ color: "text.secondary", mb: 0.5 }}
+                          sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                         >
                           Payment Type:{" "}
                           {order.paymentInfo?.method
@@ -559,7 +600,7 @@ const Orders = ({ mode }) => {
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{ color: "text.secondary", mb: 0.5 }}
+                          sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                         >
                           Delivery Address:{" "}
                           {order.shippingAddress ? (
@@ -669,9 +710,9 @@ const Orders = ({ mode }) => {
                           sx={{
                             fontWeight: 600,
                             minWidth: 120,
-                            borderColor: matteColors[900],
-                            color: matteColors[900],
-                            backgroundColor: "white",
+                            borderColor: mode === "dark" ? "#fff" : matteColors[900],
+                            color: mode === "dark" ? "#fff" : matteColors[900],
+                            backgroundColor: mode === "dark" ? "transparent" : "white",
                             py: { xs: 0.7, md: 1 },
                             px: { xs: 2, md: 3 },
                             fontSize: { xs: "0.92rem", md: "0.98rem" },
@@ -683,9 +724,9 @@ const Orders = ({ mode }) => {
                             transition: "all 0.3s ease",
                             boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                             "&:hover": {
-                              backgroundColor: matteColors[100],
-                              borderColor: matteColors[800],
-                              color: matteColors[800],
+                              backgroundColor: mode === "dark" ? "rgba(255,255,255,0.1)" : matteColors[100],
+                              borderColor: mode === "dark" ? "#FFD700" : matteColors[800],
+                              color: mode === "dark" ? "#FFD700" : matteColors[800],
                               transform: "translateY(-2px)",
                               boxShadow: "0 4px 12px rgba(0,0,0,0.10)",
                             },
@@ -699,8 +740,8 @@ const Orders = ({ mode }) => {
                           variant="contained"
                           startIcon={<ShippingIcon />}
                           sx={{
-                            backgroundColor: matteColors[900],
-                            color: "white",
+                            backgroundColor: mode === "dark" ? "#FFD700" : matteColors[900],
+                            color: mode === "dark" ? "#000" : "white",
                             fontWeight: 600,
                             minWidth: 120,
                             py: { xs: 0.7, md: 1 },
@@ -714,7 +755,7 @@ const Orders = ({ mode }) => {
                             transition: "all 0.3s ease",
                             boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                             "&:hover": {
-                              backgroundColor: matteColors[800],
+                              backgroundColor: mode === "dark" ? "#FFC700" : matteColors[800],
                               transform: "translateY(-2px)",
                               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                             },
@@ -762,8 +803,8 @@ const Orders = ({ mode }) => {
                             variant="contained"
                             startIcon={<ExchangeIcon />}
                             sx={{
-                              backgroundColor: matteColors[900],
-                              color: "white",
+                              backgroundColor: mode === "dark" ? "#FFD700" : matteColors[900],
+                              color: mode === "dark" ? "#000" : "white",
                               fontWeight: 600,
                               minWidth: 170,
                               py: { xs: 0.7, md: 1 },
@@ -777,7 +818,7 @@ const Orders = ({ mode }) => {
                               transition: "all 0.3s ease",
                               boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                               "&:hover": {
-                                backgroundColor: matteColors[800],
+                                backgroundColor: mode === "dark" ? "#FFC700" : matteColors[800],
                                 transform: "translateY(-2px)",
                                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                               },
@@ -806,7 +847,9 @@ const Orders = ({ mode }) => {
                   sx={{
                     p: { xs: 2.5, sm: 4 },
                     borderRadius: 3,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                    boxShadow: cardColors.shadow,
+                    background: cardColors.cardBackground,
+                    border: cardColors.border,
                     mb: 2,
                     display: "flex",
                     flexDirection: "column",
@@ -828,7 +871,7 @@ const Orders = ({ mode }) => {
                         variant="subtitle2"
                         sx={{
                           fontWeight: 700,
-                          color: "text.secondary",
+                          color: cardColors.textSecondary,
                           mb: 0.5,
                         }}
                       >
@@ -836,20 +879,20 @@ const Orders = ({ mode }) => {
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ color: "text.secondary", mb: 0.5 }}
+                        sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                       >
                         Placed on:{" "}
                         {new Date(order.createdAt).toLocaleDateString()}
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ color: "text.secondary", mb: 0.5 }}
+                        sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                       >
-                        Total: <b>₹{order.totalPrice}</b>
+                        Total: <b style={{ color: cardColors.text }}>₹{order.totalPrice}</b>
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ color: "text.secondary", mb: 0.5 }}
+                        sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                       >
                         Payment Type:{" "}
                         {order.paymentInfo?.method
@@ -858,7 +901,7 @@ const Orders = ({ mode }) => {
                       </Typography>
                       <Typography
                         variant="body2"
-                        sx={{ color: "text.secondary", mb: 0.5 }}
+                        sx={{ color: cardColors.textSecondary, mb: 0.5 }}
                       >
                         Delivery Address:{" "}
                         {order.shippingAddress ? (
@@ -989,7 +1032,7 @@ const Orders = ({ mode }) => {
                           variant="body2"
                           sx={{
                             fontWeight: 500,
-                            color: "text.primary",
+                            color: cardColors.text,
                             maxWidth: 100,
                             overflow: "hidden",
                             textOverflow: "ellipsis",

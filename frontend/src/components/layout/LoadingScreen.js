@@ -66,8 +66,7 @@ const LoadingScreen = () => {
   );
 };
 
-export default LoadingScreen; 
-import { Box, Typography, keyframes } from '@mui/material';
+export default LoadingScreen; import { Box, Typography, keyframes } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 // Define animations

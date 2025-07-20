@@ -83,6 +83,30 @@ const Cart = ({ mode }) => {
     danger: "#ff1744",
   };
 
+  // Define colors based on mode
+  const getCardColors = () => {
+    if (mode === "dark") {
+      return {
+        background: "linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%)",
+        text: "#ffffff",
+        textSecondary: "#cccccc",
+        cardBackground: "#2d2d2d",
+        border: "1px solid rgba(255,255,255,0.1)",
+        shadow: "0 4px 16px rgba(0,0,0,0.3)",
+      };
+    }
+    return {
+      background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+      text: matteColors[900],
+      textSecondary: matteColors[700],
+      cardBackground: matteColors[50],
+      border: "none",
+      shadow: "0 4px 16px rgba(0,0,0,0.08)",
+    };
+  };
+
+  const cardColors = getCardColors();
+
   // Calculate totals
   const subtotal = cart.reduce((total, item) => {
     if (!item.product || typeof item.product.price !== "number") return total;
@@ -172,14 +196,16 @@ const Cart = ({ mode }) => {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
+          bgcolor: mode === "dark" ? "#181818" : "#fff",
+          color: mode === "dark" ? "#fff" : "inherit",
         }}
       >
         <Box sx={{ textAlign: "center" }}>
           <ShoppingBagIcon sx={{ fontSize: 80, color: "#e0e0e0", mb: 2 }} />
-          <Typography variant="h4" fontWeight={700} gutterBottom>
+          <Typography variant="h4" fontWeight={700} gutterBottom sx={{ color: mode === "dark" ? "#fff" : "inherit" }}>
             Your cart is empty
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          <Typography variant="body1" sx={{ mb: 4, color: mode === "dark" ? "#cccccc" : "text.secondary" }}>
             Looks like you haven't added any items yet.
           </Typography>
           <Button
@@ -206,11 +232,16 @@ const Cart = ({ mode }) => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 6 }, minHeight: "80vh" }}>
+    <Container maxWidth="lg" sx={{ 
+      py: { xs: 3, md: 6 }, 
+      minHeight: "80vh",
+      bgcolor: mode === "dark" ? "#181818" : "#fff",
+      color: mode === "dark" ? "#fff" : "inherit",
+    }}>
       <Grid container spacing={4} alignItems="flex-start">
         {/* Cart Items */}
         <Grid item xs={12} md={7}>
-          <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
+          <Typography variant="h5" fontWeight={700} sx={{ mb: 3, color: mode === "dark" ? "#fff" : "inherit" }}>
             Shopping Cart
           </Typography>
           <Box>
@@ -225,8 +256,9 @@ const Cart = ({ mode }) => {
                     mb: 3,
                     p: 2,
                     borderRadius: 4,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-                    background: matteColors[50],
+                    boxShadow: cardColors.shadow,
+                    background: cardColors.cardBackground,
+                    border: cardColors.border,
                     transition: "box-shadow 0.2s",
                     "&:hover": { boxShadow: "0 6px 24px rgba(0,0,0,0.10)" },
                   }}
@@ -262,14 +294,13 @@ const Cart = ({ mode }) => {
                         <Typography
                           variant="h6"
                           fontWeight={700}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.5, color: cardColors.text }}
                         >
                           {item.product.name}
                         </Typography>
                         <Typography
                           variant="body2"
-                          color="text.secondary"
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.5, color: cardColors.textSecondary }}
                         >
                           {item.product.category}{" "}
                           {item.size && `| Size: ${item.size}`}{" "}
@@ -278,8 +309,7 @@ const Cart = ({ mode }) => {
                         <Typography
                           variant="body2"
                           fontWeight={600}
-                          color="primary.main"
-                          sx={{ mb: 1 }}
+                          sx={{ mb: 1, color: mode === "dark" ? "#FFD700" : "primary.main" }}
                         >
                           {formatPrice(item.product.price)} x {item.quantity}
                         </Typography>
@@ -301,11 +331,11 @@ const Cart = ({ mode }) => {
                                 handleQuantityChange(item, item.quantity - 1)
                               }
                               sx={{
-                                border: "1px solid #ddd",
+                                border: mode === "dark" ? "1px solid #444" : "1px solid #ddd",
                                 borderRadius: 2,
-                                background: "white",
-                                color: matteColors[900],
-                                "&:hover": { background: matteColors[100] },
+                                background: mode === "dark" ? "#2d2d2d" : "white",
+                                color: mode === "dark" ? "#fff" : matteColors[900],
+                                "&:hover": { background: mode === "dark" ? "#404040" : matteColors[100] },
                                 p: 0.5,
                               }}
                               disabled={item.quantity <= 1}
@@ -323,9 +353,16 @@ const Cart = ({ mode }) => {
                               textAlign: "center",
                               width: 32,
                               fontWeight: 600,
+                                color: mode === "dark" ? "#fff" : "inherit",
                             },
                           }}
-                          sx={{ mx: 1, width: 40 }}
+                            sx={{ 
+                              mx: 1, 
+                              width: 40,
+                              "& .MuiInput-root": {
+                                color: mode === "dark" ? "#fff" : "inherit",
+                              },
+                            }}
                         />
                         <Tooltip title="Increase quantity">
                           <IconButton
@@ -334,11 +371,11 @@ const Cart = ({ mode }) => {
                               handleQuantityChange(item, item.quantity + 1)
                             }
                             sx={{
-                              border: "1px solid #ddd",
+                              border: mode === "dark" ? "1px solid #444" : "1px solid #ddd",
                               borderRadius: 2,
-                              background: "white",
-                              color: matteColors[900],
-                              "&:hover": { background: matteColors[100] },
+                              background: mode === "dark" ? "#2d2d2d" : "white",
+                              color: mode === "dark" ? "#fff" : matteColors[900],
+                              "&:hover": { background: mode === "dark" ? "#404040" : matteColors[100] },
                               p: 0.5,
                             }}
                           >
@@ -352,10 +389,10 @@ const Cart = ({ mode }) => {
                             sx={{
                               border: `1px solid ${matteColors.danger}`,
                               borderRadius: 2,
-                              background: "white",
+                              background: mode === "dark" ? "#2d2d2d" : "white",
                               color: matteColors.danger,
                               ml: 1,
-                              "&:hover": { background: matteColors[100] },
+                              "&:hover": { background: mode === "dark" ? "#404040" : matteColors[100] },
                               p: 0.5,
                             }}
                           >
@@ -375,10 +412,10 @@ const Cart = ({ mode }) => {
                             sx={{
                               border: `1px solid ${matteColors.accent}`,
                               borderRadius: 2,
-                              background: "white",
+                              background: mode === "dark" ? "#2d2d2d" : "white",
                               color: matteColors.accent,
                               ml: 1,
-                              "&:hover": { background: matteColors[100] },
+                              "&:hover": { background: mode === "dark" ? "#404040" : matteColors[100] },
                               p: 0.5,
                             }}
                           >
@@ -404,28 +441,29 @@ const Cart = ({ mode }) => {
             sx={{
               p: { xs: 2, md: 4 },
               borderRadius: 4,
-              boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
-              background: matteColors[50],
+              boxShadow: cardColors.shadow,
+              background: cardColors.cardBackground,
+              border: cardColors.border,
               minWidth: 280,
               position: { md: "sticky" },
               top: { md: 32 },
             }}
           >
-            <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
+            <Typography variant="h6" fontWeight={700} sx={{ mb: 2, color: cardColors.text }}>
               Order Summary
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography>Subtotal</Typography>
-              <Typography>{formatPrice(subtotal)}</Typography>
+              <Typography sx={{ color: cardColors.text }}>Subtotal</Typography>
+              <Typography sx={{ color: cardColors.text }}>{formatPrice(subtotal)}</Typography>
             </Box>
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
-              <Typography>Shipping</Typography>
-              <Typography>
+              <Typography sx={{ color: cardColors.text }}>Shipping</Typography>
+              <Typography sx={{ color: cardColors.text }}>
                 {shipping === 0 ? "Free" : formatPrice(shipping)}
               </Typography>
             </Box>
@@ -448,10 +486,10 @@ const Cart = ({ mode }) => {
                 mb: 2,
               }}
             >
-              <Typography variant="h6" fontWeight={700}>
+              <Typography variant="h6" fontWeight={700} sx={{ color: cardColors.text }}>
                 Total
               </Typography>
-              <Typography variant="h6" fontWeight={700}>
+              <Typography variant="h6" fontWeight={700} sx={{ color: cardColors.text }}>
                 {formatPrice(total)}
               </Typography>
             </Box>
@@ -479,14 +517,16 @@ const Cart = ({ mode }) => {
               fullWidth
               onClick={clearCart}
               sx={{
-                borderColor: matteColors[900],
-                color: matteColors[900],
+                borderColor: mode === "dark" ? "#fff" : matteColors[900],
+                color: mode === "dark" ? "#fff" : matteColors[900],
                 borderRadius: 8,
                 fontWeight: 700,
                 fontSize: "1.08rem",
                 py: 1.2,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-                "&:hover": { background: matteColors[100] },
+                "&:hover": { 
+                  background: mode === "dark" ? "rgba(255,255,255,0.1)" : matteColors[100] 
+                },
               }}
             >
               Clear Cart

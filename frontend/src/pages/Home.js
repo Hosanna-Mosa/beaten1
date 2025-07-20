@@ -702,9 +702,81 @@ const Home = ({ mode }) => {
                 No products yet.
               </Typography>
             ) : (
-              shopByCategory.map((product) => (
+              <>
+                {shopByCategory.map((product) => (
+                  <Box
+                    key={product._id}
+                    sx={{
+                      flex: { xs: "0 0 50%", md: "unset" },
+                      minWidth: { xs: "50%", md: "unset" },
+                      maxWidth: { xs: "50%", md: "unset" },
+                      p: 0,
+                      display: "flex",
+                    }}
+                  >
+                    <Card
+                      elevation={0}
+                      sx={{
+                        borderRadius: 0,
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        minHeight: { xs: 240, md: 300 },
+                        width: "100%",
+                        "&:hover": {
+                          boxShadow: 4,
+                          transform: "translateY(-8px) scale(1.04)",
+                        },
+                      }}
+                      onClick={() => handleProductClick(product._id)}
+                    >
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          pt: "140%",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          image={
+                            product.image
+                              ? product.image.startsWith("http")
+                                ? product.image
+                                : `${buildApiUrl("")}/uploads/${product.image}`
+                              : "/images/placeholder.png"
+                          }
+                          alt={product.name}
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Box>
+                      <CardContent sx={{ textAlign: "center", p: 1.5 }}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: { xs: "1.05rem", md: "1.18rem" },
+                          }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ₹{product.price}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ))}
+                {/* SEE MORE Card */}
                 <Box
-                  key={product._id}
                   sx={{
                     flex: { xs: "0 0 50%", md: "unset" },
                     minWidth: { xs: "50%", md: "unset" },
@@ -722,12 +794,15 @@ const Home = ({ mode }) => {
                       transition: "all 0.3s ease",
                       minHeight: { xs: 240, md: 300 },
                       width: "100%",
+                      bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                      border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
                       "&:hover": {
                         boxShadow: 4,
                         transform: "translateY(-8px) scale(1.04)",
+                        bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
                       },
                     }}
-                    onClick={() => handleProductClick(product._id)}
+                    onClick={() => navigate("/products?sort=shop-by-category")}
                   >
                     <Box
                       sx={{
@@ -735,45 +810,35 @@ const Home = ({ mode }) => {
                         width: "100%",
                         pt: "140%",
                         overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        gap: 2,
                       }}
                     >
-                      <CardMedia
-                        component="img"
-                        image={
-                          product.image
-                            ? product.image.startsWith("http")
-                              ? product.image
-                              : `${buildApiUrl("")}/uploads/${product.image}`
-                            : "/images/placeholder.png"
-                        }
-                        alt={product.name}
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
+                      <ArrowForwardIcon 
+                        sx={{ 
+                          fontSize: { xs: 48, md: 64 },
+                          color: mode === "dark" ? "#fff" : "#666",
+                          transform: "rotate(-45deg)",
+                        }} 
                       />
-                    </Box>
-                    <CardContent sx={{ textAlign: "center", p: 1.5 }}>
                       <Typography
-                        variant="subtitle1"
+                        variant="h6"
                         sx={{
                           fontWeight: 700,
-                          fontSize: { xs: "1.05rem", md: "1.18rem" },
+                          fontSize: { xs: "1.1rem", md: "1.3rem" },
+                          color: mode === "dark" ? "#fff" : "#333",
+                          textAlign: "center",
                         }}
                       >
-                        {product.name}
+                        SEE MORE
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        ₹{product.price}
-                      </Typography>
-                    </CardContent>
+                    </Box>
                   </Card>
                 </Box>
-              ))
+              </>
             )}
           </Box>
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
@@ -873,9 +938,81 @@ const Home = ({ mode }) => {
                 No best sellers yet.
               </Typography>
             ) : (
-              bestSellers.map((product) => (
+              <>
+                {bestSellers.map((product) => (
+                  <Box
+                    key={product._id}
+                    sx={{
+                      flex: { xs: "0 0 50%", md: "unset" },
+                      minWidth: { xs: "50%", md: "unset" },
+                      maxWidth: { xs: "50%", md: "unset" },
+                      p: 0,
+                      display: "flex",
+                    }}
+                  >
+                    <Card
+                      elevation={0}
+                      sx={{
+                        borderRadius: 0,
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        minHeight: { xs: 240, md: 300 },
+                        width: "100%",
+                        "&:hover": {
+                          boxShadow: 4,
+                          transform: "translateY(-8px) scale(1.04)",
+                        },
+                      }}
+                      onClick={() => handleProductClick(product._id)}
+                    >
+                      <Box
+                        sx={{
+                          position: "relative",
+                          width: "100%",
+                          pt: "140%",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          image={
+                            product.image
+                              ? product.image.startsWith("http")
+                                ? product.image
+                                : `${buildApiUrl("")}/uploads/${product.image}`
+                              : "/images/placeholder.png"
+                          }
+                          alt={product.name}
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      </Box>
+                      <CardContent sx={{ textAlign: "center", p: 1.5 }}>
+                        <Typography
+                          variant="subtitle1"
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: { xs: "1.05rem", md: "1.18rem" },
+                          }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ₹{product.price}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ))}
+                {/* SEE MORE Card for Best Sellers */}
                 <Box
-                  key={product._id}
                   sx={{
                     flex: { xs: "0 0 50%", md: "unset" },
                     minWidth: { xs: "50%", md: "unset" },
@@ -893,12 +1030,15 @@ const Home = ({ mode }) => {
                       transition: "all 0.3s ease",
                       minHeight: { xs: 240, md: 300 },
                       width: "100%",
+                      bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                      border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
                       "&:hover": {
                         boxShadow: 4,
                         transform: "translateY(-8px) scale(1.04)",
+                        bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
                       },
                     }}
-                    onClick={() => handleProductClick(product._id)}
+                    onClick={() => navigate("/products?sort=best-sellers")}
                   >
                     <Box
                       sx={{
@@ -906,45 +1046,35 @@ const Home = ({ mode }) => {
                         width: "100%",
                         pt: "140%",
                         overflow: "hidden",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexDirection: "column",
+                        gap: 2,
                       }}
                     >
-                      <CardMedia
-                        component="img"
-                        image={
-                          product.image
-                            ? product.image.startsWith("http")
-                              ? product.image
-                              : `${buildApiUrl("")}/uploads/${product.image}`
-                            : "/images/placeholder.png"
-                        }
-                        alt={product.name}
-                        sx={{
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
+                      <ArrowForwardIcon 
+                        sx={{ 
+                          fontSize: { xs: 48, md: 64 },
+                          color: mode === "dark" ? "#fff" : "#666",
+                          transform: "rotate(-45deg)",
+                        }} 
                       />
-                    </Box>
-                    <CardContent sx={{ textAlign: "center", p: 1.5 }}>
                       <Typography
-                        variant="subtitle1"
+                        variant="h6"
                         sx={{
                           fontWeight: 700,
-                          fontSize: { xs: "1.05rem", md: "1.18rem" },
+                          fontSize: { xs: "1.1rem", md: "1.3rem" },
+                          color: mode === "dark" ? "#fff" : "#333",
+                          textAlign: "center",
                         }}
                       >
-                        {product.name}
+                        SEE MORE
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        ₹{product.price}
-                      </Typography>
-                    </CardContent>
+                    </Box>
                   </Card>
                 </Box>
-              ))
+              </>
             )}
           </Box>
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
@@ -1541,10 +1671,109 @@ const Home = ({ mode }) => {
                   );
                 }
 
-                return categoryProducts.slice(0, 5).map((product, index) => {
-                  return (
+                return (
+                  <>
+                    {categoryProducts.slice(0, 5).map((product, index) => {
+                      return (
+                        <Box
+                          key={product._id || index}
+                          sx={{
+                            flex: { xs: "0 0 50%", md: "unset" },
+                            minWidth: { xs: "50%", md: "unset" },
+                            maxWidth: { xs: "50%", md: "unset" },
+                            p: 0,
+                            display: "flex",
+                          }}
+                        >
+                          <Card
+                            elevation={0}
+                            sx={{
+                              borderRadius: 0,
+                              overflow: "hidden",
+                              cursor: "pointer",
+                              transition: "all 0.3s ease",
+                              minHeight: { xs: 240, md: 300 },
+                              width: "100%",
+                              "&:hover": {
+                                boxShadow: 4,
+                                transform: "translateY(-8px) scale(1.04)",
+                              },
+                            }}
+                            onClick={() => handleProductClick(product._id)}
+                          >
+                            <Box
+                              sx={{
+                                position: "relative",
+                                width: "100%",
+                                pt: "160%",
+                                overflow: "hidden",
+                              }}
+                            >
+                              <CardMedia
+                                component="img"
+                                image={product.image}
+                                alt={product.name}
+                                sx={{
+                                  position: "absolute",
+                                  top: 0,
+                                  left: 0,
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  transition: "transform 0.3s ease-in-out",
+                                }}
+                              />
+                            </Box>
+                            <CardContent sx={{ textAlign: "center", p: 1 }}>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {product.name}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  gap: 0.7,
+                                  my: 1,
+                                }}
+                              >
+                                {product.colors &&
+                                  product.colors.slice(0, 3).map((color, idx) => (
+                                    <Box
+                                      key={idx}
+                                      sx={{
+                                        width: 18,
+                                        height: 18,
+                                        borderRadius: "50%",
+                                        background: color,
+                                        border: "1.5px solid #eee",
+                                        boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
+                                      }}
+                                    />
+                                  ))}
+                              </Box>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{
+                                  fontSize: {
+                                    xs: "0.82rem",
+                                    sm: "0.92rem",
+                                    md: "1rem",
+                                  },
+                                }}
+                              >
+                                ₹{product.price}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Box>
+                      );
+                    })}
+                    {/* SEE MORE Card for each category */}
                     <Box
-                      key={product._id || index}
                       sx={{
                         flex: { xs: "0 0 50%", md: "unset" },
                         minWidth: { xs: "50%", md: "unset" },
@@ -1562,12 +1791,19 @@ const Home = ({ mode }) => {
                           transition: "all 0.3s ease",
                           minHeight: { xs: 240, md: 300 },
                           width: "100%",
+                          bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
+                          border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
                           "&:hover": {
                             boxShadow: 4,
                             transform: "translateY(-8px) scale(1.04)",
+                            bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
                           },
                         }}
-                        onClick={() => handleProductClick(product._id)}
+                        onClick={() =>
+                          navigate(
+                            `/products?category=${encodeURIComponent(section.key)}`
+                          )
+                        }
                       >
                         <Box
                           sx={{
@@ -1575,71 +1811,36 @@ const Home = ({ mode }) => {
                             width: "100%",
                             pt: "160%",
                             overflow: "hidden",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexDirection: "column",
+                            gap: 2,
                           }}
                         >
-                          <CardMedia
-                            component="img"
-                            image={product.image}
-                            alt={product.name}
-                            sx={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              transition: "transform 0.3s ease-in-out",
-                            }}
+                          <ArrowForwardIcon 
+                            sx={{ 
+                              fontSize: { xs: 48, md: 64 },
+                              color: mode === "dark" ? "#fff" : "#666",
+                              transform: "rotate(-45deg)",
+                            }} 
                           />
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: { xs: "1.1rem", md: "1.3rem" },
+                              color: mode === "dark" ? "#fff" : "#333",
+                              textAlign: "center",
+                            }}
+                          >
+                            SEE MORE
+                          </Typography>
                         </Box>
-                        <CardContent sx={{ textAlign: "center", p: 1 }}>
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ fontWeight: 600 }}
-                          >
-                            {product.name}
-                          </Typography>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              justifyContent: "center",
-                              gap: 0.7,
-                              my: 1,
-                            }}
-                          >
-                            {product.colors &&
-                              product.colors.slice(0, 3).map((color, idx) => (
-                                <Box
-                                  key={idx}
-                                  sx={{
-                                    width: 18,
-                                    height: 18,
-                                    borderRadius: "50%",
-                                    background: color,
-                                    border: "1.5px solid #eee",
-                                    boxShadow: "0 1px 2px rgba(0,0,0,0.07)",
-                                  }}
-                                />
-                              ))}
-                          </Box>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              fontSize: {
-                                xs: "0.82rem",
-                                sm: "0.92rem",
-                                md: "1rem",
-                              },
-                            }}
-                          >
-                            ₹{product.price}
-                          </Typography>
-                        </CardContent>
                       </Card>
                     </Box>
-                  );
-                });
+                  </>
+                );
               })()}
             </Box>
             <Box
