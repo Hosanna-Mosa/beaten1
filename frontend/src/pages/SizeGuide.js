@@ -58,7 +58,7 @@ const SizeGuide = ({ mode }) => {
             fontWeight: 800,
             mb: 2,
             fontSize: { xs: "2rem", md: "2.7rem" },
-            color: matteColors[900],
+            color: mode === "dark" ? "#fff" : matteColors[900],
             position: "relative",
             "&::after": {
               content: '""',
@@ -78,7 +78,7 @@ const SizeGuide = ({ mode }) => {
         <Typography
           variant="subtitle1"
           sx={{
-            color: matteColors[700],
+            color: mode === "dark" ? matteColors[100] : matteColors[700],
             mb: 4,
             maxWidth: "800px",
             mx: "auto",
@@ -96,31 +96,37 @@ const SizeGuide = ({ mode }) => {
             elevation={0}
             sx={{
               height: "100%",
-              background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+              background: mode === "dark"
+                ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+                : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
               borderRadius: 3,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+              boxShadow: mode === "dark"
+                ? "0 8px 32px rgba(0,0,0,0.32)"
+                : "0 8px 32px rgba(0,0,0,0.08)",
               transition: "transform 0.3s ease, box-shadow 0.3s ease",
               "&:hover": {
                 transform: "translateY(-5px)",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+                boxShadow: mode === "dark"
+                  ? "0 12px 40px rgba(0,0,0,0.45)"
+                  : "0 12px 40px rgba(0,0,0,0.12)",
               },
             }}
           >
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                 <MeasureIcon
-                  sx={{ fontSize: 32, color: matteColors[900], mr: 2 }}
+                  sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900], mr: 2 }}
                 />
                 <Typography
                   variant="h5"
-                  sx={{ fontWeight: 700, color: matteColors[900] }}
+                  sx={{ fontWeight: 700, color: mode === "dark" ? "#fff" : matteColors[900] }}
                 >
                   How to Measure
                 </Typography>
               </Box>
               <Typography
                 variant="body1"
-                sx={{ color: matteColors[700], lineHeight: 1.8 }}
+                sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
               >
                 Use a measuring tape to measure your chest, waist, and hips.
                 Compare your measurements to our size charts below for the best
@@ -135,31 +141,37 @@ const SizeGuide = ({ mode }) => {
             elevation={0}
             sx={{
               height: "100%",
-              background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+              background: mode === "dark"
+                ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+                : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
               borderRadius: 3,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+              boxShadow: mode === "dark"
+                ? "0 8px 32px rgba(0,0,0,0.32)"
+                : "0 8px 32px rgba(0,0,0,0.08)",
               transition: "transform 0.3s ease, box-shadow 0.3s ease",
               "&:hover": {
                 transform: "translateY(-5px)",
-                boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+                boxShadow: mode === "dark"
+                  ? "0 12px 40px rgba(0,0,0,0.45)"
+                  : "0 12px 40px rgba(0,0,0,0.12)",
               },
             }}
           >
             <CardContent sx={{ p: 4 }}>
               <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                 <InfoIcon
-                  sx={{ fontSize: 32, color: matteColors[900], mr: 2 }}
+                  sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900], mr: 2 }}
                 />
                 <Typography
                   variant="h5"
-                  sx={{ fontWeight: 700, color: matteColors[900] }}
+                  sx={{ fontWeight: 700, color: mode === "dark" ? "#fff" : matteColors[900] }}
                 >
                   Fit Tips
                 </Typography>
               </Box>
               <Typography
                 variant="body1"
-                sx={{ color: matteColors[700], lineHeight: 1.8 }}
+                sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
               >
                 If you are between sizes, we recommend sizing up for a more
                 relaxed fit. For further assistance, contact our support team.
@@ -171,10 +183,10 @@ const SizeGuide = ({ mode }) => {
 
       <Box sx={{ mt: 6, mb: 4 }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <MaleIcon sx={{ fontSize: 32, color: matteColors[900], mr: 2 }} />
+          <MaleIcon sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900], mr: 2 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, color: matteColors[900] }}
+            sx={{ fontWeight: 700, color: mode === "dark" ? "#fff" : matteColors[900] }}
           >
             Men's Size Chart
           </Typography>
@@ -184,16 +196,22 @@ const SizeGuide = ({ mode }) => {
           elevation={0}
           sx={{
             borderRadius: 3,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+            boxShadow: mode === "dark"
+              ? "0 8px 32px rgba(0,0,0,0.32)"
+              : "0 8px 32px rgba(0,0,0,0.08)",
             overflow: "hidden",
+            background: mode === "dark"
+              ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+              : undefined,
           }}
         >
           <Table>
             <TableHead>
               <TableRow
                 sx={{
-                  background:
-                    "linear-gradient(90deg, #1a1a1a 0%, #404040 100%)",
+                  background: mode === "dark"
+                    ? "linear-gradient(90deg, #232323 0%, #181818 100%)"
+                    : "linear-gradient(90deg, #1a1a1a 0%, #404040 100%)",
                 }}
               >
                 <TableCell sx={{ color: "white", fontWeight: 600 }}>
@@ -220,14 +238,14 @@ const SizeGuide = ({ mode }) => {
                 <TableRow
                   key={row.size}
                   sx={{
-                    "&:nth-of-type(odd)": { backgroundColor: matteColors[50] },
-                    "&:hover": { backgroundColor: matteColors[100] },
+                    "&:nth-of-type(odd)": { backgroundColor: mode === "dark" ? matteColors[800] : matteColors[50] },
+                    "&:hover": { backgroundColor: mode === "dark" ? matteColors[700] : matteColors[100] },
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600 }}>{row.size}</TableCell>
-                  <TableCell>{row.chest}</TableCell>
-                  <TableCell>{row.waist}</TableCell>
-                  <TableCell>{row.hip}</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: mode === "dark" ? "#fff" : undefined }}>{row.size}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.chest}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.waist}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.hip}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -237,10 +255,10 @@ const SizeGuide = ({ mode }) => {
 
       <Box sx={{ mt: 6, mb: 4 }}>
         <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-          <FemaleIcon sx={{ fontSize: 32, color: matteColors[900], mr: 2 }} />
+          <FemaleIcon sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900], mr: 2 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 700, color: matteColors[900] }}
+            sx={{ fontWeight: 700, color: mode === "dark" ? "#fff" : matteColors[900] }}
           >
             Women's Size Chart
           </Typography>
@@ -250,16 +268,22 @@ const SizeGuide = ({ mode }) => {
           elevation={0}
           sx={{
             borderRadius: 3,
-            boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+            boxShadow: mode === "dark"
+              ? "0 8px 32px rgba(0,0,0,0.32)"
+              : "0 8px 32px rgba(0,0,0,0.08)",
             overflow: "hidden",
+            background: mode === "dark"
+              ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+              : undefined,
           }}
         >
           <Table>
             <TableHead>
               <TableRow
                 sx={{
-                  background:
-                    "linear-gradient(90deg, #1a1a1a 0%, #404040 100%)",
+                  background: mode === "dark"
+                    ? "linear-gradient(90deg, #232323 0%, #181818 100%)"
+                    : "linear-gradient(90deg, #1a1a1a 0%, #404040 100%)",
                 }}
               >
                 <TableCell sx={{ color: "white", fontWeight: 600 }}>
@@ -286,14 +310,14 @@ const SizeGuide = ({ mode }) => {
                 <TableRow
                   key={row.size}
                   sx={{
-                    "&:nth-of-type(odd)": { backgroundColor: matteColors[50] },
-                    "&:hover": { backgroundColor: matteColors[100] },
+                    "&:nth-of-type(odd)": { backgroundColor: mode === "dark" ? matteColors[800] : matteColors[50] },
+                    "&:hover": { backgroundColor: mode === "dark" ? matteColors[700] : matteColors[100] },
                   }}
                 >
-                  <TableCell sx={{ fontWeight: 600 }}>{row.size}</TableCell>
-                  <TableCell>{row.bust}</TableCell>
-                  <TableCell>{row.waist}</TableCell>
-                  <TableCell>{row.hip}</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: mode === "dark" ? "#fff" : undefined }}>{row.size}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.bust}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.waist}</TableCell>
+                  <TableCell sx={{ color: mode === "dark" ? matteColors[100] : undefined }}>{row.hip}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -306,17 +330,21 @@ const SizeGuide = ({ mode }) => {
           mt: 6,
           p: 4,
           borderRadius: 3,
-          background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+          background: mode === "dark"
+            ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+            : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+          boxShadow: mode === "dark"
+            ? "0 8px 32px rgba(0,0,0,0.32)"
+            : "0 8px 32px rgba(0,0,0,0.08)",
           display: "flex",
           alignItems: "center",
           gap: 2,
         }}
       >
-        <TrendingUpIcon sx={{ fontSize: 32, color: matteColors[900] }} />
+        <TrendingUpIcon sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900] }} />
         <Typography
           variant="body1"
-          sx={{ color: matteColors[700], lineHeight: 1.8 }}
+          sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
         >
           For the most accurate fit, we recommend measuring yourself while
           wearing lightweight clothing. If you need any assistance, our customer

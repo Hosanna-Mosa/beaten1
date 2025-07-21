@@ -117,13 +117,19 @@ const Help = ({ mode }) => {
               elevation={0}
               sx={{
                 height: "100%",
-                background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+                background: mode === "dark"
+                  ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+                  : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
                 borderRadius: 3,
-                boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+                boxShadow: mode === "dark"
+                  ? "0 8px 32px rgba(0,0,0,0.32)"
+                  : "0 8px 32px rgba(0,0,0,0.08)",
                 transition: "transform 0.3s ease, box-shadow 0.3s ease",
                 "&:hover": {
                   transform: "translateY(-5px)",
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+                  boxShadow: mode === "dark"
+                    ? "0 12px 40px rgba(0,0,0,0.45)"
+                    : "0 12px 40px rgba(0,0,0,0.12)",
                 },
               }}
             >
@@ -133,7 +139,7 @@ const Help = ({ mode }) => {
                     sx={{
                       p: 1.5,
                       borderRadius: "12px",
-                      background: "rgba(26, 26, 26, 0.03)",
+                      background: mode === "dark" ? "rgba(255,255,255,0.06)" : "rgba(26, 26, 26, 0.03)",
                       mr: 2,
                       transition: "transform 0.3s ease",
                       "&:hover": {
@@ -144,20 +150,20 @@ const Help = ({ mode }) => {
                     {React.cloneElement(section.icon, {
                       sx: {
                         fontSize: 32,
-                        color: matteColors[900],
+                        color: mode === "dark" ? "#FFD700" : matteColors[900],
                       },
                     })}
                   </Box>
                   <Typography
                     variant="h5"
-                    sx={{ fontWeight: 700, color: matteColors[900] }}
+                    sx={{ fontWeight: 700, color: mode === "dark" ? "#fff" : matteColors[900] }}
                   >
                     {section.title}
                   </Typography>
                 </Box>
                 <Typography
                   variant="body1"
-                  sx={{ color: matteColors[700], lineHeight: 1.8 }}
+                  sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
                 >
                   {section.description}
                 </Typography>
@@ -172,17 +178,21 @@ const Help = ({ mode }) => {
           mt: 6,
           p: 4,
           borderRadius: 3,
-          background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+          background: mode === "dark"
+            ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+            : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+          boxShadow: mode === "dark"
+            ? "0 8px 32px rgba(0,0,0,0.32)"
+            : "0 8px 32px rgba(0,0,0,0.08)",
           display: "flex",
           alignItems: "center",
           gap: 2,
         }}
       >
-        <SearchIcon sx={{ fontSize: 32, color: matteColors[900] }} />
+        <SearchIcon sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900] }} />
         <Typography
           variant="body1"
-          sx={{ color: matteColors[700], lineHeight: 1.8 }}
+          sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
         >
           Can't find what you're looking for? Use our search feature to quickly
           find answers to your questions.
@@ -194,17 +204,21 @@ const Help = ({ mode }) => {
           mt: 4,
           p: 4,
           borderRadius: 3,
-          background: "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+          background: mode === "dark"
+            ? "linear-gradient(145deg, #232323 0%, #181818 100%)"
+            : "linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)",
+          boxShadow: mode === "dark"
+            ? "0 8px 32px rgba(0,0,0,0.32)"
+            : "0 8px 32px rgba(0,0,0,0.08)",
           display: "flex",
           alignItems: "center",
           gap: 2,
         }}
       >
-        <EmailIcon sx={{ fontSize: 32, color: matteColors[900] }} />
+        <EmailIcon sx={{ fontSize: 32, color: mode === "dark" ? "#FFD700" : matteColors[900] }} />
         <Typography
           variant="body1"
-          sx={{ color: matteColors[700], lineHeight: 1.8 }}
+          sx={{ color: mode === "dark" ? matteColors[100] : matteColors[700], lineHeight: 1.8 }}
         >
           For urgent matters, you can reach our support team at{" "}
           <Link

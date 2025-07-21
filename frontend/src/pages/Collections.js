@@ -36,7 +36,7 @@ const humanPng =
 
 const placeholderImg = "https://via.placeholder.com/300x150?text=No+Image";
 
-const Collections = () => {
+const Collections = ({ mode = 'light' }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -78,6 +78,7 @@ const Collections = () => {
       }}
     >
       {/* Hero Section */}
+
       <Box sx={{ mb: { xs: 4, md: 8 } }}>
         <Typography
           variant="h1"
@@ -117,7 +118,7 @@ const Collections = () => {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {collections.map((collection, index) => (
             <Card
-              key={collection.id || index}
+
               sx={{
                 position: "relative",
                 overflow: "hidden",
@@ -142,6 +143,7 @@ const Collections = () => {
                   src={collection.image}
                   alt={collection.name}
                   sx={{
+
                     position: "absolute",
                     top: 0,
                     left: 0,
@@ -188,6 +190,7 @@ const Collections = () => {
                     textAlign: "left",
                     p: 0,
                     pl: { xs: 2, sm: 4, md: 6 },
+
                   }}
                 >
                   <Typography
@@ -220,3 +223,4 @@ const Collections = () => {
 };
 
 export default Collections;
+
