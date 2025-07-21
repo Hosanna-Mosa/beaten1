@@ -148,4 +148,4 @@ const Collections = ({ mode = 'light' }) => {
   );
 };
 
-export default Collections; 
+
