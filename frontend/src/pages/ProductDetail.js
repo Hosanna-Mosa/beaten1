@@ -19,6 +19,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
@@ -37,7 +42,12 @@ import { useWishlist } from "../context/WishlistContext";
 import { API_ENDPOINTS, buildApiUrl, handleApiError } from "../utils/api";
 import axios from "axios";
 
-import { getProductById, mockReviews } from "../data/mockData";
+import { getProductById } from "../data/mockData";
+import {
+  fetchReviewsForProduct,
+  postReview,
+  deleteReview,
+} from "../api/reviewsAPI";
 
 const matteColors = {
   900: "#1a1a1a",
@@ -70,7 +80,7 @@ const getImageUrl = (imagePath) => {
 const ProductDetail = ({ mode }) => {
   const { productId } = useParams();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
@@ -82,8 +92,8 @@ const ProductDetail = ({ mode }) => {
     product?.images && product.images.length > 0
       ? product.images
       : product?.image
-        ? [product.image]
-        : [];
+      ? [product.image]
+      : [];
   const mainImage = getImageUrl(images[mainImageIndex] || "");
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(
@@ -121,76 +131,77 @@ const ProductDetail = ({ mode }) => {
 
   // Use mock reviews data
   const [reviews, setReviews] = useState([]);
-
   const [userRating, setUserRating] = useState(0);
   const [userReview, setUserReview] = useState("");
   const [reviewSuccess, setReviewSuccess] = useState(false);
-
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-    if (!userRating || !userReview.trim()) return;
-    // Add new review to the top
-    setReviews([
-      {
-        id: Date.now(),
-        user: {
-          name: "You", // Replace with real user name if available
-          avatar: "https://i.pravatar.cc/150?img=4", // Replace with real user avatar if available
-        },
-        rating: userRating,
-        date: new Date().toISOString(),
-        comment: userReview.trim(),
-      },
-      ...reviews,
-    ]);
-    setUserRating(0);
-    setUserReview("");
-    setReviewSuccess(true);
-    setTimeout(() => setReviewSuccess(false), 2000);
-  };
-
-  // Calculate average rating
-  const averageRating =
-    reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+  const [reviewError, setReviewError] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
 
   useEffect(() => {
     setLoading(true);
-
-    // Get product from mock data
-
     const fetchProduct = async () => {
       try {
         const response = await axios.get(
           buildApiUrl(API_ENDPOINTS.PRODUCT_DETAIL(productId))
         );
-        console.log(response.data.data);
-
         setProduct(response.data.data);
         setLoading(false);
       } catch (error) {
         const apiError = handleApiError(error);
-        console.error("Error fetching product:", apiError);
         setProduct(null);
       }
     };
-
     const fetchReviews = async () => {
-      // try {
-      //   const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/reviews/get-reviews/${productId}`);
-      //   if (!response.ok) {
-      //     throw new Error(`HTTP error! status: ${response.status}`);
-      //   }
-      //   const data = await response.json();
-      //   setReviews(data);
-      // } catch (error) {
-      //   console.error("Error fetching reviews:", error);
-      //   setReviews([]);
-      // }
+      try {
+        const data = await fetchReviewsForProduct(productId);
+        setReviews(data);
+      } catch (error) {
+        setReviews([]);
+      }
     };
-
     fetchProduct();
     fetchReviews();
   }, [productId]);
+
+  // Calculate average rating
+  const averageRating =
+    reviews.length > 0
+      ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+      : 0;
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewError(null);
+    if (!userRating || !userReview.trim()) return;
+    try {
+      await postReview({ productId, rating: userRating, comment: userReview });
+      setUserRating(0);
+      setUserReview("");
+      setReviewSuccess(true);
+      // Refetch reviews
+      const data = await fetchReviewsForProduct(productId);
+      setReviews(data);
+      setTimeout(() => setReviewSuccess(false), 2000);
+    } catch (error) {
+      setReviewError("Failed to submit review");
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!reviewToDelete) return;
+    try {
+      await deleteReview(reviewToDelete);
+      // Refetch reviews
+      const data = await fetchReviewsForProduct(productId);
+      setReviews(data);
+    } catch (error) {
+      // Optionally show error
+    } finally {
+      setDeleteDialogOpen(false);
+      setReviewToDelete(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -446,8 +457,8 @@ const ProductDetail = ({ mode }) => {
                               ? "#181818"
                               : "#fff"
                             : mode === "dark"
-                              ? "#fff"
-                              : "#181818",
+                            ? "#fff"
+                            : "#181818",
                         "&:hover": {
                           backgroundColor:
                             selectedColor === color
@@ -455,8 +466,8 @@ const ProductDetail = ({ mode }) => {
                                 ? "#181818"
                                 : "#fff"
                               : mode === "dark"
-                                ? "#222"
-                                : "#f5f5f5",
+                              ? "#222"
+                              : "#f5f5f5",
                           color:
                             selectedColor === color
                               ? mode === "dark"
@@ -496,8 +507,8 @@ const ProductDetail = ({ mode }) => {
                               ? "#181818"
                               : "#fff"
                             : mode === "dark"
-                              ? "#fff"
-                              : "#181818",
+                            ? "#fff"
+                            : "#181818",
                         "&:hover": {
                           backgroundColor:
                             selectedSize === size
@@ -505,8 +516,8 @@ const ProductDetail = ({ mode }) => {
                                 ? "#181818"
                                 : "#fff"
                               : mode === "dark"
-                                ? "#222"
-                                : "#f5f5f5",
+                              ? "#222"
+                              : "#f5f5f5",
                           color:
                             selectedSize === size
                               ? mode === "dark"
@@ -527,7 +538,9 @@ const ProductDetail = ({ mode }) => {
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      border: `1px solid ${mode === "dark" ? "#fff" : "#181818"}`,
+                      border: `1px solid ${
+                        mode === "dark" ? "#fff" : "#181818"
+                      }`,
                       borderRadius: 2,
                       justifyContent: "space-between",
                     }}
@@ -558,7 +571,9 @@ const ProductDetail = ({ mode }) => {
                     fullWidth
                     variant="contained"
                     size="large"
-                    disabled={product.stock === 0 || !selectedSize || !selectedColor}
+                    disabled={
+                      product.stock === 0 || !selectedSize || !selectedColor
+                    }
                     onClick={async () => {
                       // Always store only the filename in cart
                       let imageFilename = product.image;
@@ -780,6 +795,236 @@ const ProductDetail = ({ mode }) => {
           </Grid>
         </Grid>
       </Container>
+      {/* Reviews Section */}
+      <Box
+        sx={{
+          mt: 6,
+          mb: 6,
+          px: { xs: 1, sm: 2, md: 0 },
+          maxWidth: 700,
+          mx: "auto",
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 2, sm: 3 },
+            borderRadius: 3,
+            bgcolor: "background.paper",
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              mb: 2,
+              textAlign: { xs: "center", md: "left" },
+            }}
+          >
+            Customer Reviews
+          </Typography>
+          {reviews.length === 0 ? (
+            <Typography
+              color="text.secondary"
+              sx={{ textAlign: "center", mb: 2 }}
+            >
+              No reviews yet.
+            </Typography>
+          ) : (
+            <Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  mb: 2,
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: 1,
+                }}
+              >
+                <Rating
+                  value={averageRating}
+                  precision={0.1}
+                  readOnly
+                  size={isMobile ? "medium" : "large"}
+                />
+                <Typography
+                  sx={{
+                    ml: { sm: 1 },
+                    fontWeight: 600,
+                    fontSize: { xs: 16, sm: 18 },
+                  }}
+                >
+                  {averageRating.toFixed(1)} / 5
+                </Typography>
+                <Typography
+                  sx={{
+                    ml: { sm: 2 },
+                    color: "text.secondary",
+                    fontSize: { xs: 14, sm: 16 },
+                  }}
+                >
+                  ({reviews.length} reviews)
+                </Typography>
+              </Box>
+              {reviews.map((review) => (
+                <Paper
+                  key={review._id}
+                  elevation={1}
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    mb: 2,
+                    borderRadius: 2,
+                    bgcolor: "#fafbfc",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      mb: 1,
+                      flexDirection: { xs: "column", sm: "row" },
+                      gap: 1,
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        mr: { sm: 1 },
+                        width: { xs: 36, sm: 44 },
+                        height: { xs: 36, sm: 44 },
+                        fontSize: { xs: 18, sm: 22 },
+                      }}
+                    >
+                      {review.user?.name ? review.user.name[0] : "?"}
+                    </Avatar>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: { xs: 15, sm: 17 } }}
+                    >
+                      {review.user?.name || "User"}
+                    </Typography>
+                    <Rating
+                      value={review.rating}
+                      readOnly
+                      size="small"
+                      sx={{ ml: { sm: 2 } }}
+                    />
+                    <Typography
+                      sx={{
+                        ml: { sm: 2 },
+                        color: "text.secondary",
+                        fontSize: 13,
+                      }}
+                    >
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </Typography>
+                    {isAuthenticated &&
+                      user &&
+                      review.user &&
+                      user._id === review.user._id && (
+                        <Button
+                          color="error"
+                          size="small"
+                          sx={{ ml: { sm: 2 }, mt: { xs: 1, sm: 0 } }}
+                          onClick={() => {
+                            setReviewToDelete(review._id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                  </Box>
+                  <Typography sx={{ fontSize: { xs: 14, sm: 16 } }}>
+                    {review.comment}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          )}
+          <Divider sx={{ my: 3 }} />
+          {/* Review Form (for logged-in users) */}
+          {isAuthenticated && (
+            <Box component="form" onSubmit={handleReviewSubmit} sx={{ mt: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{ fontWeight: 600, textAlign: "left", minWidth: 120 }}
+                >
+                  Write a Review
+                </Typography>
+                <Rating
+                  value={userRating}
+                  onChange={(_, value) => setUserRating(value)}
+                  sx={{ ml: 2 }}
+                  size={isMobile ? "medium" : "large"}
+                />
+              </Box>
+              <TextField
+                value={userReview}
+                onChange={(e) => setUserReview(e.target.value)}
+                multiline
+                minRows={2}
+                fullWidth
+                placeholder="Share your experience..."
+                sx={{ mb: 1, bgcolor: "#fff", borderRadius: 2 }}
+              />
+              {reviewError && (
+                <Typography
+                  color="error"
+                  sx={{ textAlign: { xs: "center", sm: "left" } }}
+                >
+                  {reviewError}
+                </Typography>
+              )}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth={isMobile}
+                disabled={!userRating || !userReview.trim()}
+                sx={{ mt: 1, py: 1.2, fontWeight: 600 }}
+              >
+                Submit Review
+              </Button>
+              {reviewSuccess && (
+                <Typography
+                  color="success.main"
+                  sx={{ mt: 1, textAlign: { xs: "center", sm: "left" } }}
+                >
+                  Review submitted!
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Paper>
+        {/* Delete Confirmation Dialog */}
+        <Dialog
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+        >
+          <DialogTitle>Delete Review</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete this review? This action cannot be
+              undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteDialogOpen(false)} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteReview} color="error" autoFocus>
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Box>
   );
 };
