@@ -134,18 +134,7 @@ const Collections = ({ mode = 'light' }) => {
                 <Typography
                   variant="h4"
                   sx={{
-                    fontWeight: 800,
-                    fontSize: { xs: '1.35rem', sm: '1.7rem', md: '2.1rem' },
-                    lineHeight: 1.1,
-                    letterSpacing: '-0.01em',
-                    px: 1,
-                    color: mode === 'dark' ? '#fff' : '#000',
-                    textShadow: mode === 'dark' ? '0 2px 8px rgba(0,0,0,0.45)' : 'none',
-                    textAlign: 'left',
-                    maxWidth: { xs: '60%', sm: '60%', md: '60%' },
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis'
+                  
                   }}
                 >
                   {collection.name}
