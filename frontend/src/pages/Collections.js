@@ -85,58 +85,7 @@ const Collections = ({ mode = 'light' }) => {
       }}
     >
       {/* Hero Section */}
-      <Box sx={{ mb: { xs: 4, md: 8 }, position: 'relative', zIndex: 1000, bgcolor: 'transparent', opacity: 1 }}>
-        <Box
-          style={{
-            color: mode === 'dark' ? '#fff' : '#222',
-            fontSize: '2.5rem',
-            fontWeight: 900,
-            textAlign: 'center',
-            marginBottom: '1.5rem',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.2,
-            opacity: 1,
-            zIndex: 1001,
-            position: 'relative',
-            textShadow: mode === 'dark' ? '0 2px 12px #000' : 'none',
-          }}
-        >
-          Our Collections
-        </Box>
-        <Box
-          style={{
-            color: mode === 'dark' ? '#fafafa' : '#666',
-            textAlign: 'center',
-            maxWidth: 800,
-            margin: '0 auto 2rem auto',
-            fontSize: '1.25rem',
-            fontWeight: 400,
-            opacity: 1,
-            zIndex: 1001,
-            position: 'relative',
-          }}
-        >
-          Discover our carefully curated collections, each telling its own unique story
-        </Box>
-      </Box>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {collections.map((collection, index) => (
-          <Card
-            key={collection.id}
-            sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: { xs: '0px', md: '0px' },
-              height: { xs: '110px', sm: '130px', md: '150px' },
-              p: 0,
-              background: mode === 'dark'
-                ? 'linear-gradient(90deg, #111 60%, #444 100%)'
-                : '#fff',
-            }}
-          >
-            <CardActionArea 
-              onClick={() => navigate(`/collections/${collection.id}`)}
+       
               sx={{
                 height: '100%',
                 p: 0,
