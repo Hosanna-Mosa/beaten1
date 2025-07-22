@@ -621,6 +621,18 @@ const Checkout = ({ mode = "dark" }) => {
             overflowY: "auto",
           }}
         >
+          {error && (
+            <Box sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{
+                backgroundColor: mode === "dark" ? "#2d2d2d" : undefined,
+                color: mode === "dark" ? "#FFD700" : undefined,
+                border: mode === "dark" ? "1px solid #FFD700" : undefined,
+                fontWeight: 600,
+              }}>
+                {error}
+              </Alert>
+            </Box>
+          )}
           <Box sx={{ pt: 2 }}>
             <TextField
               fullWidth
@@ -840,11 +852,16 @@ const Checkout = ({ mode = "dark" }) => {
           </Button>
           <Button 
             onClick={handleAddressSubmit} 
-            color="primary"
             sx={{ 
-              color: mode === "dark" ? "#fff" : "primary.main",
+              color: mode === "dark" ? "#181818" : "#fff",
               backgroundColor: mode === "dark" ? "#FFD700" : "primary.main",
-              "&:hover": {
+              fontWeight: 700,
+              borderRadius: 2,
+              px: 4,
+              py: 1.2,
+              fontSize: 16,
+              boxShadow: mode === "dark" ? "0 2px 8px rgba(255,215,0,0.15)" : undefined,
+              '&:hover': {
                 backgroundColor: mode === "dark" ? "#FFC700" : "primary.dark",
               },
             }}
