@@ -32,6 +32,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Menu,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -203,6 +204,13 @@ const Products = ({ mode }) => {
   // Add a loading skeleton state for demo
   const [showLoading, setShowLoading] = useState(false);
   const [shopAllActive, setShopAllActive] = useState(false);
+  // 1. Add state for anchorElSortMenu:
+  const [anchorElSortMenu, setAnchorElSortMenu] = useState(null);
+  const handleOpenSortMenu = (event) => setAnchorElSortMenu(event.currentTarget);
+  const handleCloseSortMenu = () => setAnchorElSortMenu(null);
+
+  // 1. Add a ref for the filter icon button:
+  const filterIconRef = React.useRef(null);
 
   // Use imported categories and collections data
 
@@ -1015,7 +1023,7 @@ const Products = ({ mode }) => {
         <SearchIcon />
       </IconButton>
       {/* Filter icon on right */}
-      <IconButton onClick={() => setDrawerOpen(true)}>
+      <IconButton ref={filterIconRef} onClick={handleOpenSortMenu}>
         <FilterIcon />
       </IconButton>
     </Box>
@@ -1202,6 +1210,51 @@ const Products = ({ mode }) => {
       category: categoryParam ? [categoryParam] : prev.category,
     }));
   }, [location.search]);
+
+  // 2. Render the Menu at the top level, before the return:
+  const sortMenu = (
+    <Menu
+      anchorEl={filterIconRef.current}
+      open={Boolean(anchorElSortMenu)}
+      onClose={handleCloseSortMenu}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      PaperProps={{
+        sx: {
+          minWidth: 180,
+          bgcolor: mode === 'dark' ? '#2d2d2d' : '#fff',
+          color: mode === 'dark' ? '#fff' : '#000',
+          boxShadow: 4,
+          borderRadius: 2,
+        },
+      }}
+    >
+      <MenuItem
+        selected={filters.sort === 'newest'}
+        onClick={() => { handleFilterChange('sort', 'newest'); handleCloseSortMenu(); }}
+      >
+        Newest First
+      </MenuItem>
+      <MenuItem
+        selected={filters.sort === 'price_asc'}
+        onClick={() => { handleFilterChange('sort', 'price_asc'); handleCloseSortMenu(); }}
+      >
+        Price: Low to High
+      </MenuItem>
+      <MenuItem
+        selected={filters.sort === 'price_desc'}
+        onClick={() => { handleFilterChange('sort', 'price_desc'); handleCloseSortMenu(); }}
+      >
+        Price: High to Low
+      </MenuItem>
+      <MenuItem
+        selected={filters.sort === 'popular'}
+        onClick={() => { handleFilterChange('sort', 'popular'); handleCloseSortMenu(); }}
+      >
+        Most Popular
+      </MenuItem>
+    </Menu>
+  );
 
   return (
     <Box
@@ -1641,153 +1694,13 @@ const Products = ({ mode }) => {
         </Grid>
 
         {/* Mobile Sort Popup Dialog */}
-        <Dialog
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          PaperProps={{
-            sx: {
-              position: "fixed",
-              bottom: 100, // Position above the bottom navigation
-              right: 20,
-              margin: 0,
-              width: 280,
-              maxWidth: "calc(100vw - 40px)",
-              borderRadius: "12px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
-              bgcolor: mode === "dark" ? "#2d2d2d" : "#fff",
-              border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"}`,
-              transform: drawerOpen ? "scale(1) translateY(0)" : "scale(0.8) translateY(20px)",
-              opacity: drawerOpen ? 1 : 0,
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              transformOrigin: "bottom right",
-            },
-          }}
-          BackdropProps={{
-            sx: {
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              opacity: drawerOpen ? 1 : 0,
-              transition: "opacity 0.3s ease",
-            },
-          }}
-          TransitionProps={{
-            timeout: 300,
-            enter: true,
-            exit: true,
-          }}
-        >
-          <Box sx={{ p: 2 }}>
-            {/* Dialog Header */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                mb: 2,
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{ 
-                  fontSize: "1rem", 
-                  fontWeight: 600,
-                  color: mode === "dark" ? "#fff" : "#000",
-                }}
-              >
-                Sort
-              </Typography>
-              <IconButton 
-                onClick={() => setDrawerOpen(false)} 
-                size="small"
-                sx={{
-                  color: mode === "dark" ? "#fff" : "#000",
-                  "&:hover": {
-                    bgcolor: mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.04)",
-                  },
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </Box>
+        {/* 4. Remove the Dialog for mobile sort. */}
 
-            {/* Sort Dropdown */}
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  mb: 1,
-                  color: mode === "dark" ? "#ccc" : "#666",
-                  fontSize: "0.875rem",
-                }}
-              >
-                Sort By
-              </Typography>
-              <FormControl fullWidth size="small">
-                <Select
-                  value={filters.sort}
-                  onChange={(e) => {
-                    handleFilterChange("sort", e.target.value);
-                    setDrawerOpen(false); // Close dialog after selection
-                  }}
-                  displayEmpty
-                  sx={{
-                    fontSize: "0.875rem",
-                    backgroundColor: mode === "dark" ? "#404040" : "#f5f5f5",
-                    border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.2)" : "#ddd"}`,
-                    borderRadius: "8px",
-                    "& .MuiSelect-select": {
-                      color: mode === "dark" ? "#fff" : "#000",
-                      padding: "8px 12px",
-                      fontWeight: 500,
-                    },
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
-                    "&:hover": {
-                      backgroundColor: mode === "dark" ? "#505050" : "#e8e8e8",
-                      borderColor: mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "#bbb",
-                    },
-                    "&.Mui-focused": {
-                      backgroundColor: mode === "dark" ? "#505050" : "#e8e8e8",
-                      borderColor: mode === "dark" ? "#FFD700" : "#1976d2",
-                    },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: mode === "dark" ? "#2d2d2d" : "#fff",
-                        border: `1px solid ${mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "#ddd"}`,
-                        boxShadow: mode === "dark" ? "0 4px 20px rgba(0,0,0,0.5)" : "0 4px 20px rgba(0,0,0,0.15)",
-                        "& .MuiMenuItem-root": {
-                          color: mode === "dark" ? "#fff" : "#000",
-                          fontSize: "0.875rem",
-                          padding: "8px 12px",
-                          "&:hover": {
-                            backgroundColor: mode === "dark" ? "#404040" : "#f5f5f5",
-                          },
-                          "&.Mui-selected": {
-                            backgroundColor: mode === "dark" ? "#FFD700" : "#e3f2fd",
-                            color: mode === "dark" ? "#000" : "#1976d2",
-                            "&:hover": {
-                              backgroundColor: mode === "dark" ? "#FFC700" : "#e3f2fd",
-                            },
-                          },
-                        },
-                      },
-                    },
-                  }}
-                >
-                  <MenuItem value="newest">Newest First</MenuItem>
-                  <MenuItem value="price_asc">Price: Low to High</MenuItem>
-                  <MenuItem value="price_desc">Price: High to Low</MenuItem>
-                  <MenuItem value="popular">Most Popular</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+        {/* 3. Add the dropdown Menu for sort options (just after the mobile header): */}
+        {/* 3. Add the dropdown Menu for sort options (just after the mobile header): */}
 
-
-          </Box>
-        </Dialog>
+        {/* 4. In the return, render {sortMenu} just before the main return JSX. */}
+        {sortMenu}
       </Container>
       {isMobile && !drawerOpen && mobileFilterFab}
     </Box>

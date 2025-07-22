@@ -439,25 +439,24 @@ const Header = ({ mode, toggleColorMode }) => {
           sx={{
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: "flex-start",
             bgcolor: "black",
-            gap: 1,
+            gap: 3,
             paddingTop: 0,
             paddingBottom: 0,
             minHeight: "auto",
+            pl: 4, // Left align to match other sidebar items
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <Brightness7Icon
-            sx={{ color: mode === "light" ? "#ffd600" : "#888", mr: 1 }}
-          />
           <Typography
             variant="body2"
             sx={{
               color: "white",
               fontWeight: 600,
               minWidth: 80,
-              textAlign: "center",
+              textAlign: "left",
+              color: isPremium ? goldColor : "white",
             }}
           >
             {mode === "dark" ? "Dark Mode" : "Light Mode"}
@@ -468,9 +467,30 @@ const Header = ({ mode, toggleColorMode }) => {
             color="default"
             inputProps={{ "aria-label": "toggle dark mode" }}
           />
-          <Brightness4Icon
-            sx={{ color: mode === "dark" ? "#ffd600" : "#888", ml: 1 }}
-          />
+          {user && (
+            <Button
+              onClick={handleLogout}
+              sx={{
+                ml: 1,
+                color: isPremium ? goldColor : "white",
+                border: `1px solid ${isPremium ? goldColor : "white"}`,
+                borderRadius: 2,
+                px: 2,
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                background: "transparent",
+                '&:hover': {
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                },
+                minHeight: "32px",
+                height: "32px",
+              }}
+            >
+              Logout
+            </Button>
+          )}
         </ListItem>
       </List>
     </Box>
@@ -490,6 +510,8 @@ const Header = ({ mode, toggleColorMode }) => {
         height: { xs: "44px", md: "64px" },
         width: { xs: "100vw", md: "auto" },
         left: 0,
+        p: { xs: 0, md: undefined }, // Remove AppBar padding on mobile
+        m: { xs: 0, md: undefined }, // Remove AppBar margin on mobile
       }}
     >
       <Container
@@ -498,6 +520,7 @@ const Header = ({ mode, toggleColorMode }) => {
           px: { xs: 0, md: 2 },
           width: { xs: "100vw", md: "100%" },
           minWidth: { xs: "100vw", md: "0" },
+          m: { xs: 0, md: undefined }, // Remove Container margin on mobile
         }}
       >
         <Toolbar
@@ -505,6 +528,7 @@ const Header = ({ mode, toggleColorMode }) => {
           sx={{
             minHeight: { xs: "44px", md: "64px" },
             px: { xs: 0, md: 2 },
+            py: { xs: 0, md: undefined }, // Remove vertical padding on mobile
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -518,7 +542,8 @@ const Header = ({ mode, toggleColorMode }) => {
               alignItems: "center",
               flex: "0 0 auto",
               zIndex: 2,
-              pl: { xs: 0.5, md: 0 },
+              pl: { xs: 0, md: 0 },
+              ml: { xs: 0, md: 0 },
             }}
           >
             <IconButton
@@ -527,7 +552,7 @@ const Header = ({ mode, toggleColorMode }) => {
               edge="start"
               onClick={handleDrawerToggle}
               color="inherit"
-              sx={{ mr: 0, ml: 0, p: "8px" }}
+              sx={{ mr: 0, ml: 0, p: "8px", pl: 0, pr: 0 }} // Remove all side padding
             >
               <MenuIcon />
             </IconButton>
@@ -668,10 +693,10 @@ const Header = ({ mode, toggleColorMode }) => {
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: 0.5,
+              gap: 0, // Reduce gap for all screen sizes
               ml: "auto",
               flexShrink: 0,
-              pr: { xs: 0.5, md: 0 },
+              pr: { xs: 0, md: 0 },
               position: "relative",
               zIndex: 2,
             }}
@@ -700,7 +725,7 @@ const Header = ({ mode, toggleColorMode }) => {
               <IconButton
                 color="inherit"
                 onClick={() => navigate("/notifications")}
-                sx={{ p: 1 }}
+                sx={{ p: 1, mr: { xs: 0, md: 0 }, pr: { xs: 0, md: 0 } }} // Remove right padding on mobile
               >
                 <Badge badgeContent={unreadCount} color="error">
                   <NotificationsIcon sx={{ fontSize: 26 }} />

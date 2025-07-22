@@ -796,83 +796,61 @@ const Home = ({ mode }) => {
                         transition: "all 0.3s ease",
                         minHeight: { xs: 240, md: 300 },
                         width: "100%",
-                        bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                        border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                        bgcolor: "#000", // Set background to black
+                        border: `2px dashed ${mode === "dark" ? "#666" : "#222"}`,
                         display: { xs: "block", md: "none" },
-                        "&:hover": {
+                        color: "#fff", // White text
+                        position: "relative", // Needed for absolute centering
+                        justifyContent: "center",
+                        alignItems: "center",
+                        textAlign: "center",
+                        '&:hover': {
                           boxShadow: 4,
                           transform: "translateY(-8px) scale(1.04)",
-                          bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                          bgcolor: "#181818",
                         },
                       }}
                       onClick={() => navigate("/products?sort=shop-by-category")}
                     >
                       <Box
                         sx={{
-                          position: "relative",
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
                           width: "100%",
-                          pt: "140%",
                           overflow: "hidden",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          flexDirection: "column",
+                          flexDirection: "row", // Place arrow and text in same line
                           gap: 2,
+                          color: "#fff",
                         }}
                       >
-                        <ArrowForwardIcon 
-                          sx={{ 
-                            fontSize: { xs: 48, md: 64 },
-                            color: mode === "dark" ? "#fff" : "#666",
-                            transform: "rotate(-45deg)",
-                          }} 
-                        />
                         <Typography
                           variant="h6"
                           sx={{
                             fontWeight: 700,
                             fontSize: { xs: "1.1rem", md: "1.3rem" },
-                            color: mode === "dark" ? "#fff" : "#333",
+                            color: "#fff",
                             textAlign: "center",
                           }}
                         >
                           SEE MORE
                         </Typography>
+                        <ArrowForwardIcon 
+                          sx={{ 
+                            fontSize: { xs: 32, md: 40 },
+                            color: "#fff",
+                          }} 
+                        />
                       </Box>
                     </Card>
                   </Box>
                 )}
               </>
             )}
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Button
-              variant="contained"
-              size={isMobile ? "large" : "medium"}
-              sx={{
-                backgroundColor: mode == "dark" ? "fff" : "181818",
-                color: mode == "dark" ? "fff" : "181818",
-                py: isMobile ? 1 : 1,
-                px: isMobile ? 2 : 4,
-                fontSize: { xs: "0.8rem", md: "0.9rem" },
-                borderRadius: 10,
-                width: "auto",
-                minWidth: 0,
-                "&:hover": {
-                  backgroundColor: matteColors[800],
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                },
-                transition: "all 0.3s ease",
-                alignSelf: "center",
-                whiteSpace: "nowrap",
-                backgroundColor: mode == "dark" ? "181818" : "fff",
-                color: mode == "dark" ? "181818" : "fff",
-              }}
-              onClick={() => navigate("/products?sort=shop-by-category")}
-            >
-              SEE MORE
-            </Button>
           </Box>
         </Container>
       </Box>
@@ -1035,83 +1013,61 @@ const Home = ({ mode }) => {
                         transition: "all 0.3s ease",
                         minHeight: { xs: 240, md: 300 },
                         width: "100%",
-                        bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                        border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                        bgcolor: "#000", // Set background to black
+                        border: `2px dashed ${mode === "dark" ? "#666" : "#222"}`,
                         display: { xs: "block", md: "none" },
-                        "&:hover": {
+                        color: "#fff", // White text
+                        position: "relative", // Needed for absolute centering
+                        justifyContent: "center",
+                        alignItems: "center",
+                        textAlign: "center",
+                        '&:hover': {
                           boxShadow: 4,
                           transform: "translateY(-8px) scale(1.04)",
-                          bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                          bgcolor: "#181818",
                         },
                       }}
                       onClick={() => navigate("/products?sort=best-sellers")}
                     >
                       <Box
                         sx={{
-                          position: "relative",
+                          position: "absolute",
+                          top: "50%",
+                          left: "50%",
+                          transform: "translate(-50%, -50%)",
                           width: "100%",
-                          pt: "140%",
                           overflow: "hidden",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          flexDirection: "column",
+                          flexDirection: "row", // Place arrow and text in same line
                           gap: 2,
+                          color: "#fff",
                         }}
                       >
-                        <ArrowForwardIcon 
-                          sx={{ 
-                            fontSize: { xs: 48, md: 64 },
-                            color: mode === "dark" ? "#fff" : "#666",
-                            transform: "rotate(-45deg)",
-                          }} 
-                        />
                         <Typography
                           variant="h6"
                           sx={{
                             fontWeight: 700,
                             fontSize: { xs: "1.1rem", md: "1.3rem" },
-                            color: mode === "dark" ? "#fff" : "#333",
+                            color: "#fff",
                             textAlign: "center",
                           }}
                         >
                           SEE MORE
                         </Typography>
+                        <ArrowForwardIcon 
+                          sx={{ 
+                            fontSize: { xs: 32, md: 40 },
+                            color: "#fff",
+                          }} 
+                        />
                       </Box>
                     </Card>
                   </Box>
                 )}
               </>
             )}
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Button
-              variant="contained"
-              size={isMobile ? "large" : "medium"}
-              sx={{
-                backgroundColor: mode == "dark" ? "fff" : "181818",
-                color: mode == "dark" ? "fff" : "181818",
-                py: isMobile ? 1 : 1,
-                px: isMobile ? 2 : 4,
-                fontSize: { xs: "0.8rem", md: "0.9rem" },
-                borderRadius: 10,
-                width: "auto",
-                minWidth: 0,
-                "&:hover": {
-                  backgroundColor: matteColors[800],
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                },
-                transition: "all 0.3s ease",
-                alignSelf: "center",
-                whiteSpace: "nowrap",
-                backgroundColor: mode == "dark" ? "181818" : "fff",
-                color: mode == "dark" ? "181818" : "fff",
-              }}
-              onClick={() => navigate("/products?sort=best-sellers")}
-            >
-              SEE MORE
-            </Button>
           </Box>
         </Container>
       </Box>
@@ -1153,6 +1109,7 @@ const Home = ({ mode }) => {
           sx={{
             py: 0,
             bgcolor: mode === "dark" ? "#181818" : "#fff",
+            mt: idx === 0 ? 0 : { xs: 4, md: 6 }, // Add margin top except for the first section
           }}
         >
           <Container maxWidth="xl">
@@ -1197,7 +1154,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1244,7 +1201,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1291,7 +1248,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1338,7 +1295,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1385,7 +1342,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1432,7 +1389,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1479,7 +1436,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1526,7 +1483,7 @@ const Home = ({ mode }) => {
                     alt={section.name}
                     style={{
                       width: "100%",
-                      height: isMobile ? "180px" : "420px",
+                      height: isMobile ? "180px" : "320px",
                       objectFit: "inherit",
                       display: "block",
                       borderRadius: isMobile ? "12px" : "18px",
@@ -1799,13 +1756,18 @@ const Home = ({ mode }) => {
                             transition: "all 0.3s ease",
                             minHeight: { xs: 240, md: 300 },
                             width: "100%",
-                            bgcolor: mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-                            border: `2px dashed ${mode === "dark" ? "#666" : "#ddd"}`,
+                            bgcolor: "#000", // Set background to black
+                            border: `2px dashed ${mode === "dark" ? "#666" : "#222"}`,
                             display: { xs: "block", md: "none" },
-                            "&:hover": {
+                            color: "#fff", // White text
+                            position: "relative", // Needed for absolute centering
+                            justifyContent: "center",
+                            alignItems: "center",
+                            textAlign: "center",
+                            '&:hover': {
                               boxShadow: 4,
                               transform: "translateY(-8px) scale(1.04)",
-                              bgcolor: mode === "dark" ? "#404040" : "#e8e8e8",
+                              bgcolor: "#181818",
                             },
                           }}
                           onClick={() =>
@@ -1816,35 +1778,37 @@ const Home = ({ mode }) => {
                         >
                           <Box
                             sx={{
-                              position: "relative",
+                              position: "absolute",
+                              top: "50%",
+                              left: "50%",
+                              transform: "translate(-50%, -50%)",
                               width: "100%",
-                              pt: "160%",
                               overflow: "hidden",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              flexDirection: "column",
+                              flexDirection: "row", // Place arrow and text in same line
                               gap: 2,
+                              color: "#fff",
                             }}
                           >
-                            <ArrowForwardIcon 
-                              sx={{ 
-                                fontSize: { xs: 48, md: 64 },
-                                color: mode === "dark" ? "#fff" : "#666",
-                                transform: "rotate(-45deg)",
-                              }} 
-                            />
                             <Typography
                               variant="h6"
                               sx={{
                                 fontWeight: 700,
                                 fontSize: { xs: "1.1rem", md: "1.3rem" },
-                                color: mode === "dark" ? "#fff" : "#333",
+                                color: "#fff",
                                 textAlign: "center",
                               }}
                             >
                               SEE MORE
                             </Typography>
+                            <ArrowForwardIcon 
+                              sx={{ 
+                                fontSize: { xs: 32, md: 40 },
+                                color: "#fff",
+                              }} 
+                            />
                           </Box>
                         </Card>
                       </Box>
@@ -1852,38 +1816,6 @@ const Home = ({ mode }) => {
                   </>
                 );
               })()}
-            </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 4 }}
-            >
-              <Button
-                size={isMobile ? "medium" : "large"}
-                sx={{
-                  backgroundColor: mode === "dark" ? "#fff" : "#181818",
-                  color: mode === "dark" ? "#181818" : "#fff",
-                  fontSize: { xs: "0.92rem", md: "1.15rem" },
-                  py: { xs: 0.7, md: 1.5 },
-                  px: { xs: 2, md: 5 },
-                  borderRadius: { xs: 8, md: 10 },
-                  width: "auto",
-                  minWidth: 0,
-                  "&:hover": {
-                    backgroundColor: matteColors[800],
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                  },
-                  transition: "all 0.3s ease",
-                  alignSelf: "center",
-                  whiteSpace: "nowrap",
-                }}
-                onClick={() =>
-                  navigate(
-                    `/products?category=${encodeURIComponent(section.key)}`
-                  )
-                }
-              >
-                SEE MORE
-              </Button>
             </Box>
           </Container>
         </Box>

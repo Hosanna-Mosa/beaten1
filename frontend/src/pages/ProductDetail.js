@@ -242,6 +242,7 @@ const ProductDetail = ({ mode }) => {
                 flexDirection: { xs: "column", md: "row" },
                 alignItems: { xs: "stretch", md: "flex-start" },
                 gap: { xs: 1, md: 2 },
+                pl: { xs: 0, md: 0 }, // Remove left padding for main image
               }}
             >
               {/* Main Image in its own bordered box */}
@@ -256,6 +257,7 @@ const ProductDetail = ({ mode }) => {
                   width: { xs: "100vw", md: "600px" },
                   height: { xs: "auto", md: "600px" },
                   background: "#fff",
+                  ml: { xs: 0, md: 0 }, // Ensure main image is flush left
                 }}
               >
                 {/* Left Arrow */}
@@ -333,7 +335,7 @@ const ProductDetail = ({ mode }) => {
                   maxWidth: { xs: "100%", md: "120px" },
                   alignSelf: { xs: "auto", md: "flex-start" },
                   mt: { xs: 1, md: 0 },
-                  ml: { xs: 0, md: 2 }, // Add left margin in desktop to separate from main image
+                  ml: { xs: 2, md: 2 }, // Keep left margin for thumbnails
                   background: "transparent",
                 }}
               >
@@ -380,6 +382,7 @@ const ProductDetail = ({ mode }) => {
                 position: "sticky",
                 top: 100,
                 color: mode === "dark" ? "#fff" : "inherit",
+                pl: { xs: 2, md: 4 }, // Add left padding for spacing
               }}
             >
               <Typography
