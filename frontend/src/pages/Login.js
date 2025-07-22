@@ -464,6 +464,7 @@ const Login = () => {
               <Box sx={{ textAlign: "right", mb: 2 }}>
                 <Link
                   component="button"
+                  type="button" // <-- Prevents form submission
                   variant="body2"
                   onClick={handleForgotPasswordOpen}
                   sx={{ cursor: "pointer" }}
