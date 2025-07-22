@@ -35,6 +35,10 @@ router.put("/:id/collection-images", dataEntryController.updateCollectionImages)
 router.get("/:id/mobile-collection-images", dataEntryController.getMobileCollectionImages);
 router.put("/:id/mobile-collection-images", dataEntryController.updateMobileCollectionImages);
 
+// Collections endpoints
+router.get("/:id/collections", dataEntryController.getCollections);
+router.put("/:id/collections", dataEntryController.updateCollections);
+
 // router.delete("/:id/mobile-slide-images", dataEntryController.deleteMobileSlideImages);
 
 // NewsContent endpoints

@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
   MOBIEL_SLIDE_IMAGES: (id) => `/data-entry/${id}/mobile-slide-images`,
   COLLECTION_IMAGES: (id) => `/data-entry/${id}/collection-images`,
   MOBILE_COLLECTION_IMAGES: (id) => `/data-entry/${id}/mobile-collection-images`,
+  COLLECTIONS: (id) => `/data-entry/${id}/collections`,
   // FooterInfo
   FOOTER_ABOUT_US: "/footer-info/about-us",
 };

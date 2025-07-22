@@ -43,6 +43,7 @@ import {
   fetchMobileSlideImages,
   fetchCollectionImages,
   fetchMobileCollectionImages,
+  fetchCollections,
 } from "../api/newsContentAPI";
 
 const matteColors = {

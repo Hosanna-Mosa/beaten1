@@ -61,6 +61,18 @@ const seedData = async () => {
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949395/7_umrlur.png",
         "https://res.cloudinary.com/dk6rrrwum/image/upload/v1752949923/8_dgoqs6.png",
       ],
+      collections: [
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160034/Untitled_design_4_xdxk63.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled-design.png_wtqxpu.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_o4kkb8.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_2_ax5pcj.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_3_rcdkbr.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_7_nobm8f.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_1_lv7gwy.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_5_o88gjf.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_6_cnuohw.webp",
+        "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160046/Untitled_design_4_1_dk8ki3.webp",
+    ],
       newsContent:
        "Welcome to BEATEN! Enjoy our premium drops and secret sales. changed to cloud",
     });

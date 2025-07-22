@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Grid,
@@ -12,76 +12,112 @@ import {
   Button,
   useTheme,
   useMediaQuery,
-  Paper
-} from '@mui/material';
-import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
+  Paper,
+} from "@mui/material";
+import { ArrowForward as ArrowForwardIcon } from "@mui/icons-material";
+import { fetchCollections } from "../api/newsContentAPI";
+import { useState, useEffect } from "react";
 
-const collections = [
-  {
-    id: 'best-sellers',
-    name: 'Best Sellars',
-    image: 'https://i.pinimg.com/736x/81/e9/ab/81e9abe7ceaf1b46ed0ee2027646aa26.jpg' },
-  {
-    id: 'tshirts',
-    name: 'Tshirts',
-    image: 'https://i.pinimg.com/736x/74/e1/d1/74e1d14d3d3ac7331ab9efca9ecf9e6e.jpg',
-  },
-  {
-    id: 'shirts',
-    name: 'Shirts',
-    image: 'https://burst.shopifycdn.com/photos/white-collar-shirts-on-rack-in-sun.jpg?width=1000&format=pjpg&exif=0&iptc=0',
-  },
-  {
-    id: 'polo-t-shirts',
-    name: 'Polo T-shirts',
-    image: 'https://i.pinimg.com/736x/21/fc/56/21fc56b1fd4ae1fff4b1311dd57e264d.jpg',
-  },
-  {
-    id: 'oversized-t-shirts',
-    name: 'Oversized T-shirts',
-    image: 'https://i.pinimg.com/736x/67/70/e3/6770e30d3aa59d0aa59cd1b9592c7903.jpg',
-  },
-  {
-    id: 'bottom-wear',
-    name: 'Bottom Wear',
-    image: 'https://i.pinimg.com/736x/05/0f/b2/050fb2d6939e3614ad5a61807f19d22e.jpg',
-  },
-  {
-    id: 'cargo-pants',
-    name: 'Cargo Pants',
-    image: 'https://i.pinimg.com/736x/94/03/0b/94030be325f5d12082139018f6c2e079.jpg',
-  },
-    {
-    id: 'jackets',
-    name: 'Jackets',
-    image: 'https://i.pinimg.com/736x/26/5a/7a/265a7add90f5682fc56ad7ccb656fd01.jpg',
-  },
-  {
-    id: 'hoodies',
-    name: 'Hoodies',
-    image: 'https://ideogram.ai/assets/image/lossless/response/aF72yuw5RU-Z5T95m8FS2g',
-  },
-    {
-    id: 'co-ord-sets',
-    name: 'Co-Ord Sets',
-    image: 'https://ideogram.ai/assets/image/lossless/response/eOzvuoTISKijWYlPlEA-ZA',
-  },
-];
+// const collectionsImages = [
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160034/Untitled_design_4_xdxk63.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled-design.png_wtqxpu.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled-design.png_wtqxpu.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_2_ax5pcj.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_3_rcdkbr.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_7_nobm8f.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160033/Untitled_design_1_lv7gwy.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_5_o88gjf.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160015/Untitled_design_6_cnuohw.webp",
+//     "https://res.cloudinary.com/dk6rrrwum/image/upload/v1753160046/Untitled_design_4_1_dk8ki3.webp",
+// ];
 
-// Add a royalty-free human PNG image URL
-const humanPng = '/frontend/public/Untitled-design.png.webp'; // Example PNG with transparency
+
 
 const Collections = () => {
+  const [collectionsImages, setCollectionsImages] = useState([]);
+  const DATA_ENTRY_ID = 1;
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  useEffect(() => {
+    const getCollections = async () => {
+      try {
+        const data = await fetchCollections(DATA_ENTRY_ID);
+        console.log(data.collections);
+        
+        setCollectionsImages(data.collections);
+      } catch (err) {
+        setCollectionsImages([]);
+      }
+    };
+    getCollections();
+  }, []);
+
+  const collections = [
+    {
+      id: "best-sellers",
+      name: "Best Sellars",
+      image: collectionsImages[0],
+    },
+    {
+      id: "tshirts",
+      name: "Tshirts",
+      image: collectionsImages[1],
+    },
+    {
+      id: "shirts",
+      name: "Shirts",
+      image: collectionsImages[2],
+    },
+    {
+      id: "polo-t-shirts",
+      name: "Polo T-shirts",
+      image: collectionsImages[3],
+    },
+    {
+      id: "oversized-t-shirts",
+      name: "Oversized T-shirts",
+      image: collectionsImages[4],
+    },
+    {
+      id: "bottom-wear",
+      name: "Bottom Wear",
+      image: collectionsImages[5],
+    },
+    {
+      id: "cargo-pants",
+      name: "Cargo Pants",
+      image: collectionsImages[6],
+    },
+    {
+      id: "jackets",
+      name: "Jackets",
+      image: collectionsImages[7],
+    },
+    {
+      id: "hoodies",
+      name: "Hoodies",
+      image: collectionsImages[8],
+    },
+    {
+      id: "co-ord-sets",
+      name: "Co-Ord Sets",
+      image: collectionsImages[9],
+    },
+  ];
+
+
+  // Add a royalty-free human PNG image URL
+  const humanPng =
+    "https://pngimg.com/uploads/businessman/businessman_PNG6567.png"; // Example PNG with transparency
 
   return (
-    <Container 
-      maxWidth="xl" 
-      sx={{ 
+    <Container
+      maxWidth="xl"
+      sx={{
         py: { xs: 3, md: 8 },
-        px: { xs: 2, md: 3 }
+        px: { xs: 2, md: 3 },
       }}
     >
       {/* Hero Section */}
@@ -89,11 +125,11 @@ const Collections = () => {
         <Typography
           variant="h1"
           sx={{
-            fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
+            fontSize: { xs: "2rem", sm: "2.5rem", md: "3.5rem" },
             fontWeight: 700,
-            textAlign: 'center',
+            textAlign: "center",
             mb: { xs: 1.5, md: 2 },
-            letterSpacing: { xs: '-0.02em', md: '-0.03em' }
+            letterSpacing: { xs: "-0.02em", md: "-0.03em" },
           }}
         >
           Our Collections
@@ -102,93 +138,95 @@ const Collections = () => {
           variant="h5"
           color="text.secondary"
           sx={{
-            textAlign: 'center',
-            maxWidth: '800px',
-            mx: 'auto',
+            textAlign: "center",
+            maxWidth: "800px",
+            mx: "auto",
             mb: { xs: 3, md: 4 },
-            fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-            px: { xs: 2, md: 0 }
+            fontSize: { xs: "1rem", sm: "1.1rem", md: "1.25rem" },
+            px: { xs: 2, md: 0 },
           }}
         >
-          Discover our carefully curated collections, each telling its own unique story
+          Discover our carefully curated collections, each telling its own
+          unique story
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {collections.map((collection, index) => (
           <Card
             key={collection.id}
             sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: { xs: '0px', md: '0px' },
-              height: { xs: '110px', sm: '130px', md: '150px' },
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: { xs: "0px", md: "0px" },
+              height: { xs: "110px", sm: "130px", md: "150px" },
+              borderRadius: "22px",
               p: 0,
-              background: 'linear-gradient(90deg, #111 60%, #444 100%)',
+              background: "linear-gradient(90deg, #111 60%, #444 100%)",
             }}
           >
-            <CardActionArea 
+            <CardActionArea
               onClick={() => navigate(`/collections/${collection.id}`)}
               sx={{
-                height: '100%',
+                height: "100%",
                 p: 0,
-                position: 'relative',
-                zIndex: 2
+                position: "relative",
+                zIndex: 2,
               }}
             >
               {/* Human PNG overlay, always right */}
               <Box
                 component="img"
-                src="/Untitled-design.png.webp"
+                src={collection.image}
                 alt="Human"
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
+                  position: "absolute",
+                  top: "50%",
                   right: 0,
-                  left: 'auto',
-                  transform: 'translateY(-50%)',
-                  height: { xs: 115, sm: 170, md: 200 , lg :150 },
+                  left: "auto",
+                  transform: "translateY(-50%)",
+                  height: { xs: 100, sm: 170, md: 200 },
                   zIndex: 3,
                   opacity: 0.92,
-                  pointerEvents: 'none',
-                  filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.25))',
-                  userSelect: 'none',
-                  display: { xs: 'block', md: 'block' }
+                  pointerEvents: "none",
+                  filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.25))",
+                  userSelect: "none",
+                  display: { xs: "block", md: "block" },
                 }}
               />
               {/* Collection name, larger and left-aligned */}
               <Box
                 sx={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: 0,
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  color: '#222',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
+                  color: "#222",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
                   zIndex: 4,
-                  textAlign: 'left',
+                  textAlign: "left",
                   p: 0,
-                  pl: { xs: 2, sm: 4, md: 6 }
+                  pl: { xs: 2, sm: 4, md: 6 },
                 }}
               >
                 <Typography
                   variant="h4"
                   sx={{
                     fontWeight: 800,
-                    textShadow: '0 2px 8px rgba(0,0,0,0.45)',
-                    fontSize: { xs: '1.35rem', sm: '1.7rem', md: '2.1rem' },
+                    textShadow: "0 2px 8px rgba(0,0,0,0.45)",
+                    fontSize: { xs: "1.35rem", sm: "1.7rem", md: "2.1rem" },
                     lineHeight: 1.1,
-                    letterSpacing: '-0.01em',
+                    letterSpacing: "-0.01em",
                     px: 1,
-                    color: '#fff',
-                    textAlign: 'left',
-                    maxWidth: { xs: '60%', sm: '60%', md: '60%' },
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis'
+                    color: "#fff",
+                    textAlign: "left",
+                    maxWidth: { xs: "60%", sm: "60%", md: "60%" },
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {collection.name}
@@ -202,4 +240,4 @@ const Collections = () => {
   );
 };
 
-export default Collections; 
+export default Collections;

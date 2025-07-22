@@ -93,6 +93,45 @@ const DataEntry = () => {
   const [mobileCollectionEditIndex, setMobileCollectionEditIndex] =
     useState(null);
 
+  // Collections state
+  const [collections, setCollections] = useState([]);
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
+  const [collectionsError, setCollectionsError] = useState(null);
+  const [collectionsEditDialogOpen, setCollectionsEditDialogOpen] =
+    useState(false);
+  const [collectionsAddDialogOpen, setCollectionsAddDialogOpen] =
+    useState(false);
+  const [collectionsSelected, setCollectionsSelected] = useState(null);
+  const [collectionsNewValue, setCollectionsNewValue] = useState("");
+  const [collectionsAdding, setCollectionsAdding] = useState(false);
+  const [collectionsUpdating, setCollectionsUpdating] = useState(false);
+  const [collectionsEditIndex, setCollectionsEditIndex] = useState(null);
+
+  // Explore Collection state
+  const [exploreCollection, setExploreCollection] = useState([]);
+  const [exploreCollectionLoading, setExploreCollectionLoading] =
+    useState(true);
+  const [exploreCollectionError, setExploreCollectionError] = useState(null);
+  const [exploreCollectionEditDialogOpen, setExploreCollectionEditDialogOpen] =
+    useState(false);
+  const [exploreCollectionAddDialogOpen, setExploreCollectionAddDialogOpen] =
+    useState(false);
+  const [exploreCollectionSelected, setExploreCollectionSelected] =
+    useState(null);
+  const [exploreCollectionNewValue, setExploreCollectionNewValue] =
+    useState("");
+  const [exploreCollectionAdding, setExploreCollectionAdding] = useState(false);
+  const [exploreCollectionUpdating, setExploreCollectionUpdating] =
+    useState(false);
+  const [exploreCollectionEditIndex, setExploreCollectionEditIndex] =
+    useState(null);
+  const [exploreCollectionNewImageFile, setExploreCollectionNewImageFile] =
+    useState(null);
+  const [
+    exploreCollectionNewImagePreview,
+    setExploreCollectionNewImagePreview,
+  ] = useState(null);
+
   useEffect(() => {
     const getImages = async () => {
       try {
@@ -184,6 +223,44 @@ const DataEntry = () => {
       }
     };
     getMobileCollectionImages();
+  }, []);
+
+  // Fetch collections on mount
+  useEffect(() => {
+    const getCollections = async () => {
+      try {
+        setCollectionsLoading(true);
+        setCollectionsError(null);
+        const response = await axios.get(
+          `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`
+        );
+        setCollections(response.data.collections || []);
+      } catch (err) {
+        setCollectionsError(err.message || "Failed to load collections");
+      } finally {
+        setCollectionsLoading(false);
+      }
+    };
+    getCollections();
+  }, []);
+
+  // Fetch exploreCollection on mount
+  useEffect(() => {
+    const getExploreCollection = async () => {
+      try {
+        setExploreCollectionLoading(true);
+        setExploreCollectionError(null);
+        const response = await axios.get(
+          `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`
+        );
+        setExploreCollection(response.data.collections || []);
+      } catch (err) {
+        setExploreCollectionError(err.message || "Failed to load collections");
+      } finally {
+        setExploreCollectionLoading(false);
+      }
+    };
+    getExploreCollection();
   }, []);
 
   const handleDeleteImage = async (index) => {
@@ -820,6 +897,259 @@ const DataEntry = () => {
     }
   };
 
+  // Add Collection
+  const handleCollectionsAddDialogOpen = () => {
+    setCollectionsAddDialogOpen(true);
+    setCollectionsNewValue("");
+  };
+  const handleCollectionsAddDialogClose = () => {
+    setCollectionsAddDialogOpen(false);
+    setCollectionsNewValue("");
+  };
+  const handleCollectionsAddChange = (e) => {
+    setCollectionsNewValue(e.target.value);
+  };
+  const handleCollectionsAdd = async () => {
+    if (!collectionsNewValue) return;
+    setCollectionsAdding(true);
+    try {
+      const updatedCollections = [...collections, collectionsNewValue];
+      setCollections(updatedCollections);
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedCollections }
+      );
+      handleCollectionsAddDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to add collection: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setCollectionsAdding(false);
+    }
+  };
+
+  // Edit Collection
+  const handleCollectionsEditDialogOpen = (index) => {
+    setCollectionsEditDialogOpen(true);
+    setCollectionsEditIndex(index);
+    setCollectionsSelected(collections[index]);
+    setCollectionsNewValue(collections[index]);
+  };
+  const handleCollectionsEditDialogClose = () => {
+    setCollectionsEditDialogOpen(false);
+    setCollectionsEditIndex(null);
+    setCollectionsSelected(null);
+    setCollectionsNewValue("");
+  };
+  const handleCollectionsEditChange = (e) => {
+    setCollectionsNewValue(e.target.value);
+  };
+  const handleCollectionsUpdate = async () => {
+    if (!collectionsNewValue) return;
+    setCollectionsUpdating(true);
+    try {
+      const updatedCollections = collections.map((item, i) =>
+        i === collectionsEditIndex ? collectionsNewValue : item
+      );
+      setCollections(updatedCollections);
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedCollections }
+      );
+      handleCollectionsEditDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to update collection: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setCollectionsUpdating(false);
+    }
+  };
+
+  // Delete Collection
+  const handleCollectionsDelete = async (index) => {
+    if (collections.length <= 1) {
+      alert("At least one collection is required.");
+      return;
+    }
+    const updatedCollections = collections.filter((_, i) => i !== index);
+    setCollections(updatedCollections);
+    try {
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedCollections }
+      );
+    } catch (err) {
+      alert(
+        "Failed to update collections: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
+  };
+
+  // Add Explore Collection
+  const handleExploreCollectionAddDialogOpen = () => {
+    setExploreCollectionAddDialogOpen(true);
+    setExploreCollectionNewValue("");
+    setExploreCollectionNewImageFile(null);
+    setExploreCollectionNewImagePreview(null);
+  };
+  const handleExploreCollectionAddDialogClose = () => {
+    setExploreCollectionAddDialogOpen(false);
+    setExploreCollectionNewValue("");
+    setExploreCollectionNewImageFile(null);
+    setExploreCollectionNewImagePreview(null);
+  };
+  const handleExploreCollectionAddChange = (e) => {
+    setExploreCollectionNewValue(e.target.value);
+  };
+  const handleExploreCollectionAddFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setExploreCollectionNewImageFile(file);
+      setExploreCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+  const handleExploreCollectionAddDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setExploreCollectionNewImageFile(file);
+      setExploreCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+  const handleExploreCollectionAddDragOver = (e) => {
+    e.preventDefault();
+  };
+  const handleExploreCollectionAdd = async () => {
+    if (!exploreCollectionNewImageFile) return;
+    setExploreCollectionAdding(true);
+    try {
+      // 1. Upload image to backend
+      const formData = new FormData();
+      formData.append("image", exploreCollectionNewImageFile);
+      const uploadRes = await axios.post(
+        `${API_BASE_URL}/upload/image`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      const imageUrl = uploadRes.data.imageUrl;
+      // 2. Add to exploreCollection array
+      const updatedExploreCollection = [...exploreCollection, imageUrl];
+      setExploreCollection(updatedExploreCollection);
+      // 3. Persist to backend
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedExploreCollection }
+      );
+      handleExploreCollectionAddDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to add collection: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setExploreCollectionAdding(false);
+    }
+  };
+
+  // Edit Explore Collection
+  const handleExploreCollectionEditDialogOpen = (index) => {
+    setExploreCollectionEditDialogOpen(true);
+    setExploreCollectionEditIndex(index);
+    setExploreCollectionSelected(exploreCollection[index]);
+    setExploreCollectionNewImageFile(null);
+    setExploreCollectionNewImagePreview(null);
+  };
+  const handleExploreCollectionEditDialogClose = () => {
+    setExploreCollectionEditDialogOpen(false);
+    setExploreCollectionEditIndex(null);
+    setExploreCollectionSelected(null);
+    setExploreCollectionNewImageFile(null);
+    setExploreCollectionNewImagePreview(null);
+  };
+  const handleExploreCollectionFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setExploreCollectionNewImageFile(file);
+      setExploreCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+  const handleExploreCollectionDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      setExploreCollectionNewImageFile(file);
+      setExploreCollectionNewImagePreview(URL.createObjectURL(file));
+    }
+  };
+  const handleExploreCollectionDragOver = (e) => {
+    e.preventDefault();
+  };
+  const handleExploreCollectionUpdate = async () => {
+    if (!exploreCollectionNewImageFile) return;
+    setExploreCollectionUpdating(true);
+    try {
+      // 1. Upload image to backend
+      const formData = new FormData();
+      formData.append("image", exploreCollectionNewImageFile);
+      const uploadRes = await axios.post(
+        `${API_BASE_URL}/upload/image`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      const imageUrl = uploadRes.data.imageUrl;
+      // 2. Update exploreCollection array
+      const updatedExploreCollection = exploreCollection.map((item, i) =>
+        i === exploreCollectionEditIndex ? imageUrl : item
+      );
+      setExploreCollection(updatedExploreCollection);
+      // 3. Persist to backend
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedExploreCollection }
+      );
+      handleExploreCollectionEditDialogClose();
+    } catch (err) {
+      alert(
+        "Failed to update collection: " +
+          (err.response?.data?.message || err.message)
+      );
+    } finally {
+      setExploreCollectionUpdating(false);
+    }
+  };
+
+  // Delete Explore Collection
+  const handleExploreCollectionDelete = async (index) => {
+    if (exploreCollection.length <= 1) {
+      alert("At least one collection is required.");
+      return;
+    }
+    const updatedExploreCollection = exploreCollection.filter(
+      (_, i) => i !== index
+    );
+    setExploreCollection(updatedExploreCollection);
+    try {
+      await axios.put(
+        `${API_BASE_URL}/data-entry/${DATA_ENTRY_ID}/collections`,
+        { collections: updatedExploreCollection }
+      );
+    } catch (err) {
+      alert(
+        "Failed to update collections: " +
+          (err.response?.data?.message || err.message)
+      );
+    }
+  };
+
   return (
     <Box sx={{ maxWidth: 700, mx: "auto", mt: 4, p: 2 }}>
       <Typography variant="h4" gutterBottom>
@@ -1085,14 +1415,14 @@ const DataEntry = () => {
         <Typography variant="h6" gutterBottom>
           Collection Images
         </Typography>
-        {/* <Button
+        <Button
           variant="outlined"
           color="primary"
           sx={{ mb: 2 }}
           onClick={handleCollectionAddDialogOpen}
         >
           Add Image
-        </Button> */}
+        </Button>
         {collectionLoading ? (
           <Typography>Loading images...</Typography>
         ) : collectionError ? (
@@ -1120,13 +1450,13 @@ const DataEntry = () => {
                   >
                     Edit
                   </Button>
-                  {/* <IconButton
+                  <IconButton
                     edge="end"
                     color="error"
                     onClick={() => handleCollectionDeleteImage(idx)}
                   >
                     <DeleteIcon />
-                  </IconButton> */}
+                  </IconButton>
                 </ListItemSecondaryAction>
               </ListItem>
             ))}
@@ -1331,6 +1661,89 @@ const DataEntry = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Collections */}
+      {/* <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Collections
+        </Typography>
+      
+        {collectionsLoading ? (
+          <Typography>Loading collections...</Typography>
+        ) : collectionsError ? (
+          <Typography color="error">{collectionsError}</Typography>
+        ) : (
+          <List>
+            {collections.map((item, idx) => (
+              <ListItem key={idx}>
+                <img
+                  src={item}
+                  alt={`collection-${idx}`}
+                  style={{
+                    width: 60,
+                    height: 40,
+                    objectFit: "cover",
+                    marginRight: 12,
+                    borderRadius: 4,
+                    border: "1px solid #eee",
+                  }}
+                />
+                <ListItemText primary={item.split("/").pop()} />
+                <ListItemSecondaryAction>
+                  <Button
+                    onClick={() => handleExploreCollectionAddDialogOpen(idx)}
+                    size="small"
+                  >
+                    Edit
+                  </Button>
+                 
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Paper> */}
+
+      {/* Explore Collections */}
+      <Paper sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6" gutterBottom>
+          Explore Collections
+        </Typography>
+        
+        {exploreCollectionLoading ? (
+          <Typography>Loading collections...</Typography>
+        ) : exploreCollectionError ? (
+          <Typography color="error">{exploreCollectionError}</Typography>
+        ) : (
+          <List>
+            {exploreCollection.map((img, idx) => (
+              <ListItem key={idx}>
+                <img
+                  src={img}
+                  alt={`explore-collection-${idx}`}
+                  style={{
+                    width: 60,
+                    height: 40,
+                    objectFit: "cover",
+                    marginRight: 12,
+                    borderRadius: 4,
+                    border: "1px solid #eee",
+                  }}
+                />
+                <ListItemSecondaryAction>
+                  <Button
+                    onClick={() => handleExploreCollectionEditDialogOpen(idx)}
+                    size="small"
+                  >
+                    Edit
+                  </Button>
+                  
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Paper>
 
       {/* newscroller */}
       <Paper sx={{ p: 3 }}>
@@ -1679,6 +2092,235 @@ const DataEntry = () => {
             }
           >
             {mobileCollectionUpdating ? "Updating..." : "Update Image"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Collections Add Dialog */}
+      <Dialog
+        open={collectionsAddDialogOpen}
+        onClose={handleCollectionsAddDialogClose}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Add Collection</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="New Collection Name"
+            value={collectionsNewValue}
+            onChange={handleCollectionsAddChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCollectionsAddDialogClose}>Cancel</Button>
+          <Button
+            onClick={handleCollectionsAdd}
+            variant="contained"
+            color="primary"
+            disabled={!collectionsNewValue || collectionsAdding}
+          >
+            {collectionsAdding ? "Adding..." : "Add Collection"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Collections Edit Dialog */}
+      <Dialog
+        open={collectionsEditDialogOpen}
+        onClose={handleCollectionsEditDialogClose}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Edit Collection</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Collection Name"
+            value={collectionsNewValue}
+            onChange={handleCollectionsEditChange}
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCollectionsEditDialogClose}>Cancel</Button>
+          <Button
+            onClick={handleCollectionsUpdate}
+            variant="contained"
+            color="primary"
+            disabled={!collectionsNewValue || collectionsUpdating}
+          >
+            {collectionsUpdating ? "Updating..." : "Update Collection"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Explore Collections Add Dialog */}
+      <Dialog
+        open={exploreCollectionAddDialogOpen}
+        onClose={handleExploreCollectionAddDialogClose}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Add Explore Collection Image</DialogTitle>
+        <DialogContent>
+          <Box
+            onDrop={handleExploreCollectionAddDrop}
+            onDragOver={handleExploreCollectionAddDragOver}
+            sx={{
+              border: "2px dashed #aaa",
+              borderRadius: 6,
+              p: 2,
+              textAlign: "center",
+              mb: 2,
+              background: "#fafafa",
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              document
+                .getElementById("explore-collection-add-file-input")
+                .click()
+            }
+          >
+            <input
+              id="explore-collection-add-file-input"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleExploreCollectionAddFileChange}
+            />
+            {exploreCollectionNewImagePreview ? (
+              <img
+                src={exploreCollectionNewImagePreview}
+                alt="preview"
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                Drag & drop a new image here, or click to select
+              </Typography>
+            )}
+            {/* Mobile recommended size */}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size (Mobile): <b>375 x 200 px</b>
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExploreCollectionAddDialogClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleExploreCollectionAdd}
+            variant="contained"
+            color="primary"
+            disabled={
+              !exploreCollectionNewImagePreview || exploreCollectionAdding
+            }
+          >
+            {exploreCollectionAdding ? "Uploading..." : "Upload Image"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Explore Collections Edit Dialog */}
+      <Dialog
+        open={exploreCollectionEditDialogOpen}
+        onClose={handleExploreCollectionEditDialogClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Edit Explore Collection Image</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2, textAlign: "center" }}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              Current Image
+            </Typography>
+            {exploreCollectionSelected && (
+              <img
+                src={exploreCollectionSelected}
+                alt="current"
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            )}
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          {/* Bottom: Drag and drop */}
+          <Box
+            onDrop={handleExploreCollectionDrop}
+            onDragOver={handleExploreCollectionDragOver}
+            sx={{
+              border: "2px dashed #aaa",
+              borderRadius: 6,
+              p: 2,
+              textAlign: "center",
+              mb: 2,
+              background: "#fafafa",
+              cursor: "pointer",
+            }}
+            onClick={() =>
+              document.getElementById("explore-collection-file-input").click()
+            }
+          >
+            <input
+              id="explore-collection-file-input"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleExploreCollectionFileChange}
+            />
+            {exploreCollectionNewImagePreview ? (
+              <img
+                src={exploreCollectionNewImagePreview}
+                alt="preview"
+                style={{
+                  width: 180,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 6,
+                  border: "1px solid #eee",
+                }}
+              />
+            ) : (
+              <Typography variant="body2" color="textSecondary">
+                Drag & drop a new image here, or click to select
+              </Typography>
+            )}
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="textSecondary">
+                Recommended size: <b>180 x 120 px</b>
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleExploreCollectionEditDialogClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleExploreCollectionUpdate}
+            variant="contained"
+            color="primary"
+            disabled={
+              !exploreCollectionNewImagePreview || exploreCollectionUpdating
+            }
+          >
+            {exploreCollectionUpdating ? "Updating..." : "Update Image"}
           </Button>
         </DialogActions>
       </Dialog>
