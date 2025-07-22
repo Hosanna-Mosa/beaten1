@@ -333,3 +333,30 @@ exports.deleteNewsContent = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get only collections
+exports.getCollections = async (req, res) => {
+  try {
+    const dataEntry = await DataEntry.find();
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    res.status(200).json({ collections: dataEntry[0].collections });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update only collections
+exports.updateCollections = async (req, res) => {
+  try {
+    const { collections } = req.body;  
+    const dataEntry = await DataEntry.findOneAndUpdate({}, { collections }, { new: true });
+    if (!dataEntry) {
+      return res.status(404).json({ message: "DataEntry not found" });
+    }
+    res.status(200).json({ collections: dataEntry.collections });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

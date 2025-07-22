@@ -26,6 +26,12 @@ const DataEntrySchema = new mongoose.Schema(
       required: true,
       default: [],
     },
+    collections: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+    
   },
   { timestamps: true }
 );
