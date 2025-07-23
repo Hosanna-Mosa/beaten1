@@ -17,6 +17,7 @@ import {
   Logout as LogoutIcon,
   Inventory as ProductsIcon,
   LocalOffer as PromotionsIcon,
+  Assessment as AnalyticsIcon,
 } from "@mui/icons-material";
 import AssignmentReturnIcon from "@mui/icons-material/AssignmentReturn";
 import EditNoteIcon from "@mui/icons-material/EditNote";
@@ -26,6 +27,7 @@ import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
   { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
+  { text: "Analytics", icon: <AnalyticsIcon />, path: "/analytics" },
   { text: "Products", icon: <ProductsIcon />, path: "/products" },
   { text: "Orders", icon: <OrdersIcon />, path: "/orders" },
   { text: "Customers", icon: <CustomersIcon />, path: "/customers" },

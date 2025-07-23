@@ -12,6 +12,8 @@ const {
   realTimeSales,
   subscriptionAnalytics,
   cachedAnalytics,
+  getAllSubscriptions, // <-- add import
+  sendSubscriptionReminder,
 } = require("../controllers/adminController");
 const User = require("../models/User");
 const { protectAdmin } = require("../middleware/auth");
@@ -81,6 +83,16 @@ router.get("/dashboard/customers", async (req, res) => {
   }
 });
 router.get("/dashboard/subscriptions", subscriptionAnalytics);
+
+// Add new route for subscription list
+router.get("/dashboard/subscription-list", getAllSubscriptions);
+
+// Add new route for sending subscription reminder email
+router.post(
+  "/dashboard/send-subscription-reminder",
+  
+  sendSubscriptionReminder
+);
 
 // Real-time dashboard endpoints
 router.get("/dashboard/orders/realtime", realTimeOrders);

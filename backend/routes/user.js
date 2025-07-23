@@ -178,4 +178,43 @@ router.get("/notifications/unread-count", protect, getUnreadNotificationCount);
 // Mark a notification as read for the logged-in user
 router.patch("/notifications/:id/read", protect, markNotificationAsRead);
 
+// Check if email exists in the database
+router.get("/check-email-exists", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res
+        .status(400)
+        .json({ exists: false, message: "Email is required" });
+    }
+    const user = await User.findOne({ email: email.toLowerCase() });
+    res.json({ exists: !!user });
+  } catch (err) {
+    res.status(500).json({ exists: false, message: "Server error" });
+  }
+});
+
+// Get user by email (for admin use)
+router.get("/by-email", async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email is required" });
+    }
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "-password"
+    );
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+    res.json({ success: true, data: user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 module.exports = router;
