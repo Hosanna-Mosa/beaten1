@@ -4,6 +4,7 @@ const { STATUS_CODES, MESSAGES } = require("../utils/constants");
 const User = require("../models/User");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
+const { sendSubscriptionReminderEmail } = require("../utils/emailService");
 
 // @desc    Register admin
 // @route   POST /api/admin/register
@@ -484,6 +485,38 @@ const subscriptionAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Get all subscriptions (detailed list for admin table)
+// @route   GET /api/admin/dashboard/subscription-list
+// @access  Private (Admin only)
+const getAllSubscriptions = async (req, res) => {
+  try {
+    const users = await User.find({}, "name email subscription");
+    const subscriptions = users
+      .filter(
+        (user) =>
+          user.subscription &&
+          user.subscription.isSubscribed &&
+          user.subscription.subscriptionExpiry
+      )
+      .map((user) => ({
+        name: user.name,
+        email: user.email,
+        type: user.subscription.subscriptionType || "Premium",
+        subscriptionEnd: user.subscription.subscriptionExpiry,
+      }));
+    res.json({
+      success: true,
+      data: subscriptions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching subscriptions",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Get cached dashboard analytics
 // @route   GET /api/admin/dashboard/cached
 // @access  Private (Admin only)
@@ -522,6 +555,39 @@ const cachedAnalytics = async (req, res) => {
   }
 };
 
+// @desc    Send subscription reminder email to a user
+// @route   POST /api/admin/dashboard/send-subscription-reminder
+// @access  Private (Admin only)
+const sendSubscriptionReminder = async (req, res) => {
+  try {
+    const { email, name, subscriptionEnd } = req.body;
+    if (!email || !name || !subscriptionEnd) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields." });
+    }
+    const result = await sendSubscriptionReminderEmail(
+      email,
+      name,
+      subscriptionEnd
+    );
+    if (result) {
+      res.json({ success: true, message: "Reminder email sent successfully." });
+    } else {
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to send reminder email." });
+    }
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: error.message || "Failed to send reminder email.",
+      });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -533,5 +599,7 @@ module.exports = {
   realTimeOrders,
   realTimeSales,
   subscriptionAnalytics,
+  getAllSubscriptions,
   cachedAnalytics,
+  sendSubscriptionReminder,
 };

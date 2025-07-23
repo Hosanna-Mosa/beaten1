@@ -103,9 +103,20 @@ const createOrder = async (req, res) => {
       });
     }
 
+    // Calculate GST for each order item and add gst field
+    const updatedOrderItems = orderItems.map((item) => {
+      let gst = 0;
+      if (item.price < 999) {
+        gst = +((item.price * 5) / 105).toFixed(2); // 5% GST (GST-inclusive)
+      } else {
+        gst = +((item.price * 12) / 112).toFixed(2); // 12% GST (GST-inclusive)
+      }
+      return { ...item, gst };
+    });
+
     const order = new Order({
       user: req.user._id,
-      orderItems,
+      orderItems: updatedOrderItems,
       shippingAddress,
       paymentInfo: {
         ...paymentInfo,
@@ -188,11 +199,22 @@ const getMyOrders = async (req, res) => {
         originalPrice = order._doc.originalPrice;
         subscriptionDiscount = originalPrice - order.totalPrice;
       }
+      // Add totalGstForItem to each orderItem
+      const orderItemsWithGst = order.orderItems.map((item) => ({
+        ...item._doc,
+        totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+      }));
+      // Add totalGstForOrder at order level
+      const totalGstForOrder = orderItemsWithGst.reduce(
+        (sum, item) => sum + item.totalGstForItem,
+        0
+      );
       return {
         ...order._doc,
         originalPrice,
         subscriptionDiscount,
-        debugShippingAddress: order.shippingAddress, // Add for debugging
+        orderItems: orderItemsWithGst,
+        totalGstForOrder: +totalGstForOrder.toFixed(2),
       };
     });
     res.status(STATUS_CODES.OK).json({
@@ -216,9 +238,24 @@ const getAllOrders = async (req, res) => {
       .populate("user", "name email")
       .populate("shippingAddress")
       .sort({ createdAt: -1 });
+    const ordersWithGst = orders.map((order) => {
+      const orderItemsWithGst = order.orderItems.map((item) => ({
+        ...item._doc,
+        totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+      }));
+      const totalGstForOrder = orderItemsWithGst.reduce(
+        (sum, item) => sum + item.totalGstForItem,
+        0
+      );
+      return {
+        ...order._doc,
+        orderItems: orderItemsWithGst,
+        totalGstForOrder: +totalGstForOrder.toFixed(2),
+      };
+    });
     res.status(STATUS_CODES.OK).json({
       success: true,
-      data: orders,
+      data: ordersWithGst,
     });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
@@ -242,9 +279,21 @@ const getOrderById = async (req, res) => {
         message: "Order not found",
       });
     }
+    const orderItemsWithGst = order.orderItems.map((item) => ({
+      ...item._doc,
+      totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+    }));
+    const totalGstForOrder = orderItemsWithGst.reduce(
+      (sum, item) => sum + item.totalGstForItem,
+      0
+    );
     res.status(STATUS_CODES.OK).json({
       success: true,
-      data: order,
+      data: {
+        ...order._doc,
+        orderItems: orderItemsWithGst,
+        totalGstForOrder: +totalGstForOrder.toFixed(2),
+      },
     });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
@@ -380,9 +429,21 @@ const getMyOrderById = async (req, res) => {
         message: "Order not found",
       });
     }
+    const orderItemsWithGst = order.orderItems.map((item) => ({
+      ...item._doc,
+      totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+    }));
+    const totalGstForOrder = orderItemsWithGst.reduce(
+      (sum, item) => sum + item.totalGstForItem,
+      0
+    );
     res.status(STATUS_CODES.OK).json({
       success: true,
-      data: order,
+      data: {
+        ...order._doc,
+        orderItems: orderItemsWithGst,
+        totalGstForOrder: +totalGstForOrder.toFixed(2),
+      },
     });
   } catch (error) {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({

@@ -4,10 +4,12 @@ const crypto = require("crypto");
 // Create transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.hostinger.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      pass: process.env.EMAIL_PASS, // use your new password here
     },
   });
 };
@@ -1286,6 +1288,50 @@ const sendUserNotificationEmail = async (email, message, link = null) => {
   }
 };
 
+// Send subscription reminder email
+const sendSubscriptionReminderEmail = async (email, name, subscriptionEnd) => {
+  try {
+    const transporter = createTransporter();
+    const subject = "Your BEATEN Subscription is Expiring Soon";
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #f7f8fa; border-radius: 12px; border: 2px solid #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div style="text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">⏰</div>
+          <h1 style="color: #2563eb; margin-bottom: 8px;">Subscription Reminder</h1>
+        </div>
+        <h2 style="color: #1a1a1a;">Hi ${name || ""},</h2>
+        <p style="font-size: 18px; color: #333;">This is a friendly reminder that your <b>BEATEN Premium</b> subscription will expire on <b>${new Date(
+          subscriptionEnd
+        ).toLocaleDateString()}</b>.</p>
+        <ul style="font-size: 16px; color: #444; margin: 24px 0;">
+          <li>Renew now to continue enjoying exclusive benefits and discounts.</li>
+          <li>If you have already renewed, please ignore this message.</li>
+        </ul>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="https://beaten.in/account/subscription" style="background: #2563eb; color: #fff; padding: 14px 32px; border-radius: 6px; text-decoration: none; font-size: 18px; font-weight: bold;">Renew Subscription</a>
+        </div>
+        <p style="font-size: 16px; color: #333;">Thank you for being a valued member of <b>BEATEN</b>!<br/>We appreciate your support.</p>
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #2563eb;" />
+        <p style="font-size: 13px; color: #888; text-align: center;">This is an automated email. Please do not reply.</p>
+      </div>
+    `;
+    console.log(email, name, subscriptionEnd);
+
+    const mailOptions = {
+      from: `"BEATEN" <${process.env.EMAIL_USER || "support@beaten.in"}>`,
+      to: email,
+      subject,
+      html: htmlContent,
+    };
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Subscription reminder email sent:", info.messageId);
+    return true;
+  } catch (error) {
+    console.error("Error sending subscription reminder email:", error);
+    return false;
+  }
+};
+
 module.exports = {
   generateOTP,
   generateResetToken,
@@ -1302,4 +1348,5 @@ module.exports = {
   sendAdminOrderStatusNotification,
   sendAdminReturnNotification,
   sendUserNotificationEmail,
+  sendSubscriptionReminderEmail,
 };

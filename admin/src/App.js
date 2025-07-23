@@ -27,6 +27,7 @@ import Returns from "./pages/Returns";
 import DataEntry from "./pages/DataEntry";
 import FooterInfo from "./pages/FooterInfo";
 import Marketing from "./pages/Marketing";
+import Analytics from "./pages/Analytics";
 
 // Create theme
 const getInitialMode = () => {
@@ -92,6 +93,7 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="products" element={<Products />} />
             <Route path="orders" element={<Orders />} />
             <Route path="customers" element={<Customers />} />
