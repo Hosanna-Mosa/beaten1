@@ -1332,6 +1332,195 @@ const sendSubscriptionReminderEmail = async (email, name, subscriptionEnd) => {
   }
 };
 
+// @desc    Send subscription activation email
+// @param   email - user email
+// @param   name - user name
+// @param   subscriptionType - yearly or monthly
+// @param   subscriptionExpiry - expiry date
+// @param   subscriptionCost - cost of subscription
+const sendSubscriptionActivationEmail = async (
+  email,
+  name,
+  subscriptionType,
+  subscriptionExpiry,
+  subscriptionCost
+) => {
+  try {
+    const transporter = createTransporter();
+
+    const expiryDate = new Date(subscriptionExpiry).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }
+    );
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Subscription Activated - BEATEN</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+          }
+          .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+          }
+          .success-icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 20px;
+          }
+          .subscription-details {
+            background-color: #f8f9fa;
+            border: 2px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+          }
+          .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #e9ecef;
+          }
+          .detail-row:last-child {
+            border-bottom: none;
+          }
+          .detail-label {
+            font-weight: bold;
+            color: #1a1a1a;
+          }
+          .detail-value {
+            color: #666;
+          }
+          .cta-button {
+            display: inline-block;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">BEATEN</div>
+            <div class="success-icon">🎉</div>
+            <h1>Subscription Activated!</h1>
+          </div>
+          
+          <p>Dear <strong>${name}</strong>,</p>
+          
+          <p>Great news! Your BEATEN premium subscription has been successfully activated. You now have access to exclusive benefits and discounts.</p>
+          
+          <div class="subscription-details">
+            <div class="detail-row">
+              <span class="detail-label">Subscription Type:</span>
+              <span class="detail-value">${
+                subscriptionType.charAt(0).toUpperCase() +
+                subscriptionType.slice(1)
+              }</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Activation Date:</span>
+              <span class="detail-value">${new Date().toLocaleDateString(
+                "en-US",
+                {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                }
+              )}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Expiry Date:</span>
+              <span class="detail-value">${expiryDate}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Subscription Cost:</span>
+              <span class="detail-value">₹${subscriptionCost}</span>
+            </div>
+          </div>
+          
+          <p>As a premium member, you'll enjoy:</p>
+          <ul>
+            <li>Exclusive discounts on all products</li>
+            <li>Priority customer support</li>
+            <li>Early access to new collections</li>
+            <li>Free shipping on all orders</li>
+          </ul>
+          
+          <div style="text-align: center;">
+            <a href="${
+              process.env.FRONTEND_URL || "http://localhost:3000"
+            }/premium" class="cta-button">
+              Explore Premium Benefits
+            </a>
+          </div>
+          
+          <p>Thank you for choosing BEATEN!</p>
+          
+          <div class="footer">
+            <p>If you have any questions, please contact our support team.</p>
+            <p>© 2024 BEATEN. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "🎉 Your BEATEN Premium Subscription is Now Active!",
+      html: htmlContent,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log("Subscription activation email sent successfully to:", email);
+    return true;
+  } catch (error) {
+    console.error("Error sending subscription activation email:", error);
+    return false;
+  }
+};
+
 module.exports = {
   generateOTP,
   generateResetToken,
@@ -1349,4 +1538,5 @@ module.exports = {
   sendAdminReturnNotification,
   sendUserNotificationEmail,
   sendSubscriptionReminderEmail,
+  sendSubscriptionActivationEmail,
 };

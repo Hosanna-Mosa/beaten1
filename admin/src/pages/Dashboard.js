@@ -230,7 +230,14 @@ function Dashboard() {
   );
 
   // Enhanced StatCard with skeleton loading
-  const StatCard = ({ title, value, subtitle, gradient, loading = false }) => {
+  const StatCard = ({
+    title,
+    value,
+    subtitle,
+    gradient,
+    loading = false,
+    onClick,
+  }) => {
     if (loading) {
       return <SkeletonCard />;
     }
@@ -248,11 +255,15 @@ function Dashboard() {
           justifyContent: "center",
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
           transition: "transform 0.2s ease-in-out",
+          cursor: onClick ? "pointer" : "default",
           "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: "0 6px 25px rgba(0,0,0,0.15)",
+            transform: onClick ? "translateY(-2px)" : "none",
+            boxShadow: onClick
+              ? "0 6px 25px rgba(0,0,0,0.15)"
+              : "0 4px 20px rgba(0,0,0,0.1)",
           },
         }}
+        onClick={onClick}
       >
         <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
           {title}
@@ -263,6 +274,11 @@ function Dashboard() {
         {subtitle && (
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
             {subtitle}
+          </Typography>
+        )}
+        {onClick && (
+          <Typography variant="caption" sx={{ opacity: 0.8, mt: 1 }}>
+            Click to view details →
           </Typography>
         )}
       </Paper>
@@ -461,6 +477,7 @@ function Dashboard() {
     subtitle,
     gradient,
     loading = false,
+    onClick,
   }) => {
     if (loading) {
       return <SkeletonCard />;
@@ -479,11 +496,15 @@ function Dashboard() {
           justifyContent: "center",
           boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
           transition: "transform 0.2s ease-in-out",
+          cursor: onClick ? "pointer" : "default",
           "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: "0 6px 25px rgba(0,0,0,0.15)",
+            transform: onClick ? "translateY(-2px)" : "none",
+            boxShadow: onClick
+              ? "0 6px 25px rgba(0,0,0,0.15)"
+              : "0 4px 20px rgba(0,0,0,0.1)",
           },
         }}
+        onClick={onClick}
       >
         <Typography variant="h6" sx={{ mb: 1, fontWeight: "bold" }}>
           {title}
@@ -494,6 +515,11 @@ function Dashboard() {
         {subtitle && (
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
             {subtitle}
+          </Typography>
+        )}
+        {onClick && (
+          <Typography variant="caption" sx={{ opacity: 0.8, mt: 1 }}>
+            Click to view details →
           </Typography>
         )}
       </Paper>
@@ -641,6 +667,7 @@ function Dashboard() {
                 value={dashboardData?.todaySales || 0}
                 gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                 loading={loading}
+                onClick={() => navigate("/analytics?section=today-sales")}
               />
             </Grid>
             <Grid item xs={6}>
@@ -649,6 +676,7 @@ function Dashboard() {
                 value={dashboardData?.monthlySales || 0}
                 gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
                 loading={loading}
+                onClick={() => navigate("/analytics?section=monthly-sales")}
               />
             </Grid>
             <Grid item xs={6}>
@@ -657,6 +685,7 @@ function Dashboard() {
                 value={dashboardData?.paid || 0}
                 gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
                 loading={loading}
+                onClick={() => navigate("/analytics?section=gst-analytics")}
               />
             </Grid>
             <Grid item xs={6}>
@@ -665,6 +694,7 @@ function Dashboard() {
                 value={dashboardData?.gst || 0}
                 gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
                 loading={loading}
+                onClick={() => navigate("/analytics?section=gst-analytics")}
               />
             </Grid>
           </Grid>
@@ -710,6 +740,9 @@ function Dashboard() {
                 value={dashboardData?.beatenClub || 0}
                 gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
                 loading={loading}
+                onClick={() =>
+                  navigate("/analytics?section=subscription-management")
+                }
               />
             </Grid>
             <Grid item xs={6}>
@@ -718,6 +751,9 @@ function Dashboard() {
                 value={`₹${dashboardData?.totalSavings || 0}`}
                 gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
                 loading={loading}
+                onClick={() =>
+                  navigate("/analytics?section=subscription-management")
+                }
               />
             </Grid>
           </Grid>

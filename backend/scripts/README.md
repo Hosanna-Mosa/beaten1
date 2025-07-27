@@ -1,6 +1,6 @@
 # Database Seeding Scripts
 
-This directory contains scripts for seeding the database with initial data.
+This directory contains scripts for seeding the database with initial data and managing subscriptions.
 
 ## Available Scripts
 
@@ -25,6 +25,54 @@ Seeds the database with sample product data including variants with different si
 - Jackets (Denim Jacket)
 - Bottom Wear (Cargo Pants)
 
+### 2. deleteAllSubscriptions.js
+
+**⚠️ DANGEROUS SCRIPT** - Removes ALL active subscriptions from ALL users in the database.
+
+**Features:**
+
+- Shows a list of all users with active subscriptions before deletion
+- Requires manual confirmation by editing the script
+- Resets all subscription fields to default values
+- Verifies that all subscriptions have been removed
+
+**Safety Features:**
+
+- Script is disabled by default (`confirmed = false`)
+- Must manually change `confirmed = false` to `confirmed = true` to run
+- Shows warning messages and requires confirmation
+
+**Usage:**
+
+```bash
+cd backend/scripts
+node deleteAllSubscriptions.js
+```
+
+### 3. deleteSubscriptionByEmail.js
+
+Removes subscription for a specific user by email address.
+
+**Features:**
+
+- Targets a specific user by email
+- Shows user details and current subscription before deletion
+- Requires manual confirmation by editing the script
+- Safe operation with proper error handling
+
+**Safety Features:**
+
+- Script is disabled by default (`confirmed = false`)
+- Must manually change `confirmed = false` to `confirmed = true` to run
+- Validates that user exists and has an active subscription
+
+**Usage:**
+
+```bash
+cd backend/scripts
+node deleteSubscriptionByEmail.js user@example.com
+```
+
 ## How to Run
 
 ### Prerequisites
@@ -41,6 +89,19 @@ cd backend
 
 # Run the seed products script
 npm run seed-products
+```
+
+### Running Subscription Management Scripts
+
+```bash
+# Navigate to scripts directory
+cd backend/scripts
+
+# Delete all subscriptions (DANGEROUS - requires manual confirmation)
+node deleteAllSubscriptions.js
+
+# Delete subscription for specific user
+node deleteSubscriptionByEmail.js user@example.com
 ```
 
 ### What the Script Does
@@ -99,6 +160,39 @@ The seed data follows the Product schema defined in `models/Product.js`:
 }
 ```
 
+## Subscription Management
+
+### ⚠️ Important Safety Notes
+
+- **Subscription deletion scripts are disabled by default** for safety
+- **Always backup your database** before running deletion scripts
+- **Test on a development environment** first
+- **Manual confirmation required** by editing the script files
+
+### How to Enable Deletion Scripts
+
+1. Open the script file you want to run
+2. Find the line: `const confirmed = false;`
+3. Change it to: `const confirmed = true;`
+4. Save the file and run the script
+5. **Remember to change it back to `false`** after running
+
+### What Gets Reset
+
+When a subscription is deleted, these fields are reset to default values:
+
+```javascript
+{
+  "subscription.isSubscribed": false,
+  "subscription.subscriptionCost": 0,
+  "subscription.subscriptionDate": null,
+  "subscription.subscriptionExpiry": null,
+  "subscription.subscriptionType": "",
+  "subscription.discountsUsed": 0,
+  "subscription.lastDiscountUsed": null
+}
+```
+
 ## Customization
 
 To add more products or modify existing ones:
@@ -114,3 +208,4 @@ To add more products or modify existing ones:
 - Each variant has a unique SKU following the pattern: `[PRODUCT-TYPE]-[VARIANT]-[COLOR]-[SIZE]`
 - Stock levels are realistic and some products have zero stock to simulate out-of-stock scenarios
 - Images reference the existing image files in the frontend/public/images directory
+- **Subscription deletion is permanent and cannot be undone**

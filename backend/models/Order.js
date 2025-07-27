@@ -51,6 +51,13 @@ const orderSchema = new mongoose.Schema(
       // enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
       default: "pending",
     },
+    awbNumber: {
+      type: String,
+      default: function () {
+        // Generate a random 15-digit AWB number
+        return Math.floor(Math.random() * 900000000000000) + 100000000000000;
+      },
+    },
   },
   { timestamps: true }
 );
