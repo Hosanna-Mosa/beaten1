@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom/client";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -20,9 +22,13 @@ import {
   Box,
 } from "@mui/material";
 import AdminForm from "../components/AdminForm";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import InvoiceTemplate from "../components/InvoiceTemplate";
 // Import any admin UI components as needed (e.g., AdminCard, AdminTable, AdminButton, etc.)
 const BASE_URL = "http://localhost:8000";
 function Analytics() {
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subscriptions, setSubscriptions] = useState([]);
@@ -36,40 +42,83 @@ function Analytics() {
   const [addEmail, setAddEmail] = useState("");
   const [addLoading, setAddLoading] = useState(false);
   const [addSuccess, setAddSuccess] = useState("");
+  const [addError, setAddError] = useState("");
 
-  // Dummy open/close handlers
+  // Real Add Member handlers
   const handleOpenAddDialog = () => {
     setAddDialogOpen(true);
     setAddEmail("");
     setAddSuccess("");
+    setAddError("");
   };
+
   const handleCloseAddDialog = () => {
     setAddDialogOpen(false);
     setAddEmail("");
     setAddSuccess("");
+    setAddError("");
   };
 
-  // Dummy submit handler
-  const handleAddMember = () => {
+  // Real submit handler
+  const handleAddMember = async () => {
+    if (!addEmail.trim()) {
+      setAddError("Email is required");
+      return;
+    }
+
     setAddLoading(true);
-    setTimeout(() => {
+    setAddError("");
+    setAddSuccess("");
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/admin/dashboard/add-member`,
+        {
+          email: addEmail.trim(),
+          subscriptionType: "yearly",
+          subscriptionCost: 249,
+        }
+      );
+
+      if (response.data.success) {
+        setAddSuccess(response.data.message);
+        // Refresh the subscription list
+        const subsResponse = await axios.get(
+          `${BASE_URL}/api/admin/dashboard/subscription-list`
+        );
+        if (subsResponse.data.success) {
+          setSubscriptions(subsResponse.data.data || []);
+        }
+        setTimeout(() => {
+          setAddDialogOpen(false);
+          setAddSuccess("");
+        }, 2000);
+      } else {
+        setAddError(response.data.message || "Failed to add member");
+      }
+    } catch (error) {
+      console.error("Error adding member:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to add member. Please try again.";
+      setAddError(errorMessage);
+    } finally {
       setAddLoading(false);
-      setAddSuccess("Member added (dummy)");
-      setTimeout(() => {
-        setAddDialogOpen(false);
-        setAddSuccess("");
-      }, 1200);
-    }, 1000);
+    }
   };
 
   useEffect(() => {
     axios
       .get(`${BASE_URL}/api/orders`)
       .then((res) => {
+        console.log("Orders API Response:", res.data.data);
         setOrders(res.data.data || []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((error) => {
+        console.error("Error fetching orders:", error);
+        setLoading(false);
+      });
 
     // Fetch subscription data from the new endpoint
     axios
@@ -143,21 +192,99 @@ function Analytics() {
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
 
-  // Flatten all order items from this month's orders
+  // Function to calculate GST based on state
+  const calculateGST = (gstAmount, state) => {
+    const isTelangana = state && state.toLowerCase() === "telangana";
+
+    if (isTelangana) {
+      // For Telangana: Divide GST into CGST and SGST
+      const halfGST = gstAmount / 2;
+      return {
+        cgst: halfGST,
+        sgst: halfGST,
+        igst: 0,
+      };
+    } else {
+      // For other states: Full GST goes to IGST
+      return {
+        cgst: 0,
+        sgst: 0,
+        igst: gstAmount,
+      };
+    }
+  };
+
+  // Group orders by order (not by individual products)
   const monthlySales = orders
     .filter((order) => {
       const d = new Date(order.createdAt);
       return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
     })
-    .flatMap((order) =>
-      order.orderItems.map((item) => ({
+    .map((order) => {
+      // Calculate total amounts for the entire order
+      const orderTotalAmount = order.orderItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      const orderTotalGst = order.orderItems.reduce(
+        (sum, item) => sum + item.totalGstForItem,
+        0
+      );
+      const orderAmountExclGst = orderTotalAmount - orderTotalGst;
+
+      // Calculate GST based on state for the entire order
+      const gstCalculation = calculateGST(
+        orderTotalGst,
+        order.shippingAddress?.state
+      );
+
+      // Get the first product for display (or create a summary)
+      const firstItem = order.orderItems[0];
+      const productCount = order.orderItems.length;
+      const productSummary =
+        productCount > 1
+          ? `${firstItem.name} + ${productCount - 1} more items`
+          : firstItem.name;
+
+      return {
+        id: order._id, // Order ID
         name: order.user?.name || "N/A",
-        type: order.user?.type || "Normal", // If you have user type, otherwise default
+        type: order.user?.type || "Normal",
         date: new Date(order.createdAt).toLocaleDateString(),
-        amount: +(item.price * item.quantity - item.totalGstForItem).toFixed(2), // Excl. GST
-        total: +(item.price * item.quantity).toFixed(2), // Incl. GST
-      }))
-    );
+        amount: +orderAmountExclGst.toFixed(2), // Total amount excluding GST for entire order
+        total: +orderTotalAmount.toFixed(2), // Total amount including GST for entire order
+        product: productSummary, // Show first product + count of additional items
+        sku: firstItem.sku || "BT-TS BLK-OS-L",
+        quantity: order.orderItems.reduce(
+          (sum, item) => sum + item.quantity,
+          0
+        ), // Total quantity
+        price: firstItem.price, // Price of first item (for display)
+        gst: orderTotalGst, // Total GST for entire order
+        hsn: firstItem.hsn || "6109",
+        paymentMethod: order.paymentMethod || "ONLINE",
+        awbNumber: order.awbNumber || "AWB-000000000000000",
+        // GST calculations for entire order
+        cgst: gstCalculation.cgst,
+        sgst: gstCalculation.sgst,
+        igst: gstCalculation.igst,
+        shippingAddress: order.shippingAddress || {
+          address: "Plot NO 91, Block B",
+          city: "Rajhmundry",
+          state: "Andhra Pradesh",
+          postalCode: "533125",
+          country: "India",
+          name: "Customer Name",
+          phone: "9398334115",
+        },
+        // Store all order items for invoice generation
+        orderItems: order.orderItems,
+      };
+    });
+
+  // Log the processed data for debugging
+  console.log("Processed monthlySales data:", monthlySales);
+  console.log("Sample order ID from monthlySales:", monthlySales[0]?.id);
 
   // --- Today Sales Summary ---
   const totalOrdersToday = todaySales.length;
@@ -330,12 +457,126 @@ function Analytics() {
   // Remove: addDialogOpen, addEmail, addLoading, addError, addSuccess, handleOpenAddDialog, handleCloseAddDialog, handleAddMember, and related dialog rendering
   // Keep: fetching subscriptions and displaying them
 
+  // Ref for the invoice component
+  const invoiceRef = React.useRef();
+
+  // State to hold current order data for PDF generation
+  const [currentOrderData, setCurrentOrderData] = useState(null);
+
+  // Function to download the invoice as PDF using html2canvas and InvoiceTemplate
+  const handleDownloadInvoice = async (orderData) => {
+    try {
+      // Set the current order data to update the visible template
+      setCurrentOrderData(orderData);
+
+      // Wait a bit for the component to re-render with new data
+      setTimeout(async () => {
+        const input = invoiceRef.current;
+        if (!input) {
+          console.error("Invoice template ref not found");
+          return;
+        }
+
+        const canvas = await html2canvas(input, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          width: 595,
+          height: 842,
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "pt",
+          format: "a4",
+        });
+
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
+        pdf.save(`invoice-${orderData?.id || "template"}.pdf`);
+      }, 200);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Error generating PDF. Please try again.");
+    }
+  };
+
+  // Test function to verify API data structure
+  const testAPIData = () => {
+    console.log("=== API Data Test ===");
+    console.log("Total orders:", orders.length);
+    if (orders.length > 0) {
+      const firstOrder = orders[0];
+      console.log("First order structure:", {
+        id: firstOrder._id,
+        user: firstOrder.user,
+        orderItems: firstOrder.orderItems,
+        paymentMethod: firstOrder.paymentMethod,
+        awbNumber: firstOrder.awbNumber,
+        shippingAddress: firstOrder.shippingAddress,
+      });
+
+      if (firstOrder.orderItems.length > 0) {
+        const firstItem = firstOrder.orderItems[0];
+        console.log("First order item structure:", {
+          name: firstItem.name,
+          sku: firstItem.sku,
+          hsn: firstItem.hsn,
+          quantity: firstItem.quantity,
+          price: firstItem.price,
+          gst: firstItem.gst,
+          totalGstForItem: firstItem.totalGstForItem,
+        });
+      }
+    }
+    console.log("Monthly sales count:", monthlySales.length);
+    if (monthlySales.length > 0) {
+      console.log("First monthly sale:", monthlySales[0]);
+    }
+    console.log("=== End API Data Test ===");
+  };
+
+  // Call test function when orders change
+  useEffect(() => {
+    if (orders.length > 0) {
+      testAPIData();
+    }
+  }, [orders]);
+
+  // Handle navigation from dashboard
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const section = searchParams.get("section");
+
+    if (section) {
+      // Wait for the component to render, then scroll to the section
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+          // Add a highlight effect
+          element.style.transition = "box-shadow 0.3s ease";
+          element.style.boxShadow = "0 0 20px rgba(37, 99, 235, 0.3)";
+          setTimeout(() => {
+            element.style.boxShadow = "";
+          }, 2000);
+        }
+      }, 500);
+    }
+  }, [location.search, orders, subscriptions]);
+
   return (
     <div
       style={{ background: "#f5f6fa", minHeight: "100vh", padding: "40px 0" }}
     >
       {/* GST Analytics Section */}
-      <section style={cardStyle}>
+      <section id="gst-analytics" style={cardStyle}>
         <div style={sectionTitleStyle}>GST Analytics</div>
         {/* Chart visualization */}
         <div
@@ -459,7 +700,7 @@ function Analytics() {
       </section>
 
       {/* Today's Sales Section */}
-      <section style={cardStyle}>
+      <section id="today-sales" style={cardStyle}>
         <div style={sectionTitleStyle}>Today's Sales</div>
         <div
           style={{
@@ -523,7 +764,7 @@ function Analytics() {
       </section>
 
       {/* Monthly Sales Section */}
-      <section style={cardStyle}>
+      <section id="monthly-sales" style={cardStyle}>
         <div style={sectionTitleStyle}>Monthly Sales</div>
         <div
           style={{
@@ -573,6 +814,7 @@ function Analytics() {
                         padding: "4px 12px",
                         fontSize: 14,
                       }}
+                      onClick={() => handleDownloadInvoice(row)}
                     >
                       Download Invoice
                     </button>
@@ -596,6 +838,7 @@ function Analytics() {
 
       {/* Subscription Management Section */}
       <section
+        id="subscription-management"
         style={{
           ...cardStyle,
           marginTop: 32,
@@ -805,9 +1048,10 @@ function Analytics() {
                 },
               ]}
               values={{ email: addEmail }}
-              errors={{}}
+              errors={addError ? { email: addError } : {}}
               onChange={(name, value) => {
                 setAddEmail(value);
+                if (addError) setAddError(""); // Clear error when user starts typing
               }}
             />
             {addLoading && (
@@ -821,6 +1065,14 @@ function Analytics() {
                 sx={{ mt: 1, textAlign: "center", fontWeight: 600 }}
               >
                 {addSuccess}
+              </Typography>
+            )}
+            {addError && (
+              <Typography
+                color="error.main"
+                sx={{ mt: 1, textAlign: "center", fontWeight: 600 }}
+              >
+                {addError}
               </Typography>
             )}
           </Box>
@@ -843,6 +1095,92 @@ function Analytics() {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* TEMP: Render invoice template visibly for debugging */}
+      <div style={{ margin: 40 }}>
+        {currentOrderData && (
+          <InvoiceTemplate
+            ref={invoiceRef}
+            customerName={
+              currentOrderData?.shippingAddress?.name ||
+              currentOrderData?.name ||
+              "D srinivasu"
+            }
+            customerAddress={
+              currentOrderData?.shippingAddress?.address ||
+              "Plot NO 91, Block B"
+            }
+            customerAddress2={
+              currentOrderData?.shippingAddress?.city || "Rajhmundry"
+            }
+            customerAddress3={
+              currentOrderData?.shippingAddress?.state || "Andhra Pradesh"
+            }
+            customerPin={
+              currentOrderData?.shippingAddress?.postalCode || "533125"
+            }
+            customerMobile={
+              currentOrderData?.shippingAddress?.phone || "+91 9966111648"
+            }
+            orderNumber={currentOrderData?.id || "ORD-001"}
+            orderDate={currentOrderData?.date || "01-01-2025"}
+            paymentMethod={currentOrderData?.paymentMethod || "ONLINE"}
+            awbNumber={currentOrderData?.awbNumber || "AWB-000000000000000"}
+            productName={
+              currentOrderData?.product || "Beaten Oversized T-Shirt"
+            }
+            productSku={currentOrderData?.sku || "BT-TS BLK-OS-L"}
+            productHsn={currentOrderData?.hsn || "6109"}
+            productQuantity={currentOrderData?.quantity || "1"}
+            productRate={
+              currentOrderData?.price ? `₹${currentOrderData.price}` : "₹1189"
+            }
+            productAmount={
+              currentOrderData?.amount
+                ? `₹${currentOrderData.amount}`
+                : "₹11.89"
+            }
+            productTotal={
+              currentOrderData?.total ? `₹${currentOrderData.total}` : "₹1199"
+            }
+            cgstAmount={
+              currentOrderData?.cgst
+                ? `₹${currentOrderData.cgst.toFixed(2)}`
+                : "₹0"
+            }
+            sgstAmount={
+              currentOrderData?.sgst
+                ? `₹${currentOrderData.sgst.toFixed(2)}`
+                : "₹0"
+            }
+            igstAmount={
+              currentOrderData?.igst
+                ? `₹${currentOrderData.igst.toFixed(2)}`
+                : "₹0"
+            }
+            totalAmountExclGst={
+              currentOrderData?.amount ? `₹${currentOrderData.amount}` : "₹1342"
+            }
+            totalAmountInclGst={
+              currentOrderData?.total ? `₹${currentOrderData.total}` : "₹1343"
+            }
+            orderItems={currentOrderData?.orderItems || []}
+          />
+        )}
+      </div>
+      {/* Render the invoice template in a hidden div for PDF generation */}
+      {/* <div
+        style={{
+          position: "absolute",
+          left: -9999,
+          top: 0,
+          width: "595px",
+          height: "842px",
+          overflow: "hidden",
+          visibility: "hidden",
+        }}
+      >
+        <InvoiceTemplate ref={invoiceRef} />
+      </div> */}
     </div>
   );
 }

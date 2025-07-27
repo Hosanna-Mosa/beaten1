@@ -147,6 +147,10 @@ const productSchema = new mongoose.Schema(
     sku: {
       type: String,
     },
+    hsn: {
+      type: String,
+      default: "6109", // Default HSN code for garments
+    },
     soldCount: {
       type: Number,
       min: 0,

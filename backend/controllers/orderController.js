@@ -237,22 +237,36 @@ const getAllOrders = async (req, res) => {
     const orders = await Order.find()
       .populate("user", "name email")
       .populate("shippingAddress")
+      .populate({
+        path: "orderItems.product",
+        select: "name sku hsn",
+      })
       .sort({ createdAt: -1 });
+
     const ordersWithGst = orders.map((order) => {
       const orderItemsWithGst = order.orderItems.map((item) => ({
         ...item._doc,
         totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+        // Add product details for invoice
+        sku: item.product?.sku || "BT-TS BLK-OS-L",
+        hsn: item.product?.hsn || "6109",
       }));
+
       const totalGstForOrder = orderItemsWithGst.reduce(
         (sum, item) => sum + item.totalGstForItem,
         0
       );
+
       return {
         ...order._doc,
         orderItems: orderItemsWithGst,
         totalGstForOrder: +totalGstForOrder.toFixed(2),
+        // Add payment method and AWB for invoice
+        paymentMethod: order.paymentInfo?.method || "ONLINE",
+        awbNumber: order.awbNumber || "AWB-000000000000000",
       };
     });
+
     res.status(STATUS_CODES.OK).json({
       success: true,
       data: ordersWithGst,
@@ -272,27 +286,41 @@ const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("user", "name email")
-      .populate("shippingAddress");
+      .populate("shippingAddress")
+      .populate({
+        path: "orderItems.product",
+        select: "name sku hsn",
+      });
+
     if (!order) {
       return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: "Order not found",
       });
     }
+
     const orderItemsWithGst = order.orderItems.map((item) => ({
       ...item._doc,
       totalGstForItem: +(item.gst * item.quantity).toFixed(2),
+      // Add product details for invoice
+      sku: item.product?.sku || "BT-TS BLK-OS-L",
+      hsn: item.product?.hsn || "6109",
     }));
+
     const totalGstForOrder = orderItemsWithGst.reduce(
       (sum, item) => sum + item.totalGstForItem,
       0
     );
+
     res.status(STATUS_CODES.OK).json({
       success: true,
       data: {
         ...order._doc,
         orderItems: orderItemsWithGst,
         totalGstForOrder: +totalGstForOrder.toFixed(2),
+        // Add payment method and AWB for invoice
+        paymentMethod: order.paymentInfo?.method || "ONLINE",
+        awbNumber: order.awbNumber || "AWB-000000000000000",
       },
     });
   } catch (error) {

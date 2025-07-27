@@ -4,7 +4,10 @@ const { STATUS_CODES, MESSAGES } = require("../utils/constants");
 const User = require("../models/User");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
-const { sendSubscriptionReminderEmail } = require("../utils/emailService");
+const {
+  sendSubscriptionReminderEmail,
+  sendSubscriptionActivationEmail,
+} = require("../utils/emailService");
 
 // @desc    Register admin
 // @route   POST /api/admin/register
@@ -579,12 +582,136 @@ const sendSubscriptionReminder = async (req, res) => {
         .json({ success: false, message: "Failed to send reminder email." });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to send reminder email.",
+    });
+  }
+};
+
+// @desc    Add member to subscription by email
+// @route   POST /api/admin/dashboard/add-member
+// @access  Private (Admin only)
+const addMemberToSubscription = async (req, res) => {
+  try {
+    const {
+      email,
+      subscriptionType = "yearly",
+      subscriptionCost = 249,
+    } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
         success: false,
-        message: error.message || "Failed to send reminder email.",
+        message: "Email is required",
       });
+    }
+
+    // Validate subscription cost
+    if (subscriptionCost <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Subscription cost must be greater than 0",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User with this email does not exist",
+      });
+    }
+
+    // Check if user already has an active subscription
+    if (user.subscription && user.subscription.isSubscribed) {
+      return res.status(400).json({
+        success: false,
+        message: "User already has an active subscription",
+      });
+    }
+
+    // Calculate subscription expiry date
+    const now = new Date();
+    const subscriptionDate = now;
+    let subscriptionExpiry;
+
+    if (subscriptionType === "yearly") {
+      subscriptionExpiry = new Date(
+        now.getFullYear() + 1,
+        now.getMonth(),
+        now.getDate()
+      );
+    } else if (subscriptionType === "monthly") {
+      subscriptionExpiry = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        now.getDate()
+      );
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid subscription type. Must be 'yearly' or 'monthly'",
+      });
+    }
+
+    // Update user subscription
+    user.subscription = {
+      isSubscribed: true,
+      subscriptionCost: subscriptionCost,
+      subscriptionDate: subscriptionDate,
+      subscriptionExpiry: subscriptionExpiry,
+      subscriptionType: subscriptionType,
+      discountsUsed: 0,
+      lastDiscountUsed: null,
+    };
+
+    await user.save();
+
+    // Log the admin action
+    console.log(
+      `[ADMIN ACTION] Member added to subscription: ${
+        user.email
+      } (${subscriptionType}) by admin at ${new Date().toISOString()}`
+    );
+
+    // Send subscription activation email
+    sendSubscriptionActivationEmail(
+      user.email,
+      user.name,
+      subscriptionType,
+      subscriptionExpiry,
+      subscriptionCost
+    ).catch(console.error); // Don't fail the request if email fails
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully added ${user.name} to ${subscriptionType} subscription`,
+      data: {
+        name: user.name,
+        email: user.email,
+        subscriptionType: subscriptionType,
+        subscriptionExpiry: subscriptionExpiry,
+        subscriptionCost: subscriptionCost,
+      },
+    });
+  } catch (error) {
+    console.error("Error adding member to subscription:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error adding member to subscription",
+      error: error.message,
+    });
   }
 };
 
@@ -602,4 +729,5 @@ module.exports = {
   getAllSubscriptions,
   cachedAnalytics,
   sendSubscriptionReminder,
+  addMemberToSubscription,
 };
