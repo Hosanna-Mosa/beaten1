@@ -10,6 +10,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
     customerPin = "502319",
     customerMobile = "+91 9966111648",
     orderNumber = "ORD-001",
+    invoiceId = "INV-001", // New invoice ID prop
     orderDate = "01-01-2025",
     paymentMethod = "NONCOD",
     awbNumber = "195042195657972",
@@ -101,6 +102,8 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
       >
         <div>
           ORDER NUMBER: {orderNumber}
+          <br />
+          INVOICE ID: {invoiceId}
           <br />
           Carrier Name: DELHIVERY
         </div>
@@ -236,7 +239,7 @@ const InvoiceTemplate = React.forwardRef((props, ref) => {
         </tbody>
       </table>
       {/* QR and Footer */}
-    
+
       <div style={{ fontWeight: 600, fontSize: 16, margin: "16px 0 8px 0" }}>
         Thank You For shopping with BEATEN
       </div>

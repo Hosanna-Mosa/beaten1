@@ -136,12 +136,20 @@ function Orders() {
           headers: { Authorization: `Bearer ${token}` },
         });
         // Store the full user object (name, email, etc.)
+        const userData = res.data.data || {};
         setUserNames((prev) => ({
           ...prev,
-          [userId]: res.data.data || { name: userId },
+          [userId]: {
+            name: userData.name || String(userId),
+            email: userData.email || "",
+          },
         }));
       } catch (err) {
-        setUserNames((prev) => ({ ...prev, [userId]: { name: userId } }));
+        console.error(`Failed to fetch user ${userId}:`, err);
+        setUserNames((prev) => ({
+          ...prev,
+          [userId]: { name: String(userId), email: "" },
+        }));
       } finally {
         setLoadingUsers(false);
       }
@@ -215,30 +223,56 @@ function Orders() {
     setSelectedOrder(null);
   };
 
-  const handleExport = () => {
-    const csvContent = getFilteredOrders()
-      .map((order) => {
-        const customerName = userNames[order.user]?.name || order.user || "";
-        const total =
-          order.orderItems?.reduce(
-            (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
-            0
-          ) || 0;
-        return `${order._id},${customerName},${new Date(
-          order.createdAt
-        ).toLocaleDateString()},${total},${order.status || "pending"}`;
-      })
-      .join("\n");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `orders_${new Date().toISOString().split("T")[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      // Add CSV header
+      const headers =
+        "Order ID,Customer Name,Order Date,Total Amount,Status,Payment Method,Items Count\n";
+
+      const csvContent =
+        headers +
+        getFilteredOrders()
+          .map((order) => {
+            const customerName = order.user?.name || "N/A";
+            const total =
+              order.orderItems?.reduce(
+                (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
+                0
+              ) || 0;
+            const itemsCount = order.orderItems?.length || 0;
+            const paymentMethod = order.paymentInfo?.method || "N/A";
+
+            return `"${order._id}","${customerName}","${new Date(
+              order.createdAt
+            ).toLocaleDateString()}","${formatPrice(total)}","${
+              order.status || "pending"
+            }","${paymentMethod}","${itemsCount}"`;
+          })
+          .join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `orders_export_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 3000);
+    } catch (error) {
+      console.error("Export failed:", error);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const handlePrintInvoice = (order) => {
@@ -330,9 +364,10 @@ function Orders() {
         const customerEmail = userNames[order.user]?.email || "";
 
         const matchesSearch =
+          !searchTerm ||
           orderId.includes(searchLower) ||
-          customerName.toLowerCase().includes(searchLower) ||
-          customerEmail.toLowerCase().includes(searchLower);
+          (customerName && customerName.toLowerCase().includes(searchLower)) ||
+          (customerEmail && customerEmail.toLowerCase().includes(searchLower));
 
         // Status filter
         const matchesStatus =
@@ -814,6 +849,7 @@ function Orders() {
   // Add debug log in Orders main render (before return)
   console.log("userNames:", userNames);
   console.log("orders:", orders);
+  console.log("searchTerm:", searchTerm);
 
   return (
     <Box
@@ -856,11 +892,39 @@ function Orders() {
           </Button> */}
           <Button
             variant="contained"
-            startIcon={<ExportIcon />}
+            startIcon={
+              exportLoading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <ExportIcon />
+              )
+            }
             onClick={handleExport}
-            sx={{ minWidth: 120 }}
+            disabled={exportLoading}
+            sx={{
+              minWidth: 140,
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              color: "white",
+              fontWeight: 600,
+              textTransform: "none",
+              borderRadius: 2,
+              px: 3,
+              py: 1.5,
+              transition: "all 0.3s ease",
+              "&:hover": {
+                background: "linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)",
+                boxShadow: "0 4px 8px 2px rgba(33, 203, 243, .4)",
+                transform: "translateY(-1px)",
+              },
+              "&:disabled": {
+                background: "linear-gradient(45deg, #BDBDBD 30%, #E0E0E0 90%)",
+                boxShadow: "none",
+                transform: "none",
+              },
+            }}
           >
-            Export
+            {exportLoading ? "Exporting..." : "Export CSV"}
           </Button>
         </Box>
       </Box>
@@ -1120,7 +1184,7 @@ function Orders() {
                   >
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
-                        {order._id}
+                        {order.orderId}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -1291,6 +1355,23 @@ function Orders() {
           sx={{ width: "100%" }}
         >
           {toast.message}
+        </MuiAlert>
+      </Snackbar>
+
+      {/* Export Success Snackbar */}
+      <Snackbar
+        open={exportSuccess}
+        autoHideDuration={3000}
+        onClose={() => setExportSuccess(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MuiAlert
+          onClose={() => setExportSuccess(false)}
+          severity="success"
+          sx={{ width: "100%" }}
+          elevation={6}
+        >
+          Orders exported successfully! 📊
         </MuiAlert>
       </Snackbar>
     </Box>

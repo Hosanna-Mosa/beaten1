@@ -25,6 +25,7 @@ import AdminForm from "../components/AdminForm";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import InvoiceTemplate from "../components/InvoiceTemplate";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 // Import any admin UI components as needed (e.g., AdminCard, AdminTable, AdminButton, etc.)
 const BASE_URL = "http://localhost:8000";
 function Analytics() {
@@ -36,6 +37,10 @@ function Analytics() {
   const [filterDays, setFilterDays] = useState(0); // For filter input
   const [filteredSubs, setFilteredSubs] = useState([]); // For filtered subscriptions
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' or 'desc'
+
+  // Monthly sales filter state
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Dummy Add Member dialog state
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -137,7 +142,7 @@ function Analytics() {
 
   // Map orders to your table format
   const gstTable = orders.map((order) => ({
-    id: order._id,
+    id: order.orderId || order._id, // Use custom orderId if available, fallback to _id
     date: new Date(order.createdAt).toLocaleDateString(),
     customer: order.user?.name || "N/A",
     product: order.orderItems.map((i) => i.name).join(", "),
@@ -187,10 +192,12 @@ function Analytics() {
       }))
     );
 
-  // Calculate current month and year for filtering
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
+  // Use selected month and year for filtering
+  const selectedMonthName = new Date(
+    selectedYear,
+    selectedMonth
+  ).toLocaleString("default", { month: "long" });
+  const lastDayOfMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
   // Function to calculate GST based on state
   const calculateGST = (gstAmount, state) => {
@@ -218,7 +225,11 @@ function Analytics() {
   const monthlySales = orders
     .filter((order) => {
       const d = new Date(order.createdAt);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      return (
+        d.getMonth() === selectedMonth &&
+        d.getFullYear() === selectedYear &&
+        order.status === "delivered"
+      );
     })
     .map((order) => {
       // Calculate total amounts for the entire order
@@ -247,7 +258,8 @@ function Analytics() {
           : firstItem.name;
 
       return {
-        id: order._id, // Order ID
+        id: order.orderId || order._id, // Use custom orderId if available, fallback to _id
+        invoiceId: order.invoiceId, // Invoice ID from database
         name: order.user?.name || "N/A",
         type: order.user?.type || "Normal",
         date: new Date(order.createdAt).toLocaleDateString(),
@@ -504,6 +516,433 @@ function Analytics() {
     }
   };
 
+  // Function to download monthly sales report as PDF
+  const handleDownloadMonthlySalesReport = async () => {
+    try {
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 40;
+      const tableWidth = pageWidth - margin * 2;
+      // Define custom column widths for better text fitting
+      const colWidths = [
+        tableWidth * 0.11, // Order ID
+        tableWidth * 0.11, // Invoice ID
+        tableWidth * 0.13, // Customer Name
+        tableWidth * 0.08, // User Type
+        tableWidth * 0.11, // Date of Purchase
+        tableWidth * 0.11, // Amount (Excl. GST)
+        tableWidth * 0.11, // Total Amount (Incl. GST)
+        tableWidth * 0.14, // Payment Method
+      ];
+
+      // Header
+      pdf.setFontSize(20);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Monthly Sales Report", pageWidth / 2, margin, {
+        align: "center",
+      });
+
+      // Subtitle with month and year
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(
+        `${selectedMonthName} ${selectedYear}`,
+        pageWidth / 2,
+        margin + 30,
+        { align: "center" }
+      );
+
+      // Date range
+      pdf.setFontSize(12);
+      pdf.text(
+        `Period: ${selectedMonthName} 1, ${selectedYear} → ${selectedMonthName} ${lastDayOfMonth}, ${selectedYear}`,
+        margin,
+        margin + 50
+      );
+
+      // Table headers
+      const headers = [
+        "Order ID",
+        "Invoice ID",
+        "Customer Name",
+        "User Type",
+        "Date of Purchase",
+        "Amount (Excl. GST)",
+        "Total Amount (Incl. GST)",
+        "Payment Method",
+      ];
+
+      let yPosition = margin + 80;
+
+      // Draw table header
+      pdf.setFillColor(247, 248, 250);
+      pdf.rect(margin, yPosition - 20, tableWidth, 25, "F");
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      let headerX = margin;
+      headers.forEach((header, index) => {
+        // Truncate long headers to fit in column
+        let displayText = header;
+        if (header === "Payment Method") {
+          displayText = "Payment";
+        } else if (header === "Amount (Excl. GST)") {
+          displayText = "Amount (Excl)";
+        } else if (header === "Total Amount (Incl. GST)") {
+          displayText = "Total (Incl)";
+        }
+        pdf.text(displayText, headerX + 5, yPosition - 5);
+        headerX += colWidths[index];
+      });
+
+      yPosition += 10;
+
+      // Draw table rows
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+
+      monthlySales.forEach((row, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 100) {
+          pdf.addPage();
+          yPosition = margin + 80;
+
+          // Redraw header on new page
+          pdf.setFillColor(247, 248, 250);
+          pdf.rect(margin, yPosition - 20, tableWidth, 25, "F");
+          pdf.setFontSize(9);
+          pdf.setFont("helvetica", "bold");
+          let newPageHeaderX = margin;
+          headers.forEach((header, headerIndex) => {
+            // Truncate long headers to fit in column
+            let displayText = header;
+            if (header === "Payment Method") {
+              displayText = "Payment";
+            } else if (header === "Amount (Excl. GST)") {
+              displayText = "Amount (Excl)";
+            } else if (header === "Total Amount (Incl. GST)") {
+              displayText = "Total (Incl)";
+            }
+            pdf.text(displayText, newPageHeaderX + 5, yPosition - 5);
+            newPageHeaderX += colWidths[headerIndex];
+          });
+          yPosition += 10;
+        }
+
+        const rowData = [
+          row.id || "N/A",
+          row.invoiceId || "N/A",
+          row.name || "N/A",
+          row.type || "Normal",
+          row.date || "N/A",
+          `Rs. ${row.amount?.toLocaleString() || "0"}`,
+          `Rs. ${row.total?.toLocaleString() || "0"}`,
+          row.paymentMethod || "ONLINE",
+        ];
+
+        // Draw row background (alternating colors)
+        if (index % 2 === 0) {
+          pdf.setFillColor(255, 255, 255);
+        } else {
+          pdf.setFillColor(248, 250, 252);
+        }
+        pdf.rect(margin, yPosition - 15, tableWidth, 20, "F");
+
+        // Draw row data
+        let rowX = margin;
+        rowData.forEach((cell, cellIndex) => {
+          pdf.text(cell, rowX + 5, yPosition);
+          rowX += colWidths[cellIndex];
+        });
+
+        yPosition += 25;
+      });
+
+      // Draw totals row
+      yPosition += 10;
+      pdf.setFillColor(37, 99, 235);
+      pdf.rect(margin, yPosition - 15, tableWidth, 25, "F");
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+
+      const totalsData = [
+        `Total Orders: ${totalOrdersMonth}`,
+        "",
+        "",
+        "",
+        "",
+        `Rs. ${totalSalesMonthExclGst.toLocaleString()}`,
+        `Rs. ${totalSalesMonthInclGst.toLocaleString()}`,
+        "",
+      ];
+
+      let totalsX = margin;
+      totalsData.forEach((cell, cellIndex) => {
+        pdf.text(cell, totalsX + 5, yPosition);
+        totalsX += colWidths[cellIndex];
+      });
+
+      // Reset text color
+      pdf.setTextColor(0, 0, 0);
+
+      // Summary section
+      yPosition += 50;
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Summary:", margin, yPosition);
+
+      yPosition += 20;
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`• Total Orders: ${totalOrdersMonth}`, margin, yPosition);
+      yPosition += 15;
+      pdf.text(
+        `• Total Sales (Incl. GST): Rs. ${totalSalesMonthInclGst.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+      yPosition += 15;
+      pdf.text(
+        `• Total GST Collected: Rs. ${totalGstMonth.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+      yPosition += 15;
+      pdf.text(
+        `• Total Sales (Excl. GST): Rs. ${totalSalesMonthExclGst.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+
+      // Footer
+      pdf.setFontSize(8);
+      pdf.text(
+        `Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+        margin,
+        pageHeight - 20
+      );
+
+      pdf.save(
+        `monthly-sales-report-${selectedMonthName.toLowerCase()}-${selectedYear}.pdf`
+      );
+    } catch (error) {
+      console.error("Error generating monthly sales PDF:", error);
+      alert("Error generating PDF. Please try again.");
+    }
+  };
+
+  // Function to download today's sales report as PDF
+  const handleDownloadTodaySalesReport = async () => {
+    try {
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 40;
+      const tableWidth = pageWidth - margin * 2;
+      // Define custom column widths for today's sales (7 columns, no invoice ID)
+      const colWidths = [
+        tableWidth * 0.12, // User Type
+        tableWidth * 0.12, // Date of Purchase
+        tableWidth * 0.12, // Order ID
+        tableWidth * 0.18, // Product(s)
+        tableWidth * 0.12, // Amount (Excl. GST)
+        tableWidth * 0.12, // GST
+        tableWidth * 0.12, // Total Amount
+      ];
+
+      // Header
+      pdf.setFontSize(20);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Today's Sales Report", pageWidth / 2, margin, {
+        align: "center",
+      });
+
+      // Subtitle with today's date
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(todayStr, pageWidth / 2, margin + 30, { align: "center" });
+
+      // Date range
+      pdf.setFontSize(12);
+      pdf.text(`Period: ${todayStr}`, margin, margin + 50);
+
+      // Table headers
+      const headers = [
+        "User Type",
+        "Date of Purchase",
+        "Order ID",
+        "Product(s)",
+        "Amount (Excl. GST)",
+        "GST",
+        "Total Amount",
+      ];
+
+      let yPosition = margin + 80;
+
+      // Draw table header
+      pdf.setFillColor(247, 248, 250);
+      pdf.rect(margin, yPosition - 20, tableWidth, 25, "F");
+
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "bold");
+      let headerX = margin;
+      headers.forEach((header, index) => {
+        // Truncate long headers to fit in column
+        let displayText = header;
+        if (header === "Amount (Excl. GST)") {
+          displayText = "Amount (Excl)";
+        } else if (header === "Total Amount") {
+          displayText = "Total";
+        }
+        pdf.text(displayText, headerX + 5, yPosition - 5);
+        headerX += colWidths[index];
+      });
+
+      yPosition += 10;
+
+      // Draw table rows
+      pdf.setFontSize(9);
+      pdf.setFont("helvetica", "normal");
+
+      todaySales.forEach((row, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 100) {
+          pdf.addPage();
+          yPosition = margin + 80;
+
+          // Redraw header on new page
+          pdf.setFillColor(247, 248, 250);
+          pdf.rect(margin, yPosition - 20, tableWidth, 25, "F");
+          pdf.setFontSize(9);
+          pdf.setFont("helvetica", "bold");
+          let newPageHeaderX = margin;
+          headers.forEach((header, headerIndex) => {
+            // Truncate long headers to fit in column
+            let displayText = header;
+            if (header === "Amount (Excl. GST)") {
+              displayText = "Amount (Excl)";
+            } else if (header === "Total Amount") {
+              displayText = "Total";
+            }
+            pdf.text(displayText, newPageHeaderX + 5, yPosition - 5);
+            newPageHeaderX += colWidths[headerIndex];
+          });
+          yPosition += 10;
+        }
+
+        const rowData = [
+          row.user || "N/A",
+          row.date || "N/A",
+          row.id || "N/A",
+          row.product || "N/A",
+          `Rs. ${row.amount?.toLocaleString() || "0"}`,
+          `Rs. ${row.gst?.toLocaleString() || "0"}`,
+          `Rs. ${row.total?.toLocaleString() || "0"}`,
+        ];
+
+        // Draw row background (alternating colors)
+        if (index % 2 === 0) {
+          pdf.setFillColor(255, 255, 255);
+        } else {
+          pdf.setFillColor(248, 250, 252);
+        }
+        pdf.rect(margin, yPosition - 15, tableWidth, 20, "F");
+
+        // Draw row data
+        let rowX = margin;
+        rowData.forEach((cell, cellIndex) => {
+          pdf.text(cell, rowX + 5, yPosition);
+          rowX += colWidths[cellIndex];
+        });
+
+        yPosition += 25;
+      });
+
+      // Draw totals row
+      yPosition += 10;
+      pdf.setFillColor(37, 99, 235);
+      pdf.rect(margin, yPosition - 15, tableWidth, 25, "F");
+
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(255, 255, 255);
+
+      const totalsData = [
+        `Total Orders: ${totalOrdersToday}`,
+        "",
+        "",
+        "",
+        `Rs. ${totalSalesTodayExclGst.toLocaleString()}`,
+        `Rs. ${totalGstToday.toLocaleString()}`,
+        `Rs. ${totalSalesTodayInclGst.toLocaleString()}`,
+      ];
+
+      let totalsX = margin;
+      totalsData.forEach((cell, cellIndex) => {
+        pdf.text(cell, totalsX + 5, yPosition);
+        totalsX += colWidths[cellIndex];
+      });
+
+      // Reset text color
+      pdf.setTextColor(0, 0, 0);
+
+      // Summary section
+      yPosition += 50;
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Summary:", margin, yPosition);
+
+      yPosition += 20;
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`• Total Orders Today: ${totalOrdersToday}`, margin, yPosition);
+      yPosition += 15;
+      pdf.text(
+        `• Total Sales (Incl. GST): Rs. ${totalSalesTodayInclGst.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+      yPosition += 15;
+      pdf.text(
+        `• Total GST Collected: Rs. ${totalGstToday.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+      yPosition += 15;
+      pdf.text(
+        `• Total Sales (Excl. GST): Rs. ${totalSalesTodayExclGst.toLocaleString()}`,
+        margin,
+        yPosition
+      );
+
+      // Footer
+      pdf.setFontSize(8);
+      pdf.text(
+        `Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
+        margin,
+        pageHeight - 20
+      );
+
+      pdf.save(`today-sales-report-${todayStr.replace(/\//g, "-")}.pdf`);
+    } catch (error) {
+      console.error("Error generating today's sales PDF:", error);
+      alert("Error generating PDF. Please try again.");
+    }
+  };
+
   // Test function to verify API data structure
   const testAPIData = () => {
     console.log("=== API Data Test ===");
@@ -571,6 +1010,41 @@ function Analytics() {
     }
   }, [location.search, orders, subscriptions]);
 
+  // Add this handler inside the Analytics component
+  const handleDeleteSubscription = async (sub) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the subscription for ${
+          sub.name || sub.user?.name || sub.email
+        }?`
+      )
+    )
+      return;
+    try {
+      const res = await axios.delete(
+        `${BASE_URL}/api/orders/subscription/${sub.email}`,
+        {
+          headers: {
+            // Add your auth headers if needed
+          },
+        }
+      );
+      alert(res.data.message || "Subscription deleted!");
+      // Refresh the subscription list
+      const subsResponse = await axios.get(
+        `${BASE_URL}/api/admin/dashboard/subscription-list`
+      );
+      if (subsResponse.data.success) {
+        setSubscriptions(subsResponse.data.data || []);
+      }
+    } catch (error) {
+      alert(
+        error.response?.data?.message ||
+          "Failed to delete subscription. Please try again."
+      );
+    }
+  };
+
   return (
     <div
       style={{ background: "#f5f6fa", minHeight: "100vh", padding: "40px 0" }}
@@ -621,7 +1095,7 @@ function Analytics() {
           </ResponsiveContainer>
         </div>
         {/* Date range and download */}
-        <div
+        {/* <div
           style={{ display: "flex", alignItems: "center", marginBottom: 20 }}
         >
           <input
@@ -652,7 +1126,7 @@ function Analytics() {
             Download GST Report
           </button>
           <span style={{ color: "#888", fontWeight: 500 }}>CSV | PDF</span>
-        </div>
+        </div> */}
         {/* Table */}
         <div style={{ overflowX: "auto" }}>
           {loading ? (
@@ -709,7 +1183,9 @@ function Analytics() {
             marginBottom: 12,
           }}
         >
-          <button style={buttonStyle}>Download Today's Sales Report</button>
+          <button style={buttonStyle} onClick={handleDownloadTodaySalesReport}>
+            Download Today's Sales Report
+          </button>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
@@ -765,7 +1241,9 @@ function Analytics() {
 
       {/* Monthly Sales Section */}
       <section id="monthly-sales" style={cardStyle}>
-        <div style={sectionTitleStyle}>Monthly Sales</div>
+        <div style={sectionTitleStyle}>
+          Monthly Sales (Delivered Orders Only)
+        </div>
         <div
           style={{
             display: "flex",
@@ -773,19 +1251,96 @@ function Analytics() {
             marginBottom: 12,
           }}
         >
-          <button style={buttonStyle}>Download Monthly Sales Report</button>
+          <button
+            style={buttonStyle}
+            onClick={handleDownloadMonthlySalesReport}
+          >
+            Download Monthly Sales Report
+          </button>
         </div>
         <div
           style={{
-            color: "#555",
-            fontWeight: 500,
-            marginBottom: 10,
-            fontSize: 15,
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginBottom: 20,
+            flexWrap: "wrap",
           }}
         >
-          {now.toLocaleString("default", { month: "long" })} 1, {currentYear} →{" "}
-          {now.toLocaleString("default", { month: "long" })}{" "}
-          {new Date(currentYear, currentMonth + 1, 0).getDate()}, {currentYear}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <label style={{ fontWeight: 600, fontSize: 15 }}>Month:</label>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 6,
+                border: "1px solid #e5e7eb",
+                background: "#f7f8fa",
+                fontWeight: 600,
+                minWidth: 120,
+              }}
+            >
+              <option value={0}>January</option>
+              <option value={1}>February</option>
+              <option value={2}>March</option>
+              <option value={3}>April</option>
+              <option value={4}>May</option>
+              <option value={5}>June</option>
+              <option value={6}>July</option>
+              <option value={7}>August</option>
+              <option value={8}>September</option>
+              <option value={9}>October</option>
+              <option value={10}>November</option>
+              <option value={11}>December</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <label style={{ fontWeight: 600, fontSize: 15 }}>Year:</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              style={{
+                padding: "8px 12px",
+                borderRadius: 6,
+                border: "1px solid #e5e7eb",
+                background: "#f7f8fa",
+                fontWeight: 600,
+                minWidth: 100,
+              }}
+            >
+              {Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - 5 + i;
+                return (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div
+            style={{
+              color: "#555",
+              fontWeight: 500,
+              fontSize: 15,
+              marginLeft: 16,
+            }}
+          >
+            {selectedMonthName} 1, {selectedYear} → {selectedMonthName}{" "}
+            {lastDayOfMonth}, {selectedYear}
+          </div>
+        </div>
+        <div
+          style={{
+            color: "#2563eb",
+            fontWeight: 600,
+            fontSize: 14,
+            marginBottom: 16,
+            fontStyle: "italic",
+          }}
+        >
+          Showing only delivered orders
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
@@ -926,13 +1481,14 @@ function Analytics() {
                   <th style={thStyle}>Subscription End</th>
                   <th style={thStyle}>Days Left</th>
                   <th style={thStyle}></th>
+                  <th style={thStyle}></th> {/* New column for delete icon */}
                 </tr>
               </thead>
               <tbody>
                 {filteredSubs.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       style={{ ...tdStyle, textAlign: "center", color: "#888" }}
                     >
                       No subscriptions found.
@@ -979,10 +1535,29 @@ function Analytics() {
                             justifyContent: "center",
                           }}
                           onClick={() => handleSendReminder(sub)}
+                          title="Send Reminder"
                         >
                           <span role="img" aria-label="remind">
                             ✉️
                           </span>
+                        </button>
+                      </td>
+                      <td style={tdStyle}>
+                        <button
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 20,
+                            color: "#e53e3e",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                          onClick={() => handleDeleteSubscription(sub)}
+                          title="Delete Subscription"
+                        >
+                          <DeleteOutlineIcon />
                         </button>
                       </td>
                     </tr>
@@ -1095,80 +1670,8 @@ function Analytics() {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* TEMP: Render invoice template visibly for debugging */}
-      <div style={{ margin: 40 }}>
-        {currentOrderData && (
-          <InvoiceTemplate
-            ref={invoiceRef}
-            customerName={
-              currentOrderData?.shippingAddress?.name ||
-              currentOrderData?.name ||
-              "D srinivasu"
-            }
-            customerAddress={
-              currentOrderData?.shippingAddress?.address ||
-              "Plot NO 91, Block B"
-            }
-            customerAddress2={
-              currentOrderData?.shippingAddress?.city || "Rajhmundry"
-            }
-            customerAddress3={
-              currentOrderData?.shippingAddress?.state || "Andhra Pradesh"
-            }
-            customerPin={
-              currentOrderData?.shippingAddress?.postalCode || "533125"
-            }
-            customerMobile={
-              currentOrderData?.shippingAddress?.phone || "+91 9966111648"
-            }
-            orderNumber={currentOrderData?.id || "ORD-001"}
-            orderDate={currentOrderData?.date || "01-01-2025"}
-            paymentMethod={currentOrderData?.paymentMethod || "ONLINE"}
-            awbNumber={currentOrderData?.awbNumber || "AWB-000000000000000"}
-            productName={
-              currentOrderData?.product || "Beaten Oversized T-Shirt"
-            }
-            productSku={currentOrderData?.sku || "BT-TS BLK-OS-L"}
-            productHsn={currentOrderData?.hsn || "6109"}
-            productQuantity={currentOrderData?.quantity || "1"}
-            productRate={
-              currentOrderData?.price ? `₹${currentOrderData.price}` : "₹1189"
-            }
-            productAmount={
-              currentOrderData?.amount
-                ? `₹${currentOrderData.amount}`
-                : "₹11.89"
-            }
-            productTotal={
-              currentOrderData?.total ? `₹${currentOrderData.total}` : "₹1199"
-            }
-            cgstAmount={
-              currentOrderData?.cgst
-                ? `₹${currentOrderData.cgst.toFixed(2)}`
-                : "₹0"
-            }
-            sgstAmount={
-              currentOrderData?.sgst
-                ? `₹${currentOrderData.sgst.toFixed(2)}`
-                : "₹0"
-            }
-            igstAmount={
-              currentOrderData?.igst
-                ? `₹${currentOrderData.igst.toFixed(2)}`
-                : "₹0"
-            }
-            totalAmountExclGst={
-              currentOrderData?.amount ? `₹${currentOrderData.amount}` : "₹1342"
-            }
-            totalAmountInclGst={
-              currentOrderData?.total ? `₹${currentOrderData.total}` : "₹1343"
-            }
-            orderItems={currentOrderData?.orderItems || []}
-          />
-        )}
-      </div>
-      {/* Render the invoice template in a hidden div for PDF generation */}
-      {/* <div
+      {/* Hidden invoice template for PDF generation */}
+      <div
         style={{
           position: "absolute",
           left: -9999,
@@ -1180,7 +1683,7 @@ function Analytics() {
         }}
       >
         <InvoiceTemplate ref={invoiceRef} />
-      </div> */}
+      </div>
     </div>
   );
 }
