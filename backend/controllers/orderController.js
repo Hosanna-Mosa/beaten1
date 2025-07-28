@@ -1,5 +1,6 @@
 const Address = require("../models/Address");
 const Order = require("../models/Order");
+const User = require("../models/User");
 const { STATUS_CODES } = require("../utils/constants");
 const {
   sendOrderStatusEmail,
@@ -542,6 +543,86 @@ const cancelOrder = async (req, res) => {
   }
 };
 
+// @desc    Delete subscription by email (admin only)
+// @route   DELETE /api/orders/subscription/:email
+// @access  Private (Admin)
+const deleteSubscriptionByEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+
+    if (!email) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    // Find the user
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(STATUS_CODES.NOT_FOUND).json({
+        success: false,
+        message: `User with email ${email} not found`,
+      });
+    }
+
+    if (!user.subscription || !user.subscription.isSubscribed) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: `User ${user.name} (${email}) does not have an active subscription`,
+      });
+    }
+
+    // Store user info for response
+    const userName = user.name;
+    const subscriptionType = user.subscription.subscriptionType;
+    const subscriptionExpiry = user.subscription.subscriptionExpiry;
+
+    // Reset subscription fields to default values
+    user.subscription = {
+      isSubscribed: false,
+      subscriptionCost: 0,
+      subscriptionDate: null,
+      subscriptionExpiry: null,
+      subscriptionType: "",
+      discountsUsed: 0,
+      lastDiscountUsed: null,
+    };
+
+    await user.save();
+
+    // Send admin notification for subscription deletion
+    await sendAdminOrderStatusNotification({
+      orderId: "SUBSCRIPTION_DELETION",
+      userName: userName,
+      userEmail: email,
+      oldStatus: "active",
+      newStatus: "deleted",
+      additionalInfo: `Subscription deleted: ${subscriptionType} - was expiring ${subscriptionExpiry}`,
+    });
+
+    res.status(STATUS_CODES.OK).json({
+      success: true,
+      message: `Successfully removed subscription from ${userName} (${email})`,
+      data: {
+        userName,
+        userEmail: email,
+        deletedSubscription: {
+          type: subscriptionType,
+          expiry: subscriptionExpiry,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting subscription:", error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: error.message || "Failed to delete subscription",
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrders,
@@ -550,4 +631,5 @@ module.exports = {
   updateOrderStatus,
   getMyOrderById,
   cancelOrder,
+  deleteSubscriptionByEmail,
 };

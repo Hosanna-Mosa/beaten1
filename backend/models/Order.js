@@ -17,6 +17,20 @@ const orderItemSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema(
   {
+    orderId: {
+      type: String,
+      unique: true,
+      required: true,
+      default: function () {
+        // Generate 12-character order ID: ORD + 9 random alphanumeric characters
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "ORD";
+        for (let i = 0; i < 9; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      },
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -35,6 +49,18 @@ const orderSchema = new mongoose.Schema(
       originalPrice: { type: Number }, // Store original price before discounts
     },
     totalPrice: { type: Number, required: true },
+    invoiceId: {
+      type: String,
+      unique: true,
+      default: function () {
+        // Generate invoice ID: INV-{timestamp}-{random}
+        const timestamp = Date.now().toString().slice(-8);
+        const random = Math.floor(Math.random() * 1000)
+          .toString()
+          .padStart(3, "0");
+        return `INV-${timestamp}-${random}`;
+      },
+    },
     coupon: {
       code: { type: String },
       discountType: { type: String, enum: ["percentage", "flat"] },

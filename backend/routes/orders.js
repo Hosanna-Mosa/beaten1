@@ -8,6 +8,7 @@ const {
   updateOrderStatus,
   getMyOrderById,
   cancelOrder,
+  deleteSubscriptionByEmail,
 } = require("../controllers/orderController");
 const { protect, protectAdmin } = require("../middleware/auth");
 
@@ -33,5 +34,13 @@ router.put("/:id/cancel", protect, cancelOrder);
 
 // User: Get order by ID (only their own order)
 router.get("/my/:id", protect, getMyOrderById);
+
+// Admin: Delete subscription by email
+router.delete(
+  "/subscription/:email",
+  // protect,
+  // protectAdmin,
+  deleteSubscriptionByEmail
+);
 
 module.exports = router;
